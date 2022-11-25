@@ -1,138 +1,194 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/manifoldco/promptui"
+	promptlist "github.com/manifoldco/promptui/list"
+	log "github.com/obalunenko/logger"
+	"github.com/urfave/cli/v2"
+
+	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
 func main() {
 	// TODO:
-	// 	- get currency rates for date
-	// 	- calc sum in gel for date rates
 	// 	- get sum of taxes
+	//  - read date input
+	// 	- read amount input
+	ctx := context.Background()
 
-	resp, err := getCurrencyRatesByDate(time.Now(), currCodeEUR, currCodeUSD)
+	ctx = log.ContextWithLogger(ctx, log.FromContext(ctx))
+
+	date := time.Now()
+
+	result, err := convert(ctx, convertParams{
+		date:   date,
+		code:   currencies.EUR,
+		amount: 2800.28,
+	})
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(ctx, err).Fatal("Failed to convert")
 	}
 
-	b, err := json.MarshalIndent(&resp, " ", " ")
-	if err != nil {
-		log.Fatal(err)
+	fmt.Println(result)
+}
+
+func onExit(_ context.Context) cli.AfterFunc {
+	return func(c *cli.Context) error {
+		fmt.Println("Exit...")
+
+		return nil
 	}
-
-	fmt.Println(string(b))
 }
 
-type Rates []RatesResponse
+func makeMenuItemsList(list []string, commands ...string) []string {
+	items := make([]string, 0, len(list)+len(commands))
 
-func UnmarshalRates(data []byte) (Rates, error) {
-	var r Rates
+	items = append(items, list...)
 
-	err := json.Unmarshal(data, &r)
+	items = append(items, commands...)
 
-	return r, err
-}
-
-func (r *Rates) Marshal() ([]byte, error) {
-	return json.Marshal(r)
-}
-
-type RatesResponse struct {
-	Date       string     `json:"date"`
-	Currencies []Currency `json:"currencies"`
-}
-
-type Currency struct {
-	Code          string  `json:"code"`
-	Quantity      int64   `json:"quantity"`
-	RateFormated  string  `json:"rateFormated"`
-	DiffFormated  string  `json:"diffFormated"`
-	Rate          float64 `json:"rate"`
-	Name          string  `json:"name"`
-	Diff          float64 `json:"diff"`
-	Date          string  `json:"date"`
-	ValidFromDate string  `json:"validFromDate"`
-}
-
-type currCode string
-
-func (c currCode) String() string {
-	return string(c)
+	return items
 }
 
 const (
-	currCodeUSD = "usd"
-	currCodeEUR = "eur"
-	currCodeGBP = "gbp"
-	currCodeBYN = "byn"
+	exit     = "exit"
+	abort    = "abort"
+	back     = "back"
+	pageSize = 30
 )
 
-func getCurrencyRatesByDate(date time.Time, codes ...currCode) (Rates, error) {
-	const (
-		basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
-		currenciesParam = "currencies"
-		dateParam       = "date"
-		dateLayout      = "2006-01-02"
-	)
-
-	u, err := url.Parse(basePath)
-	if err != nil {
-		return nil, err
-	}
-
-	q := u.Query()
-
-	if len(codes) < 1 {
-		return nil, fmt.Errorf("at least one currency code should be passed")
-	}
-
-	for i := range codes {
-		q.Add(currenciesParam, codes[i].String())
-	}
-
-	q.Add(dateParam, date.Format(dateLayout))
-	u.RawQuery = q.Encode()
-
-	method := http.MethodGet
-
-	req, err := http.NewRequest(method, u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	client := http.DefaultClient
-
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(string(body))
-
-	resp, err := UnmarshalRates(body)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+func isExit(in string) bool {
+	return strings.EqualFold(exit, in)
 }
 
-// The reason it works is that we generate a date one month on from the target one (m+1), but set the day of month to 0.
-// Days are 1-indexed, so this has the effect of rolling back one day to the last day of the previous month
-// (our target month of m). Calling Day() then procures the number we want.
-func daysIn(m time.Month, year int) int {
-	return time.Date(year, m+1, 0, 0, 0, 0, 0, time.UTC).Day()
+func isAbort(err error) bool {
+	return strings.HasSuffix(err.Error(), abort)
+}
+
+func isBack(in string) bool {
+	return strings.EqualFold(back, in)
+}
+
+func menu(ctx context.Context) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		years := getYears(time.Now())
+
+		items := makeMenuItemsList(years, exit)
+
+		prompt := promptui.Select{
+			Label:             "Years menu (exit' for exit)",
+			Items:             items,
+			Size:              pageSize,
+			CursorPos:         0,
+			IsVimMode:         false,
+			HideHelp:          false,
+			HideSelected:      false,
+			Templates:         nil,
+			Keys:              nil,
+			Searcher:          searcher(items),
+			StartInSearchMode: false,
+			Pointer:           promptui.DefaultCursor,
+			Stdin:             nil,
+			Stdout:            nil,
+		}
+
+		return handleYearChoices(ctx, prompt)
+	}
+}
+
+func handleYearChoices(ctx context.Context, opt promptui.Select) error {
+	for {
+		_, choice, err := opt.Run()
+		if err != nil {
+			if isAbort(err) {
+				return nil
+			}
+
+			return fmt.Errorf("prompt failed: %w", err)
+		}
+
+		if isExit(choice) {
+			return nil
+		}
+
+		err = menuMonth(ctx, choice)
+		if err != nil {
+			if errors.Is(err, errExit) {
+				return nil
+			}
+
+			log.WithError(ctx, err).Error("Puzzle menu failed")
+
+			continue
+		}
+	}
+}
+
+var errExit = errors.New(exit)
+
+func menuMonth(ctx context.Context, year string) error {
+	return nil
+}
+
+func searcher(items []string) promptlist.Searcher {
+	return func(input string, index int) bool {
+		itm := items[index]
+
+		itm = strings.ReplaceAll(strings.ToLower(itm), " ", "")
+
+		input = strings.ReplaceAll(strings.ToLower(input), " ", "")
+
+		return strings.Contains(itm, input)
+	}
+}
+
+func getYears(now time.Time) []string {
+	var years []string
+
+	const begin = 2016
+
+	for i := begin; i < now.Year(); i++ {
+		years = append(years, strconv.Itoa(i))
+	}
+
+	return years
+}
+
+func getMonths() []string {
+	months := make([]string, 0, 12)
+
+	for i := time.January; i < time.December; i++ {
+		months = append(months, i.String())
+	}
+
+	return months
+}
+
+type convertParams struct {
+	date   time.Time
+	code   string
+	amount float64
+}
+
+func convert(ctx context.Context, p convertParams) (string, error) {
+	client := nbggovge.New()
+
+	c := converter.NewConverter(client)
+
+	resp, err := c.ConvertToGel(ctx, p.amount, p.code, p.date)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.String(), nil
+
 }
