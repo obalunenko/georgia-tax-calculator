@@ -1,4 +1,4 @@
-NAME=georgia-tax-calculator
+NAME=ge-tax-calc
 BIN_DIR=./bin
 
 SHELL := env VERSION=$(VERSION) $(SHELL)
@@ -25,13 +25,13 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 ## Build project.
-build: compile-aoc-cli
+build: compile-app
 .PHONY: build
 
-## Compile aoc-cli.
-compile-aoc-cli:
-	./scripts/build/aoc-cli.sh
-.PHONY: compile-spamassassin-parser-be
+## Compile app.
+compile-app:
+	./scripts/build/app.sh
+.PHONY: compile-app
 
 ## Test coverage report.
 test-cover:

@@ -13,6 +13,6 @@ echo "${SCRIPT_NAME} is running... "
 
 checkInstalled 'goimports'
 
-goimports -local=github.com/obalunenko/advent-of-code/ -w $(find . -type f -name "*.go" | grep -v "vendor/" | grep -v ".git")
+goimports -local=$(go list -m) -w $(find . -type f -name "*.go" | grep -v "vendor/" | grep -v ".git")
 
 echo "${SCRIPT_NAME} done."
