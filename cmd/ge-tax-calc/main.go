@@ -10,11 +10,32 @@ import (
 	"time"
 )
 
+func main() {
+	// TODO:
+	// 	- get currency rates for date
+	// 	- calc sum in gel for date rates
+	// 	- get sum of taxes
+
+	resp, err := getCurrencyRatesByDate(time.Now(), currCodeEUR, currCodeUSD)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := json.MarshalIndent(&resp, " ", " ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(b))
+}
+
 type Rates []RatesResponse
 
-func UnmarshalExpired(data []byte) (Rates, error) {
+func UnmarshalRates(data []byte) (Rates, error) {
 	var r Rates
+
 	err := json.Unmarshal(data, &r)
+
 	return r, err
 }
 
@@ -39,69 +60,75 @@ type Currency struct {
 	ValidFromDate string  `json:"validFromDate"`
 }
 
-func main() {
-	// TODO:
-	// 	- get currency rates for date
-	// 	- calc sum in gel for date rates
-	// 	- get sum of taxes
-	fmt.Println("hello")
+type currCode string
 
+func (c currCode) String() string {
+	return string(c)
+}
+
+const (
+	currCodeUSD = "usd"
+	currCodeEUR = "eur"
+	currCodeGBP = "gbp"
+	currCodeBYN = "byn"
+)
+
+func getCurrencyRatesByDate(date time.Time, codes ...currCode) (Rates, error) {
 	const (
-		basePath   = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
-		currencies = "currencies"
-		eur        = "eur"
-		usd        = "usd"
-		gbp        = "gbp"
-		byn        = "byn"
-		date       = "date"
-		layout     = "2006-01-02"
+		basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
+		currenciesParam = "currencies"
+		dateParam       = "date"
+		dateLayout      = "2006-01-02"
 	)
+
 	u, err := url.Parse(basePath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	q := u.Query()
-	q.Add(currencies, eur)
-	q.Add(currencies, usd)
-	q.Add(currencies, gbp)
-	q.Add(currencies, byn)
-	q.Add(date, time.Now().Format(layout))
-	// q.Set(date, time.Now().AddDate(-5, 0, -15).Format(layout))
+
+	if len(codes) < 1 {
+		return nil, fmt.Errorf("at least one currency code should be passed")
+	}
+
+	for i := range codes {
+		q.Add(currenciesParam, codes[i].String())
+	}
+
+	q.Add(dateParam, date.Format(dateLayout))
 	u.RawQuery = q.Encode()
 
 	method := http.MethodGet
 
 	req, err := http.NewRequest(method, u.String(), nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	client := http.DefaultClient
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	fmt.Println(string(body))
 
-	resp, err := UnmarshalExpired(body)
+	resp, err := UnmarshalRates(body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	b, err := json.MarshalIndent(&resp, " ", " ")
-	if err != nil {
-		log.Fatal(err)
-	}
+	return resp, nil
+}
 
 	fmt.Println(string(b))
 }
