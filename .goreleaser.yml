@@ -24,7 +24,7 @@ before:
 
 builds:
   - id: cli
-    binary: aoc-cli
+    binary: ge-tax-calc
     goos:
       - linux
       - darwin
@@ -37,7 +37,7 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
-    main: ./cmd/aoc-cli
+    main: ./cmd/ge-tax-calc
     flags:
       - -trimpath
     ldflags:
@@ -55,7 +55,7 @@ universal_binaries:
     # You will want to change this if you have multiple builds!
     #
     # Defaults to '{{ .ProjectName }}'
-    name_template: 'aoc-cli'
+    name_template: 'ge-tax-calc'
 
     # Whether to remove the previous single-arch binaries from the artifact list.
     # If left as false, your end release might have both several macOS archives: amd64, arm64 and all.
