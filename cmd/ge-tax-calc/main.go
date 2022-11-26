@@ -21,8 +21,10 @@ import (
 
 func main() {
 	// TODO:
-	//  - read date input
-	// 	- read amount input
+	//  - read date input.
+	// 	- read amount input.
+	// 	- read currency input.
+	// 	- read tax type input.
 	ctx := context.Background()
 
 	ctx = log.ContextWithLogger(ctx, log.FromContext(ctx))
