@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shopspring/decimal"
-
+	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
@@ -41,7 +40,7 @@ func (c Converter) ConvertToGel(ctx context.Context, amount float64, from string
 	return c.Convert(ctx, amount, from, currencies.GEL, date)
 }
 
-// Convert converts amount from currency to by rates according to passed date.
+// Convert converts amount from currency to with rates according to passed date.
 func (c Converter) Convert(ctx context.Context, amount float64, from, to string, date time.Time) (Response, error) {
 	if from == "" {
 		return Response{}, fmt.Errorf("from: %w", ErrCurrencyNotSet)
@@ -66,9 +65,9 @@ func (c Converter) Convert(ctx context.Context, amount float64, from, to string,
 		return Response{}, err
 	}
 
-	fromingel := convert(decimal.NewFromFloat(amount), decimal.NewFromFloat(fromCurrency.Rate))
+	fromingel := convert(amount, fromCurrency.Rate)
 
-	tosum := convert(fromingel, decimal.NewFromFloat(1/toCurrency.Rate))
+	tosum := convert(fromingel, 1/toCurrency.Rate)
 
 	return Response{
 		Amount:   round(tosum, 2),
@@ -104,14 +103,10 @@ func (c Converter) getCurrencyRates(code string, rates nbggovge.RatesResponse) (
 	return currency, nil
 }
 
-func convert(amount, rate decimal.Decimal) decimal.Decimal {
-	res := amount.Mul(rate)
-
-	return res
+func convert(amount, rate float64) float64 {
+	return moneyutils.Multiply(amount, rate)
 }
 
-func round(amount decimal.Decimal, places int32) float64 {
-	rounded := amount.Round(places)
-
-	return rounded.InexactFloat64()
+func round(amount float64, places int32) float64 {
+	return moneyutils.Round(amount, places)
 }
