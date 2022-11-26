@@ -2,6 +2,7 @@ package converter
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -148,6 +149,143 @@ func TestResponse_String(t *testing.T) {
 			}
 
 			assert.Equalf(t, tt.want, r.String(), "String()")
+		})
+	}
+}
+
+func TestConverter_Convert(t *testing.T) {
+	ctx := context.Background()
+
+	type fields struct {
+		client nbggovge.Client
+	}
+	type args struct {
+		ctx    context.Context
+		amount float64
+		from   string
+		to     string
+		date   time.Time
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    Response
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "EUR - GEL",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   currencies.EUR,
+				to:     currencies.GEL,
+				date:   time.Now(),
+			},
+			want: Response{
+				Amount:   7557.54,
+				Currency: currencies.GEL,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "EUR - EUR",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   currencies.EUR,
+				to:     currencies.EUR,
+				date:   time.Now(),
+			},
+			want: Response{
+				Amount:   2678.27,
+				Currency: currencies.EUR,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "EUR - GBP",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   currencies.EUR,
+				to:     currencies.GBP,
+				date:   time.Now(),
+			},
+			want: Response{
+				Amount:   2299.50,
+				Currency: currencies.GBP,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "no from - error",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   "",
+				to:     currencies.GBP,
+				date:   time.Now(),
+			},
+			want:    Response{},
+			wantErr: assert.Error,
+		},
+		{
+			name: "no to - error",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   currencies.EUR,
+				to:     "",
+				date:   time.Now(),
+			},
+			want:    Response{},
+			wantErr: assert.Error,
+		},
+		{
+			name: "GEL - GEL",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx:    ctx,
+				amount: 2678.27,
+				from:   currencies.GEL,
+				to:     currencies.GEL,
+				date:   time.Now(),
+			},
+			want: Response{
+				Amount:   2678.27,
+				Currency: currencies.GEL,
+			},
+			wantErr: assert.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := Converter{
+				client: tt.fields.client,
+			}
+			got, err := c.Convert(tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)
+			if !tt.wantErr(t, err, fmt.Sprintf("Convert(%v, %v, %v, %v, %v)", tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "Convert(%v, %v, %v, %v, %v)", tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)
 		})
 	}
 }
