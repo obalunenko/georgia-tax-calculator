@@ -20,11 +20,14 @@ func (i TaxType) Valid() bool {
 const (
 	taxTypeUnknown TaxType = iota
 
+	// TaxTypeIndividualEntrepreneur is Individual Entrepreneur tax type.
 	TaxTypeIndividualEntrepreneur // Individual Entrepreneur
-	TaxTypeSmallBusiness          // Small Business
-	TaxTypeEmployment             // Employment
+	// TaxTypeSmallBusiness is Small Business tax type.
+	TaxTypeSmallBusiness // Small Business
+	// TaxTypeEmployment is Employment tax type.
+	TaxTypeEmployment // Employment
 
-	taxTypeSentinel
+	taxTypeSentinel // Should be always last - used as a border of valid values.
 )
 
 var (
