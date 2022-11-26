@@ -14,13 +14,13 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
+	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
 func main() {
 	// TODO:
-	// 	- get sum of taxes
 	//  - read date input
 	// 	- read amount input
 	ctx := context.Background()
@@ -32,11 +32,20 @@ func main() {
 	result, err := convert(ctx, convertParams{
 		date:   date,
 		code:   currencies.EUR,
-		amount: 2800.28,
+		amount: 2600.28,
 	})
 	if err != nil {
 		log.WithError(ctx, err).Fatal("Failed to convert")
 	}
+
+	tt := taxes.TaxTypeSmallBusiness
+
+	tax, err := taxes.Calc(result.Amount, tt)
+	if err != nil {
+		log.WithError(ctx, err).WithField("tax_type", tt).Fatal("Failed to calc taxes")
+	}
+
+	result.Amount = tax
 
 	fmt.Println(result)
 }
@@ -179,16 +188,16 @@ type convertParams struct {
 	amount float64
 }
 
-func convert(ctx context.Context, p convertParams) (string, error) {
+func convert(ctx context.Context, p convertParams) (converter.Response, error) {
 	client := nbggovge.New()
 
 	c := converter.NewConverter(client)
 
 	resp, err := c.ConvertToGel(ctx, p.amount, p.code, p.date)
 	if err != nil {
-		return "", err
+		return converter.Response{}, err
 	}
 
-	return resp.String(), nil
+	return resp, nil
 
 }
