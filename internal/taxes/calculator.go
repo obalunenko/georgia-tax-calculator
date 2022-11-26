@@ -27,7 +27,8 @@ const (
 	// TaxTypeEmployment is Employment tax type.
 	TaxTypeEmployment // Employment
 
-	taxTypeSentinel // Should be always last - used as a border of valid values.
+	// taxTypeSentinel should be always last - used as a border of valid values.
+	taxTypeSentinel
 )
 
 var (
