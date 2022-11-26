@@ -6,6 +6,7 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal"
 )
 
+// RatesOption represents optional pattern for nbgogvge rates client.
 type RatesOption interface {
 	Apply(params *internal.RatesParams)
 }
@@ -16,6 +17,7 @@ func (w withDate) Apply(p *internal.RatesParams) {
 	p.Date = time.Time(w)
 }
 
+// WithDate adds date to options.
 func WithDate(date time.Time) RatesOption {
 	return withDate(date)
 }
@@ -45,6 +47,7 @@ func (w withCurrency) Apply(p *internal.RatesParams) {
 	}
 }
 
+// WithCurrency adds currency code to options.
 func WithCurrency(code string) RatesOption {
 	return withCurrency(code)
 }

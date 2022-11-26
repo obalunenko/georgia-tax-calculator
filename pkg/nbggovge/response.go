@@ -6,14 +6,19 @@ import (
 	"strings"
 )
 
+// RatesResponse represents response.
 type RatesResponse []Rates
 
+// NilRatesResponse is a shortcut for empty RatesResponse.
 var NilRatesResponse = RatesResponse{}
 
 var (
+	// ErrCodeNotFound returned when specified code could not be found in set.
 	ErrCodeNotFound = errors.New("code not found in set")
 )
 
+// CurrencyByCode returns Currency from set by specified code.
+// When no currency in set - ErrCodeNotFound returned.
 func (r RatesResponse) CurrencyByCode(code string) (Currency, error) {
 	rates := r[0]
 
@@ -26,6 +31,7 @@ func (r RatesResponse) CurrencyByCode(code string) (Currency, error) {
 	return Currency{}, ErrCodeNotFound
 }
 
+// UnmarshalRatesResponse parses json to RatesResponse.
 func UnmarshalRatesResponse(data []byte) (RatesResponse, error) {
 	var r RatesResponse
 
@@ -38,11 +44,13 @@ func (r *Rates) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
+// Rates represents set of rates.
 type Rates struct {
 	Date       string     `json:"date"`
 	Currencies []Currency `json:"currencies"`
 }
 
+// Currency represents rates for one currency.
 type Currency struct {
 	Code          string  `json:"code"`
 	Quantity      int64   `json:"quantity"`

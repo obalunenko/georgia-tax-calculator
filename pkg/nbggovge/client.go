@@ -20,15 +20,17 @@ type Client interface {
 	Rates(ctx context.Context, opts ...option.RatesOption) (RatesResponse, error)
 }
 
+// HTTPClient is and interface for mocking sending http requests.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// New returns itunes nbg.gov.ge API client.
+// New returns nbg.gov.ge API client.
 func New() Client {
 	return NewWithHTTPClient(http.DefaultClient)
 }
 
+// NewWithHTTPClient returns nbg.gov.ge API client with specified http client.
 func NewWithHTTPClient(cli HTTPClient) Client {
 	return client{
 		HTTPClient: cli,
@@ -39,6 +41,8 @@ type client struct {
 	HTTPClient
 }
 
+// Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
+// By default, it fetches all currencies for today.
 func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesResponse, error) {
 	var (
 		params internal.RatesParams
