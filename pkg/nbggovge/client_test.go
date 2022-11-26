@@ -58,6 +58,7 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 	switch cur {
 	case NOTEXIST:
 		status := http.StatusNotFound
+
 		return &http.Response{
 			Status:           http.StatusText(status),
 			StatusCode:       status,
@@ -108,6 +109,7 @@ func TestClient_Rates(t *testing.T) {
 		ctx  context.Context
 		opts []option.RatesOption
 	}
+
 	tests := []struct {
 		name     string
 		fields   fields

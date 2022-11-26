@@ -46,6 +46,8 @@ var taxrates = map[TaxType]float64{
 
 // Calc returns sum of tax for income according to TaxType.
 func Calc(income float64, taxType TaxType) (float64, error) {
+	const roundPlaces int32 = 2
+
 	if !taxType.Valid() {
 		return 0, fmt.Errorf("%s: %w", taxType.String(), ErrTaxTypeNotSupported)
 	}
@@ -57,5 +59,5 @@ func Calc(income float64, taxType TaxType) (float64, error) {
 
 	sum := moneyutils.Multiply(income, tr)
 
-	return moneyutils.Round(sum, 2), nil
+	return moneyutils.Round(sum, roundPlaces), nil
 }

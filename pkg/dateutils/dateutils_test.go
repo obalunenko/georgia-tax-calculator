@@ -12,6 +12,7 @@ func TestDaysInMonth(t *testing.T) {
 		m    time.Month
 		year int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -50,6 +51,7 @@ func TestDaysInMonth(t *testing.T) {
 			want: 29,
 		},
 	}
+	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := DaysInMonth(tt.args.m, tt.args.year)

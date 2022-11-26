@@ -49,6 +49,7 @@ func TestConverter_ToGel(t *testing.T) {
 		from   string
 		date   time.Time
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -91,11 +92,13 @@ func TestConverter_ToGel(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Converter{
 				client: tt.fields.client,
 			}
+
 			got, err := c.ConvertToGel(tt.args.ctx, tt.args.amount, tt.args.from, tt.args.date)
 			if !tt.wantErr(t, err) {
 				return
@@ -111,6 +114,7 @@ func TestResponse_String(t *testing.T) {
 		Amount   float64
 		Currency string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -141,6 +145,7 @@ func TestResponse_String(t *testing.T) {
 			want: "25.21 GEL",
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := Response{
@@ -159,6 +164,7 @@ func TestConverter_Convert(t *testing.T) {
 	type fields struct {
 		client nbggovge.Client
 	}
+
 	type args struct {
 		ctx    context.Context
 		amount float64
@@ -166,6 +172,7 @@ func TestConverter_Convert(t *testing.T) {
 		to     string
 		date   time.Time
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -276,15 +283,18 @@ func TestConverter_Convert(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Converter{
 				client: tt.fields.client,
 			}
+
 			got, err := c.Convert(tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)
 			if !tt.wantErr(t, err, fmt.Sprintf("Convert(%v, %v, %v, %v, %v)", tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)) {
 				return
 			}
+
 			assert.Equalf(t, tt.want, got, "Convert(%v, %v, %v, %v, %v)", tt.args.ctx, tt.args.amount, tt.args.from, tt.args.to, tt.args.date)
 		})
 	}

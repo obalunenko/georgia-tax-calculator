@@ -13,6 +13,7 @@ func TestCalc(t *testing.T) {
 		income  float64
 		taxType TaxType
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -56,6 +57,7 @@ func TestCalc(t *testing.T) {
 			wantErr: assert.Error,
 		},
 	}
+	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Calc(tt.args.income, tt.args.taxType)

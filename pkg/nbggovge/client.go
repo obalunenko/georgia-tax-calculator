@@ -78,7 +78,7 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), http.NoBody)
 	if err != nil {
 		return NilRatesResponse, fmt.Errorf("create request: %w", err)
 	}
