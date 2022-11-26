@@ -7,6 +7,7 @@ import (
 	"github.com/briandowns/spinner"
 )
 
+// StopFunc is a spinner stop func.
 type StopFunc func()
 
 // Start runs the displaying of spinner to handle long time operations. Returns stop func.

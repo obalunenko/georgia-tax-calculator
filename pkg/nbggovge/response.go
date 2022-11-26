@@ -40,6 +40,7 @@ func UnmarshalRatesResponse(data []byte) (RatesResponse, error) {
 	return r, err
 }
 
+// Marshal marshals data from an Rates to bytes.
 func (r *Rates) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }

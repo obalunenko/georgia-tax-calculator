@@ -1,5 +1,6 @@
 package currencies
 
+// List of supported currency codes.
 const (
 	USD = "USD"
 	EUR = "EUR"
