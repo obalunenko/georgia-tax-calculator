@@ -41,6 +41,13 @@ type client struct {
 	HTTPClient
 }
 
+const (
+	basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
+	currenciesParam = "currencies"
+	dateParam       = "date"
+	dateLayout      = "2006-01-02"
+)
+
 // Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
 // By default, it fetches all currencies for today.
 func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesResponse, error) {
@@ -55,13 +62,6 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 	if params.Date.IsZero() {
 		params.Date = time.Now()
 	}
-
-	const (
-		basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
-		currenciesParam = "currencies"
-		dateParam       = "date"
-		dateLayout      = "2006-01-02"
-	)
 
 	u, err := url.Parse(basePath)
 	if err != nil {
@@ -89,7 +89,7 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 	}
 
 	defer func() {
-		if err := res.Body.Close(); err != nil {
+		if err = res.Body.Close(); err != nil {
 			log.WithError(ctx, err).Error("Failed to close response body.")
 		}
 	}()

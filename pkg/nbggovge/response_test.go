@@ -1,4 +1,4 @@
-package nbggovge_test
+package nbggovge
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
@@ -18,9 +17,9 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		r       nbggovge.RatesResponse
+		r       RatesResponse
 		args    args
-		want    nbggovge.Currency
+		want    Currency
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
@@ -29,7 +28,7 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 			args: args{
 				code: currencies.USD,
 			},
-			want: nbggovge.Currency{
+			want: Currency{
 				Code:          currencies.USD,
 				Quantity:      1,
 				RateFormated:  "2.7117",
@@ -48,7 +47,7 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 			args: args{
 				code: "NOT_EXIST",
 			},
-			want:    nbggovge.Currency{},
+			want:    Currency{},
 			wantErr: assert.Error,
 		},
 	}

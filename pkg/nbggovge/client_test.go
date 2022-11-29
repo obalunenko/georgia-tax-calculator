@@ -1,4 +1,4 @@
-package nbggovge_test
+package nbggovge
 
 import (
 	"bytes"
@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
@@ -28,13 +27,13 @@ const (
 func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 	q := req.URL.Query()
 
-	cur := q.Get("currencies")
+	cur := q.Get(currenciesParam)
 	date := q.Get("date")
 
-	rates := nbggovge.RatesResponse{
+	rates := RatesResponse{
 		{
 			Date: date,
-			Currencies: []nbggovge.Currency{
+			Currencies: []Currency{
 				{
 					Code:          cur,
 					Quantity:      1,
@@ -102,7 +101,7 @@ func TestClient_Rates(t *testing.T) {
 	ctx := context.Background()
 
 	type fields struct {
-		httpClient nbggovge.HTTPClient
+		httpClient HTTPClient
 	}
 
 	type args struct {
@@ -198,7 +197,7 @@ func TestClient_Rates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			want := ratesResponseFromFile(t, tt.wantPath)
 
-			cli := nbggovge.NewWithHTTPClient(tt.fields.httpClient)
+			cli := NewWithHTTPClient(tt.fields.httpClient)
 
 			got, err := cli.Rates(tt.args.ctx, tt.args.opts...)
 			tt.wantErr(t, err)
