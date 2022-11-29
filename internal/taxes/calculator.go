@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
 )
 
@@ -45,19 +46,21 @@ var taxrates = map[TaxType]float64{
 }
 
 // Calc returns sum of tax for income according to TaxType.
-func Calc(income float64, taxType TaxType) (float64, error) {
+func Calc(income models.Money, taxType TaxType) (models.Money, error) {
 	const roundPlaces int32 = 2
 
 	if !taxType.Valid() {
-		return 0, fmt.Errorf("%s: %w", taxType.String(), ErrTaxTypeNotSupported)
+		return models.Money{}, fmt.Errorf("%s: %w", taxType.String(), ErrTaxTypeNotSupported)
 	}
 
 	tr, ok := taxrates[taxType]
 	if !ok {
-		return 0, ErrTaxRateNotFound
+		return models.Money{}, ErrTaxRateNotFound
 	}
 
-	sum := moneyutils.Multiply(income, tr)
+	sum := moneyutils.Multiply(income.Amount, tr)
 
-	return moneyutils.Round(sum, roundPlaces), nil
+	rounded := moneyutils.Round(sum, roundPlaces)
+
+	return models.NewMoney(rounded, income.Currency), nil
 }

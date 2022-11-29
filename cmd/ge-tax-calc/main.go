@@ -14,6 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
+	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
@@ -31,25 +32,32 @@ func main() {
 
 	date := time.Now()
 
-	result, err := convert(ctx, convertParams{
-		date:   date,
-		code:   currencies.EUR,
-		amount: 2600.28,
+	income := models.NewMoney(2600.28, currencies.EUR)
+	incomeOut := models.NewResultOutput("Income", income)
+
+	converted, err := convert(ctx, convertParams{
+		date:  date,
+		m:     income,
+		tocur: currencies.GEL,
 	})
 	if err != nil {
 		log.WithError(ctx, err).Fatal("Failed to convert")
 	}
 
+	convertedOut := models.NewResultOutput("Converted", converted.Money)
+
 	tt := taxes.TaxTypeSmallBusiness
 
-	tax, err := taxes.Calc(result.Amount, tt)
+	tax, err := taxes.Calc(converted.Money, tt)
 	if err != nil {
 		log.WithError(ctx, err).WithField("tax_type", tt).Fatal("Failed to calc taxes")
 	}
 
-	result.Amount = tax
+	taxesOut := models.NewResultOutput("Taxes", tax)
 
-	fmt.Println(result)
+	fmt.Println(incomeOut.String())
+	fmt.Println(convertedOut.String())
+	fmt.Println(taxesOut.String())
 }
 
 func onExit(_ context.Context) cli.AfterFunc {
@@ -185,9 +193,9 @@ func getMonths() []string {
 }
 
 type convertParams struct {
-	date   time.Time
-	code   string
-	amount float64
+	date  time.Time
+	m     models.Money
+	tocur string
 }
 
 func convert(ctx context.Context, p convertParams) (converter.Response, error) {
@@ -195,7 +203,7 @@ func convert(ctx context.Context, p convertParams) (converter.Response, error) {
 
 	c := converter.NewConverter(client)
 
-	resp, err := c.ConvertToGel(ctx, p.amount, p.code, p.date)
+	resp, err := c.Convert(ctx, p.m, p.tocur, p.date)
 	if err != nil {
 		return converter.Response{}, err
 	}

@@ -4,56 +4,59 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/obalunenko/georgia-tax-calculator/internal/models"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
 func TestCalc(t *testing.T) {
 	const taxTypeNotExist = TaxType(999)
 
 	type args struct {
-		income  float64
+		income  models.Money
 		taxType TaxType
 	}
 
 	tests := []struct {
 		name    string
 		args    args
-		want    float64
+		want    models.Money
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
 			name: "small business",
 			args: args{
-				income:  100278.88,
+				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeSmallBusiness,
 			},
-			want:    1002.79,
+			want:    models.NewMoney(1002.79, currencies.GEL),
 			wantErr: assert.NoError,
 		},
 		{
 			name: "Individual Entrepreneur",
 			args: args{
-				income:  100278.88,
+				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeIndividualEntrepreneur,
 			},
-			want:    3008.37,
+			want:    models.NewMoney(3008.37, currencies.GEL),
 			wantErr: assert.NoError,
 		},
 		{
 			name: "Employment",
 			args: args{
-				income:  100278.88,
+				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeEmployment,
 			},
-			want:    20055.78,
+			want:    models.NewMoney(20055.78, currencies.GEL),
 			wantErr: assert.NoError,
 		},
 		{
 			name: "Not exist - error",
 			args: args{
-				income:  100278.88,
+				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: taxTypeNotExist,
 			},
-			want:    0,
+			want:    models.Money{},
 			wantErr: assert.Error,
 		},
 	}

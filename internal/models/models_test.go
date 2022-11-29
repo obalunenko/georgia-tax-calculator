@@ -1,0 +1,58 @@
+package models
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
+)
+
+func TestResponse_String(t *testing.T) {
+	type fields struct {
+		Amount   float64
+		Currency string
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "",
+			fields: fields{
+				Amount:   25.26789,
+				Currency: currencies.GEL,
+			},
+			want: "25.27 GEL",
+		},
+		{
+			name: "",
+			fields: fields{
+				Amount:   25.21289,
+				Currency: currencies.GEL,
+			},
+			want: "25.21 GEL",
+		},
+		{
+			name: "",
+			fields: fields{
+				Amount:   25.21489,
+				Currency: currencies.GEL,
+			},
+			want: "25.21 GEL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := Money{
+				Amount:   tt.fields.Amount,
+				Currency: tt.fields.Currency,
+			}
+
+			assert.Equalf(t, tt.want, r.String(), "String()")
+		})
+	}
+}

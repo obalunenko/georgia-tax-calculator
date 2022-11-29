@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
@@ -27,22 +28,17 @@ func NewConverter(client nbggovge.Client) *Converter {
 
 // Response of conversion.
 type Response struct {
-	Amount   float64
-	Currency string
-}
-
-func (r Response) String() string {
-	return fmt.Sprintf("%.2f %s", r.Amount, r.Currency)
+	models.Money
 }
 
 // ConvertToGel shortcut for Convert to GEL.
-func (c Converter) ConvertToGel(ctx context.Context, amount float64, from string, date time.Time) (Response, error) {
-	return c.Convert(ctx, amount, from, currencies.GEL, date)
+func (c Converter) ConvertToGel(ctx context.Context, m models.Money, date time.Time) (Response, error) {
+	return c.Convert(ctx, m, currencies.GEL, date)
 }
 
 // Convert converts amount from currency to with rates according to passed date.
-func (c Converter) Convert(ctx context.Context, amount float64, from, to string, date time.Time) (Response, error) {
-	if from == "" {
+func (c Converter) Convert(ctx context.Context, m models.Money, to string, date time.Time) (Response, error) {
+	if m.Currency == "" {
 		return Response{}, fmt.Errorf("from: %w", ErrCurrencyNotSet)
 	}
 
@@ -50,12 +46,12 @@ func (c Converter) Convert(ctx context.Context, amount float64, from, to string,
 		return Response{}, fmt.Errorf("to: %w", ErrCurrencyNotSet)
 	}
 
-	rates, err := c.client.Rates(ctx, option.WithDate(date), option.WithCurrency(from), option.WithCurrency(to))
+	rates, err := c.client.Rates(ctx, option.WithDate(date), option.WithCurrency(m.Currency), option.WithCurrency(to))
 	if err != nil {
 		return Response{}, err
 	}
 
-	fromCurrency, err := c.getCurrencyRates(from, rates)
+	fromCurrency, err := c.getCurrencyRates(m.Currency, rates)
 	if err != nil {
 		return Response{}, err
 	}
@@ -65,13 +61,15 @@ func (c Converter) Convert(ctx context.Context, amount float64, from, to string,
 		return Response{}, err
 	}
 
-	fromingel := convert(amount, fromCurrency.Rate)
+	fromingel := convert(m.Amount, fromCurrency.Rate)
 
 	tosum := convert(fromingel, 1/toCurrency.Rate)
 
 	return Response{
-		Amount:   round(tosum, 2),
-		Currency: to,
+		Money: models.Money{
+			Amount:   round(tosum, 2),
+			Currency: to,
+		},
 	}, nil
 }
 
