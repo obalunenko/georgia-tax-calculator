@@ -35,6 +35,7 @@ const (
 	taxTypeSentinel
 )
 
+// ErrInvalidTaxType returned when tax type is invalid.
 var ErrInvalidTaxType = errors.New("invalid tax type")
 
 var stringToTaxType = map[string]TaxType{
@@ -43,6 +44,7 @@ var stringToTaxType = map[string]TaxType{
 	strings.ToLower(TaxTypeEmployment.String()):             TaxTypeEmployment,
 }
 
+// ParseTaxType parses TaxType from string.
 func ParseTaxType(raw string) (TaxType, error) {
 	tt, ok := stringToTaxType[strings.TrimSpace(strings.ToLower(raw))]
 	if !ok {
@@ -63,6 +65,7 @@ var taxrates = map[TaxType]TaxRate{
 	TaxTypeEmployment:             newTaxRate(TaxTypeEmployment, 0.2),
 }
 
+// TaxRate represents tuple TaxType - rate.
 type TaxRate struct {
 	Type TaxType
 	Rate float64
@@ -79,6 +82,7 @@ func newTaxRate(tt TaxType, rate float64) TaxRate {
 	}
 }
 
+// AllTaxRates returns all supported TaxRate.
 func AllTaxRates() ([]TaxRate, error) {
 	taxes := AllTaxTypes()
 
@@ -96,6 +100,7 @@ func AllTaxRates() ([]TaxRate, error) {
 	return resp, nil
 }
 
+// AllTaxTypes returns all supported TaxType.
 func AllTaxTypes() []TaxType {
 	taxes := make([]TaxType, 0, len(taxrates))
 
@@ -106,6 +111,7 @@ func AllTaxTypes() []TaxType {
 	return taxes
 }
 
+// Rate convert TaxType to TaxRate.
 func (i TaxType) Rate() (TaxRate, error) {
 	tr, ok := taxrates[i]
 	if !ok {
@@ -115,6 +121,7 @@ func (i TaxType) Rate() (TaxRate, error) {
 	return tr, nil
 }
 
+// Response represents result of Calc.
 type Response struct {
 	Money models.Money
 	Rate  TaxRate

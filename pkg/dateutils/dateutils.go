@@ -16,6 +16,7 @@ func DaysInMonth(m time.Month, year int) int {
 	return time.Date(year, m+1, 0, 0, 0, 0, 0, time.UTC).Day()
 }
 
+// GetMonths returns list of all month.
 func GetMonths() []string {
 	months := make([]string, 0, 12)
 
@@ -26,8 +27,10 @@ func GetMonths() []string {
 	return months
 }
 
+// ErrIncorrectMonth returned when month is incorrect.
 var ErrIncorrectMonth = errors.New("incorrect month")
 
+// ParseMonth parses month from string.
 func ParseMonth(raw string) (time.Month, error) {
 	for i := time.January; i <= time.December; i++ {
 		if isMonth(raw, i) {
@@ -38,6 +41,7 @@ func ParseMonth(raw string) (time.Month, error) {
 	return 0, fmt.Errorf("%s: %w", raw, ErrIncorrectMonth)
 }
 
+// ParseDay parses day from string.
 func ParseDay(raw string) (int, error) {
 	d, err := strconv.Atoi(raw)
 	if err != nil {
@@ -62,10 +66,13 @@ func isMonth(raw string, m time.Month) bool {
 }
 
 var (
+	// ErrInvalidYear returned when year is invalid.
 	ErrInvalidYear = errors.New("invalid year")
-	ErrInvalidDay  = errors.New("invalid day")
+	// ErrInvalidDay returned when day is invalid.
+	ErrInvalidDay = errors.New("invalid day")
 )
 
+// ParseYear parses year from string.
 func ParseYear(raw string) (int, error) {
 	y, err := strconv.Atoi(raw)
 	if err != nil {
@@ -79,6 +86,7 @@ func ParseYear(raw string) (int, error) {
 	return y, nil
 }
 
+// DaysList returns list of days with specified number of days.
 func DaysList(num int) []string {
 	res := make([]string, 0, num)
 
