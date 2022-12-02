@@ -38,11 +38,6 @@ test-cover:
 	./scripts/tests/coverage.sh
 .PHONY: test-cover
 
-## Test regression.
-test-regression:
-	./scripts/tests/run-regression.sh
-.PHONY: test-regression
-
 ## Tests sonar report generate.
 test-sonar-report:
 	./scripts/tests/sonar-report.sh
@@ -135,7 +130,7 @@ check-releaser:
 .PHONY: check-releaser
 
 ## Issue new release.
-new-version: vet test-regression build
+new-version: vet test build
 	./scripts/release/new-version.sh
 .PHONY: new-release
 
