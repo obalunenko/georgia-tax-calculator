@@ -1,0 +1,29 @@
+[
+  {
+    "date": "2022-11-25T00:00:00.000Z",
+    "currencies": [
+      {
+        "code": "USD",
+        "quantity": 1,
+        "rateFormated": "2.7117",
+        "diffFormated": "0.0075",
+        "rate": 2.7117,
+        "name": "US Dollar",
+        "diff": -0.0075,
+        "date": "2022-11-24T17:45:14.293Z",
+        "validFromDate": "2022-11-25T00:00:00.000Z"
+      },
+      {
+        "code": "GBP",
+        "quantity": 1,
+        "rateFormated": "3.2866",
+        "diffFormated": "0.0611",
+        "rate": 3.2866,
+        "name": "United Kingdom Pound",
+        "diff": 0.0611,
+        "date": "2022-11-24T17:45:14.293Z",
+        "validFromDate": "2022-11-25T00:00:00.000Z"
+      }
+    ]
+  }
+]
