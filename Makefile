@@ -58,6 +58,10 @@ test:
 	./scripts/tests/run.sh
 .PHONY: test
 
+## Run regression tests.
+test-regression: test
+.PHONY: test-regression
+
 ## Sync vendor and install needed tools.
 configure: sync-vendor install-tools
 
@@ -130,7 +134,7 @@ check-releaser:
 .PHONY: check-releaser
 
 ## Issue new release.
-new-version: vet test build
+new-version: vet test-regression build
 	./scripts/release/new-version.sh
 .PHONY: new-release
 
