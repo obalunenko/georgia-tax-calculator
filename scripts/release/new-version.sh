@@ -45,7 +45,7 @@ function menu() {
   PREV_VERSION="$(git tag --sort=committerdate | tail -1)"
   if [ -z "${PREV_VERSION}" ] || [ "${PREV_VERSION}" = "${SHORTCOMMIT}" ]
    then
-    VERSION="v0.0.0"
+    PREV_VERSION="v0.0.0"
   fi
 
   case "$selection" in
@@ -91,7 +91,7 @@ while true; do
   case $yn in
   [Yy]*)
 
-    git tag -a "${NEW_TAG}" && \
+    git tag -a "${NEW_TAG}" -m "${NEW_TAG}" && \
      git push --tags
 
     break
