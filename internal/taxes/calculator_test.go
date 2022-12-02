@@ -1,6 +1,7 @@
 package taxes
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestCalc(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    models.Money
+		want    Response
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
@@ -29,7 +30,13 @@ func TestCalc(t *testing.T) {
 				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeSmallBusiness,
 			},
-			want:    models.NewMoney(1002.79, currencies.GEL),
+			want: Response{
+				Money: models.NewMoney(1002.79, currencies.GEL),
+				Rate: TaxRate{
+					Type: TaxTypeSmallBusiness,
+					Rate: 0.01,
+				},
+			},
 			wantErr: assert.NoError,
 		},
 		{
@@ -38,7 +45,13 @@ func TestCalc(t *testing.T) {
 				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeIndividualEntrepreneur,
 			},
-			want:    models.NewMoney(3008.37, currencies.GEL),
+			want: Response{
+				Money: models.NewMoney(3008.37, currencies.GEL),
+				Rate: TaxRate{
+					Type: TaxTypeIndividualEntrepreneur,
+					Rate: 0.03,
+				},
+			},
 			wantErr: assert.NoError,
 		},
 		{
@@ -47,7 +60,13 @@ func TestCalc(t *testing.T) {
 				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: TaxTypeEmployment,
 			},
-			want:    models.NewMoney(20055.78, currencies.GEL),
+			want: Response{
+				Money: models.NewMoney(20055.78, currencies.GEL),
+				Rate: TaxRate{
+					Type: TaxTypeEmployment,
+					Rate: 0.2,
+				},
+			},
 			wantErr: assert.NoError,
 		},
 		{
@@ -56,7 +75,7 @@ func TestCalc(t *testing.T) {
 				income:  models.NewMoney(100278.88, currencies.GEL),
 				taxType: taxTypeNotExist,
 			},
-			want:    models.Money{},
+			want:    Response{},
 			wantErr: assert.Error,
 		},
 	}
@@ -69,6 +88,59 @@ func TestCalc(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAllTaxTypes(t *testing.T) {
+	expected := []TaxType{
+		TaxTypeSmallBusiness, TaxTypeIndividualEntrepreneur, TaxTypeEmployment,
+	}
+
+	assert.ElementsMatchf(t, expected, AllTaxTypes(), "AllTaxTypes()")
+}
+
+func TestTaxType_Rate(t *testing.T) {
+	tests := []struct {
+		name    string
+		i       TaxType
+		want    TaxRate
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name:    "Employment - 20%",
+			i:       TaxTypeEmployment,
+			want:    TaxRate{Type: TaxTypeEmployment, Rate: 0.2},
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "Small business - 1%",
+			i:       TaxTypeSmallBusiness,
+			want:    TaxRate{Type: TaxTypeSmallBusiness, Rate: 0.01},
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "Individual Entrepreneur - 3%",
+			i:       TaxTypeIndividualEntrepreneur,
+			want:    TaxRate{Type: TaxTypeIndividualEntrepreneur, Rate: 0.03},
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "Not supported - error",
+			i:       TaxType(0),
+			want:    TaxRate{},
+			wantErr: assert.Error,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.i.Rate()
+			if !tt.wantErr(t, err, fmt.Sprintf("Rate()")) {
+				return
+			}
+
+			assert.Equalf(t, tt.want, got, "Rate()")
 		})
 	}
 }

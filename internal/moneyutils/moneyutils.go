@@ -25,6 +25,21 @@ func Round(a float64, places int32) float64 {
 	return rounded.InexactFloat64()
 }
 
+func Parse(raw string) (float64, error) {
+	d, err := decimal.NewFromString(raw)
+	if err != nil {
+		return 0, err
+	}
+
+	return d.InexactFloat64(), nil
+}
+
+func ToString(v float64) string {
+	d := decimal.NewFromFloat(v)
+
+	return d.String()
+}
+
 func round(amount decimal.Decimal, places int32) decimal.Decimal {
 	rounded := amount.Round(places)
 

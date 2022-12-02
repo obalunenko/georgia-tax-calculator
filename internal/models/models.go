@@ -19,7 +19,7 @@ func NewResultOutput(msg string, m Money) ResultOutput {
 }
 
 func (r ResultOutput) String() string {
-	return fmt.Sprintf("%s: %s\n", r.Message, r.Money.String())
+	return fmt.Sprintf("%s: %s", r.Message, r.Money.String())
 }
 
 // Money model.

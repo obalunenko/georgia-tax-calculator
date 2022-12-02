@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ratesResponseFromFile(t testing.TB, path string) RatesResponse {
+func ratesFromFile(t testing.TB, path string) Rates {
 	t.Helper()
 
 	bytes, err := os.ReadFile(path)
 	require.NoError(t, err)
 
-	resp, err := UnmarshalRatesResponse(bytes)
+	resp, err := unmarshalRatesResponse(bytes)
 	require.NoError(t, err)
 
-	return resp
+	return resp.Rates()
 }

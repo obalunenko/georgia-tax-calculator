@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
+	"os"
 	"time"
 
-	"github.com/manifoldco/promptui"
-	promptlist "github.com/manifoldco/promptui/list"
-	log "github.com/obalunenko/logger"
+	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
+
+	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
+
 	"github.com/urfave/cli/v2"
+
+	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
@@ -21,18 +23,62 @@ import (
 )
 
 func main() {
-	// TODO:
-	//  - read date input.
-	// 	- read amount input.
-	// 	- read currency input.
-	// 	- read tax type input.
 	ctx := context.Background()
 
 	ctx = log.ContextWithLogger(ctx, log.FromContext(ctx))
 
-	date := time.Now()
+	app := cli.NewApp()
+	app.Name = "ge-tax-calc"
+	app.Description = "Helper tool for preparing tax declarations in Georgia." +
+		"It get income amount in received currency, converts it to GEL according to" +
+		"official rates on date of income and calculates tax amount" +
+		"according to selected ta category."
+	app.Usage = `A command line tool helper for preparing tax declaration in Georgia `
+	app.Authors = []*cli.Author{
+		{
+			Name:  "Oleg Balunenko",
+			Email: "oleg.balunenko@gmail.com",
+		},
+	}
+	app.CommandNotFound = notFound(ctx)
+	app.Commands = commands(ctx)
+	app.Version = printVersion(ctx)
+	app.Before = printHeader(ctx)
+	app.After = onExit(ctx)
 
-	income := models.NewMoney(2600.28, currencies.EUR)
+	if err := app.Run(os.Args); err != nil {
+
+		log.WithError(ctx, err).Fatal("Run failed")
+	}
+}
+
+func calc(ctx context.Context, p inputParams) (string, error) {
+	stop := spinner.Start()
+	defer stop()
+
+	year, err := dateutils.ParseYear(p.Year)
+	if err != nil {
+		return "", err
+	}
+
+	month, err := dateutils.ParseMonth(p.Month)
+	if err != nil {
+		return "", err
+	}
+
+	day, err := dateutils.ParseDay(p.Day)
+	if err != nil {
+		return "", err
+	}
+
+	date := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+
+	mv, err := moneyutils.Parse(p.Amount)
+	if err != nil {
+		return "", err
+	}
+
+	income := models.NewMoney(mv, p.Currency)
 	incomeOut := models.NewResultOutput("Income", income)
 
 	converted, err := convert(ctx, convertParams{
@@ -41,155 +87,35 @@ func main() {
 		tocur: currencies.GEL,
 	})
 	if err != nil {
-		log.WithError(ctx, err).Fatal("Failed to convert")
+		return "", fmt.Errorf("failed to convert: %w", err)
 	}
 
 	convertedOut := models.NewResultOutput("Converted", converted.Money)
 
-	tt := taxes.TaxTypeSmallBusiness
+	tt, err := taxes.ParseTaxType(p.Taxtype)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse tax type: %w", err)
+	}
 
 	tax, err := taxes.Calc(converted.Money, tt)
 	if err != nil {
-		log.WithError(ctx, err).WithField("tax_type", tt).Fatal("Failed to calc taxes")
+		return "", fmt.Errorf("failed to calc taxes: %w", err)
 	}
 
-	taxesOut := models.NewResultOutput("Taxes", tax)
+	taxesOut := models.NewResultOutput("Taxes", tax.Money)
 
-	fmt.Println(incomeOut.String())
-	fmt.Println(convertedOut.String())
-	fmt.Println(taxesOut.String())
-}
+	const (
+		layout = "2006-01-02"
+	)
 
-func onExit(_ context.Context) cli.AfterFunc {
-	return func(c *cli.Context) error {
-		fmt.Println("Exit...")
+	var resp string
+	resp += fmt.Sprintf("Date: %s\n", date.Format(layout))
+	resp += fmt.Sprintf("Tax Rate: %s\n", tax.Rate.String())
+	resp += fmt.Sprintf("%s\n", incomeOut.String())
+	resp += fmt.Sprintf("%s\n", convertedOut.String())
+	resp += fmt.Sprintf("%s\n", taxesOut.String())
 
-		return nil
-	}
-}
-
-func makeMenuItemsList(list []string, commands ...string) []string {
-	items := make([]string, 0, len(list)+len(commands))
-
-	items = append(items, list...)
-
-	items = append(items, commands...)
-
-	return items
-}
-
-const (
-	exit     = "exit"
-	abort    = "abort"
-	back     = "back"
-	pageSize = 30
-)
-
-func isExit(in string) bool {
-	return strings.EqualFold(exit, in)
-}
-
-func isAbort(err error) bool {
-	return strings.HasSuffix(err.Error(), abort)
-}
-
-func isBack(in string) bool {
-	return strings.EqualFold(back, in)
-}
-
-func menu(ctx context.Context) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		years := getYears(time.Now())
-
-		items := makeMenuItemsList(years, exit)
-
-		prompt := promptui.Select{
-			Label:             "Years menu (exit' for exit)",
-			Items:             items,
-			Size:              pageSize,
-			CursorPos:         0,
-			IsVimMode:         false,
-			HideHelp:          false,
-			HideSelected:      false,
-			Templates:         nil,
-			Keys:              nil,
-			Searcher:          searcher(items),
-			StartInSearchMode: false,
-			Pointer:           promptui.DefaultCursor,
-			Stdin:             nil,
-			Stdout:            nil,
-		}
-
-		return handleYearChoices(ctx, prompt)
-	}
-}
-
-func handleYearChoices(ctx context.Context, opt promptui.Select) error {
-	for {
-		_, choice, err := opt.Run()
-		if err != nil {
-			if isAbort(err) {
-				return nil
-			}
-
-			return fmt.Errorf("prompt failed: %w", err)
-		}
-
-		if isExit(choice) {
-			return nil
-		}
-
-		err = menuMonth(ctx, choice)
-		if err != nil {
-			if errors.Is(err, errExit) {
-				return nil
-			}
-
-			log.WithError(ctx, err).Error("Puzzle menu failed")
-
-			continue
-		}
-	}
-}
-
-var errExit = errors.New(exit)
-
-func menuMonth(ctx context.Context, year string) error {
-	return nil
-}
-
-func searcher(items []string) promptlist.Searcher {
-	return func(input string, index int) bool {
-		itm := items[index]
-
-		itm = strings.ReplaceAll(strings.ToLower(itm), " ", "")
-
-		input = strings.ReplaceAll(strings.ToLower(input), " ", "")
-
-		return strings.Contains(itm, input)
-	}
-}
-
-func getYears(now time.Time) []string {
-	var years []string
-
-	const begin = 2016
-
-	for i := begin; i < now.Year(); i++ {
-		years = append(years, strconv.Itoa(i))
-	}
-
-	return years
-}
-
-func getMonths() []string {
-	months := make([]string, 0, 12)
-
-	for i := time.January; i < time.December; i++ {
-		months = append(months, i.String())
-	}
-
-	return months
+	return resp, nil
 }
 
 type convertParams struct {

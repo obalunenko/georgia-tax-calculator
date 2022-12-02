@@ -30,7 +30,7 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 	cur := q.Get(currenciesParam)
 	date := q.Get("date")
 
-	rates := RatesResponse{
+	rates := ratesResponse{
 		{
 			Date: date,
 			Currencies: []Currency{
@@ -195,7 +195,7 @@ func TestClient_Rates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			want := ratesResponseFromFile(t, tt.wantPath)
+			want := ratesFromFile(t, tt.wantPath)
 
 			cli := NewWithHTTPClient(tt.fields.httpClient)
 

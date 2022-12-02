@@ -6,11 +6,16 @@ import (
 	"strings"
 )
 
-// RatesResponse represents response.
-type RatesResponse []Rates
+// ratesResponse represents response.
+type ratesResponse []Rates
 
-// NilRatesResponse is a shortcut for empty RatesResponse.
-var NilRatesResponse = RatesResponse{}
+func (r ratesResponse) Rates() Rates {
+	if len(r) == 0 {
+		return Rates{}
+	}
+
+	return r[0]
+}
 
 var (
 	// ErrCodeNotFound returned when specified code could not be found in set.
@@ -19,10 +24,8 @@ var (
 
 // CurrencyByCode returns Currency from set by specified code.
 // When no currency in set - ErrCodeNotFound returned.
-func (r RatesResponse) CurrencyByCode(code string) (Currency, error) {
-	rates := r[0]
-
-	for _, currency := range rates.Currencies {
+func (r Rates) CurrencyByCode(code string) (Currency, error) {
+	for _, currency := range r.Currencies {
 		if strings.EqualFold(currency.Code, code) {
 			return currency, nil
 		}
@@ -31,18 +34,13 @@ func (r RatesResponse) CurrencyByCode(code string) (Currency, error) {
 	return Currency{}, ErrCodeNotFound
 }
 
-// UnmarshalRatesResponse parses json to RatesResponse.
-func UnmarshalRatesResponse(data []byte) (RatesResponse, error) {
-	var r RatesResponse
+// unmarshalRatesResponse parses json to ratesResponse.
+func unmarshalRatesResponse(data []byte) (ratesResponse, error) {
+	var r ratesResponse
 
 	err := json.Unmarshal(data, &r)
 
 	return r, err
-}
-
-// Marshal marshals data from an Rates to bytes.
-func (r *Rates) Marshal() ([]byte, error) {
-	return json.Marshal(r)
 }
 
 // Rates represents set of rates.

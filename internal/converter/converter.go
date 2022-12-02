@@ -73,7 +73,7 @@ func (c Converter) Convert(ctx context.Context, m models.Money, to string, date 
 	}, nil
 }
 
-func (c Converter) getCurrencyRates(code string, rates nbggovge.RatesResponse) (nbggovge.Currency, error) {
+func (c Converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge.Currency, error) {
 	var (
 		currency nbggovge.Currency
 		err      error
@@ -88,8 +88,8 @@ func (c Converter) getCurrencyRates(code string, rates nbggovge.RatesResponse) (
 			Rate:          1,
 			Name:          "GEL",
 			Diff:          0,
-			Date:          rates[0].Date,
-			ValidFromDate: rates[0].Date,
+			Date:          rates.Date,
+			ValidFromDate: rates.Date,
 		}
 	} else {
 		currency, err = rates.CurrencyByCode(code)

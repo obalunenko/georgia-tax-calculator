@@ -17,7 +17,7 @@ func Start() StopFunc {
 	s := spinner.New(
 		spinner.CharSets[62],
 		delayMs*time.Millisecond,
-		spinner.WithFinalMSG("done!"),
+		spinner.WithFinalMSG("done!\n"),
 		spinner.WithHiddenCursor(true),
 		spinner.WithColor("yellow"),
 		spinner.WithWriter(os.Stderr),

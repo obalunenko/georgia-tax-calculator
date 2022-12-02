@@ -17,14 +17,14 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		r       RatesResponse
+		r       Rates
 		args    args
 		want    Currency
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
 			name: "usd - valid",
-			r:    ratesResponseFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
+			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
 			args: args{
 				code: currencies.USD,
 			},
@@ -43,7 +43,7 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 		},
 		{
 			name: "not_exist - error",
-			r:    ratesResponseFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
+			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
 			args: args{
 				code: "NOT_EXIST",
 			},

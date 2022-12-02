@@ -16,8 +16,8 @@ import (
 
 // Client is a contract for nbg.gov.ge API.
 type Client interface {
-	// Rates returns RatesResponse for today by default for a list of currency codes set up by options.
-	Rates(ctx context.Context, opts ...option.RatesOption) (RatesResponse, error)
+	// Rates returns ratesResponse for today by default for a list of currency codes set up by options.
+	Rates(ctx context.Context, opts ...option.RatesOption) (Rates, error)
 }
 
 // HTTPClient is and interface for mocking sending http requests.
@@ -50,7 +50,7 @@ const (
 
 // Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
 // By default, it fetches all currencies for today.
-func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesResponse, error) {
+func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (Rates, error) {
 	var (
 		params internal.RatesParams
 	)
@@ -65,7 +65,7 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 
 	u, err := url.Parse(basePath)
 	if err != nil {
-		return nil, fmt.Errorf("parse base url: %w", err)
+		return Rates{}, fmt.Errorf("parse base url: %w", err)
 	}
 
 	q := u.Query()
@@ -80,12 +80,12 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), http.NoBody)
 	if err != nil {
-		return NilRatesResponse, fmt.Errorf("create request: %w", err)
+		return Rates{}, fmt.Errorf("create request: %w", err)
 	}
 
 	res, err := c.Do(req)
 	if err != nil {
-		return NilRatesResponse, fmt.Errorf("send request: %w", err)
+		return Rates{}, fmt.Errorf("send request: %w", err)
 	}
 
 	defer func() {
@@ -95,18 +95,18 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (RatesRes
 	}()
 
 	if res.StatusCode != http.StatusOK {
-		return NilRatesResponse, fmt.Errorf("invalid response status: %s", res.Status)
+		return Rates{}, fmt.Errorf("invalid response status: %s", res.Status)
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return NilRatesResponse, fmt.Errorf("read response body: %w", err)
+		return Rates{}, fmt.Errorf("read response body: %w", err)
 	}
 
-	resp, err := UnmarshalRatesResponse(body)
+	resp, err := unmarshalRatesResponse(body)
 	if err != nil {
-		return NilRatesResponse, fmt.Errorf("unmarshal body to rates: %w", err)
+		return Rates{}, fmt.Errorf("unmarshal body to rates: %w", err)
 	}
 
-	return resp, nil
+	return resp.Rates(), nil
 }

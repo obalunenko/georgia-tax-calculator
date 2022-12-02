@@ -2,6 +2,7 @@ package converter
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,22 +19,23 @@ import (
 )
 
 type mockRatesClient struct {
-	data nbggovge.RatesResponse
+	data nbggovge.Rates
 }
 
 func newMockRatesClient(t testing.TB) mockRatesClient {
 	bytes, err := os.ReadFile(filepath.Join("testdata", "2022-11-25-all.json"))
 	require.NoError(t, err)
 
-	resp, err := nbggovge.UnmarshalRatesResponse(bytes)
-	require.NoError(t, err)
+	var resp nbggovge.Rates
+
+	require.NoError(t, json.Unmarshal(bytes, &resp))
 
 	return mockRatesClient{
 		data: resp,
 	}
 }
 
-func (m mockRatesClient) Rates(_ context.Context, _ ...option.RatesOption) (nbggovge.RatesResponse, error) {
+func (m mockRatesClient) Rates(_ context.Context, _ ...option.RatesOption) (nbggovge.Rates, error) {
 	return m.data, nil
 }
 
