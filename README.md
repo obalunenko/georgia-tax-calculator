@@ -16,3 +16,54 @@ Calculates income taxes in Georgia.
 - Fetches official rates from the [nbg.gov.ge](https://nbg.gov.ge) for the date of income
 - Converts income to GEL
 - Calculate taxes amount according to specified Taxes Category.
+
+
+## Usage
+
+1. Download binary from [![Latest release artifacts](https://img.shields.io/badge/artifacts-download-blue.svg)](https://github.com/obalunenko/georgia-tax-calculator/releases/latest)
+
+2. Run `ge-tax-calc run` and follow instructions
+
+All available flags, commands and usage:
+
+```text
+NAME:
+   ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia
+
+USAGE:
+   ge-tax-calc [global options] command [command options] [arguments...]
+
+VERSION:
+
+| app_name:     ge-tax-calc                              |
+| version:      v1.0.0                                   |
+| short_commit: 1fd637b6                                 |
+| commit:       1fd637b6444379574b90f6ded0157c72071d3a59 |
+| build_date:   2022-12-04T01:24:34Z                     |
+| goversion:    go1.19.3                                 |
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+DESCRIPTION:
+   Helper tool for preparing tax declarations in Georgia.It get income amount in received currency, converts it to GEL according toofficial rates on date of income and calculates tax amountaccording to selected ta category.
+
+AUTHOR:
+   Oleg Balunenko <oleg.balunenko@gmail.com>
+
+COMMANDS:
+   run      Runs ge-tax-calc application
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h     show help (default: false)
+   --version, -v  print the version (default: false)
+```
+
+
+### Demo
+
+[![asciicast](https://asciinema.org/a/rqN2ZwN72LNAfRQoGdmJmV4j5.svg)](https://asciinema.org/a/rqN2ZwN72LNAfRQoGdmJmV4j5)
