@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/briandowns/spinner v1.19.0
-	github.com/manifoldco/promptui v0.9.0
 	github.com/obalunenko/logger v0.5.1
 	github.com/obalunenko/version v1.1.0
 	github.com/shopspring/decimal v1.3.1
@@ -15,7 +14,6 @@ require (
 
 require (
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
-	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evalphobia/logrus_sentry v0.8.2 // indirect
