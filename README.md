@@ -28,18 +28,18 @@ All available flags, commands and usage:
 
 ```text
 NAME:
-   ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia
+   ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia 
 
 USAGE:
    ge-tax-calc [global options] command [command options] [arguments...]
 
 VERSION:
-
+   
 | app_name:     ge-tax-calc                              |
-| version:      v1.0.0                                   |
-| short_commit: 1fd637b6                                 |
-| commit:       1fd637b6444379574b90f6ded0157c72071d3a59 |
-| build_date:   2022-12-04T01:24:34Z                     |
+| version:      v1.0.2                                   |
+| short_commit: 9f05a34                                  |
+| commit:       9f05a3430f4c10f564fc2bfd16f4a488b0a2963a |
+| build_date:   2022-12-04T21:42:32Z                     |
 | goversion:    go1.19.3                                 |
         \   ^__^
          \  (oo)\_______
@@ -49,7 +49,10 @@ VERSION:
 
 
 DESCRIPTION:
-   Helper tool for preparing tax declarations in Georgia.It get income amount in received currency, converts it to GEL according toofficial rates on date of income and calculates tax amountaccording to selected ta category.
+   Helper tool for preparing tax declarations in Georgia.
+   It get income amount in received currency, converts it to GEL according to 
+   official rates on date of income and calculates tax amount 
+   according to selected taxes category.
 
 AUTHOR:
    Oleg Balunenko <oleg.balunenko@gmail.com>
