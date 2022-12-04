@@ -29,10 +29,10 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "ge-tax-calc"
-	app.Description = "Helper tool for preparing tax declarations in Georgia." +
-		"It get income amount in received currency, converts it to GEL according to" +
-		"official rates on date of income and calculates tax amount" +
-		"according to selected ta category."
+	app.Description = "Helper tool for preparing tax declarations in Georgia.\n" +
+		"It get income amount in received currency, converts it to GEL according to \n" +
+		"official rates on date of income and calculates tax amount \n" +
+		"according to selected taxes category."
 	app.Usage = `A command line tool helper for preparing tax declaration in Georgia `
 	app.Authors = []*cli.Author{
 		{
