@@ -17,13 +17,17 @@ import (
 var ErrCurrencyNotSet = errors.New("currency not set")
 
 // Converter is a converter of money from one currency to another.
-type Converter struct {
+type Converter interface {
+	Convert(ctx context.Context, m models.Money, toCurrency string, date time.Time) (Response, error)
+}
+
+type converter struct {
 	client nbggovge.Client
 }
 
 // NewConverter constructor.
-func NewConverter(client nbggovge.Client) *Converter {
-	return &Converter{client: client}
+func NewConverter(client nbggovge.Client) Converter {
+	return &converter{client: client}
 }
 
 // Response of conversion.
@@ -31,13 +35,8 @@ type Response struct {
 	models.Money
 }
 
-// ConvertToGel shortcut for Convert to GEL.
-func (c Converter) ConvertToGel(ctx context.Context, m models.Money, date time.Time) (Response, error) {
-	return c.Convert(ctx, m, currencies.GEL, date)
-}
-
 // Convert converts amount from currency to with rates according to passed date.
-func (c Converter) Convert(ctx context.Context, m models.Money, to string, date time.Time) (Response, error) {
+func (c converter) Convert(ctx context.Context, m models.Money, to string, date time.Time) (Response, error) {
 	if m.Currency == "" {
 		return Response{}, fmt.Errorf("from: %w", ErrCurrencyNotSet)
 	}
@@ -73,7 +72,7 @@ func (c Converter) Convert(ctx context.Context, m models.Money, to string, date 
 	}, nil
 }
 
-func (c Converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge.Currency, error) {
+func (c converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge.Currency, error) {
 	var (
 		currency nbggovge.Currency
 		err      error

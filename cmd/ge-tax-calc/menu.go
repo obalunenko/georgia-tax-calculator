@@ -7,31 +7,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2/core"
-
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/core"
+	"github.com/urfave/cli/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
-
-	"github.com/urfave/cli/v2"
 )
-
-type inputParams struct {
-	Year     string `survey:"year"`
-	Month    string `survey:"month"`
-	Day      string `survey:"day"`
-	Currency string `survey:"currency"`
-	Amount   string `survey:"amount"`
-	Taxtype  string `survey:"tax_type"`
-}
 
 func menu(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		var (
-			answers inputParams
+			answers service.InputParams
 		)
 
 		isCorrect := []*survey.Question{
@@ -152,7 +142,9 @@ func menu(ctx context.Context) cli.ActionFunc {
 			}
 		}
 
-		resp, err := calc(ctx, answers)
+		svc := service.New()
+
+		resp, err := svc.Calculate(ctx, answers)
 		if err != nil {
 			return err
 		}
@@ -199,7 +191,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 	return qs, nil
 }
 func makeCurrencyMenu() survey.Prompt {
-	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BGN, currencies.GEL}
+	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BYN, currencies.GEL}
 
 	items := makeMenuItemsList(currs)
 
@@ -227,7 +219,7 @@ func makeMonthMenu() survey.Prompt {
 	return makeSurveySelect(msg, items)
 }
 
-func makeDayMenu(p inputParams) (survey.Prompt, error) {
+func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
 	parseMonth, err := dateutils.ParseMonth(p.Month)
 	if err != nil {
 		return nil, fmt.Errorf("parse month: %w", err)

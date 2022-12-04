@@ -39,85 +39,6 @@ func (m mockRatesClient) Rates(_ context.Context, _ ...option.RatesOption) (nbgg
 	return m.data, nil
 }
 
-func TestConverter_ToGel(t *testing.T) {
-	ctx := context.Background()
-
-	type fields struct {
-		client nbggovge.Client
-	}
-
-	type args struct {
-		ctx  context.Context
-		m    models.Money
-		date time.Time
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    Response
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "EUR, no error",
-			fields: fields{
-				client: newMockRatesClient(t),
-			},
-			args: args{
-				ctx: ctx,
-				m: models.Money{
-					Amount:   2678.27,
-					Currency: currencies.EUR,
-				},
-				date: time.Now(),
-			},
-			want: Response{
-				Money: models.Money{
-					Amount:   7557.54,
-					Currency: currencies.GEL,
-				},
-			},
-			wantErr: assert.NoError,
-		},
-		{
-			name: "EUR, no error",
-			fields: fields{
-				client: newMockRatesClient(t),
-			},
-			args: args{
-				ctx: ctx,
-				m: models.Money{
-					Amount:   2678.27,
-					Currency: currencies.GBP,
-				},
-				date: time.Now(),
-			},
-			want: Response{models.Money{
-				Amount:   8802.4,
-				Currency: currencies.GEL,
-			},
-			},
-			wantErr: assert.NoError,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := Converter{
-				client: tt.fields.client,
-			}
-
-			got, err := c.ConvertToGel(tt.args.ctx, tt.args.m, tt.args.date)
-			if !tt.wantErr(t, err) {
-				return
-			}
-
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
 func TestConverter_Convert(t *testing.T) {
 	ctx := context.Background()
 
@@ -261,7 +182,7 @@ func TestConverter_Convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := Converter{
+			c := converter{
 				client: tt.fields.client,
 			}
 
