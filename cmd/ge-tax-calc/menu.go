@@ -199,7 +199,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 	return qs, nil
 }
 func makeCurrencyMenu() survey.Prompt {
-	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BGN, currencies.GEL}
+	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BYN, currencies.GEL}
 
 	items := makeMenuItemsList(currs)
 
