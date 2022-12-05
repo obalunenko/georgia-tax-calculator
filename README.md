@@ -13,8 +13,8 @@
 
 Calculates income taxes in Georgia.
 
-- Fetches official rates from the [nbg.gov.ge](https://nbg.gov.ge) for the date of income
-- Converts income to GEL
+- Fetches official rates from the [nbg.gov.ge](https://nbg.gov.ge) for the date of income.
+- Converts income to GEL.
 - Calculate taxes amount according to specified Taxes Category.
 
 
