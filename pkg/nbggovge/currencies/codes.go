@@ -1,3 +1,4 @@
+// Package currencies contains currency codes constants.
 package currencies
 
 // List of supported currency codes.

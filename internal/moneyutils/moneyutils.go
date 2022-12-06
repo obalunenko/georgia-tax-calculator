@@ -1,3 +1,4 @@
+// Package moneyutils provide functionality for work with money.
 package moneyutils
 
 import (

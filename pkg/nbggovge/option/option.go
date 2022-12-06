@@ -1,3 +1,4 @@
+// Package option represents options pattern for Rates request.
 package option
 
 import (

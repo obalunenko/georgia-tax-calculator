@@ -1,3 +1,4 @@
+// Package models represents service common models.
 package models
 
 import (

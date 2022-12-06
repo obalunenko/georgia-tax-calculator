@@ -1,3 +1,4 @@
+// Package internal holds internal logic and parameters for requests.
 package internal
 
 import (

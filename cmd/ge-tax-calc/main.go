@@ -1,3 +1,4 @@
+// ge-tax-calc is CLI for taxes calculations.
 package main
 
 import (
@@ -27,6 +28,7 @@ func main() {
 			Email: "oleg.balunenko@gmail.com",
 		},
 	}
+
 	app.CommandNotFound = notFound(ctx)
 	app.Commands = commands(ctx)
 	app.Version = printVersion(ctx)
@@ -34,7 +36,6 @@ func main() {
 	app.After = onExit(ctx)
 
 	if err := app.Run(os.Args); err != nil {
-
 		log.WithError(ctx, err).Fatal("Run failed")
 	}
 }

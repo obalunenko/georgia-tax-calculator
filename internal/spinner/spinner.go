@@ -1,3 +1,4 @@
+// Package spinner provides helper for setup spinner for long-term operations.
 package spinner
 
 import (

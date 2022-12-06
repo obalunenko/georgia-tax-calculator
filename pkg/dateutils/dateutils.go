@@ -1,3 +1,4 @@
+// Package dateutils provides functionality for working with dates.
 package dateutils
 
 import (
@@ -18,7 +19,9 @@ func DaysInMonth(m time.Month, year int) int {
 
 // GetMonths returns list of all month.
 func GetMonths() []string {
-	months := make([]string, 0, 12)
+	const totalMonth = 12
+
+	months := make([]string, 0, totalMonth)
 
 	for i := time.January; i <= time.December; i++ {
 		months = append(months, i.String())
@@ -52,7 +55,9 @@ func ParseDay(raw string) (int, error) {
 		return 0, fmt.Errorf("should be >0: %w", ErrInvalidDay)
 	}
 
-	if d > 31 {
+	const maxdays = 31
+
+	if d > maxdays {
 		return 0, fmt.Errorf("should be <31: %w", ErrInvalidDay)
 	}
 
