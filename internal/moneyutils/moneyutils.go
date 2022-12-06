@@ -12,10 +12,19 @@ func Multiply(a, b float64) float64 {
 	return d.InexactFloat64()
 }
 
-func multiply(a, b decimal.Decimal) decimal.Decimal {
-	res := a.Mul(b)
+// Div returns result of div of two float64.
+func Div(a, b float64) float64 {
+	d := div(decimal.NewFromFloat(a), decimal.NewFromFloat(b))
 
-	return res
+	return d.InexactFloat64()
+}
+
+func div(a, b decimal.Decimal) decimal.Decimal {
+	return a.Div(b)
+}
+
+func multiply(a, b decimal.Decimal) decimal.Decimal {
+	return a.Mul(b)
 }
 
 // Round rounds the decimal to places decimal places.
