@@ -178,6 +178,90 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			wantErr: assert.NoError,
 		},
+		{
+			name: "PLN - GEL",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   2678.27,
+					Currency: currencies.PLN,
+				},
+				to:   currencies.GEL,
+				date: time.Now(),
+			},
+			want: Response{models.Money{
+				Amount:   1607.93,
+				Currency: currencies.GEL,
+			},
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "BYN - GEL",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   2678.27,
+					Currency: currencies.BYN,
+				},
+				to:   currencies.GEL,
+				date: time.Now(),
+			},
+			want: Response{models.Money{
+				Amount:   2883.16,
+				Currency: currencies.GEL,
+			},
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "BYN - PLN",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   2678.27,
+					Currency: currencies.BYN,
+				},
+				to:   currencies.PLN,
+				date: time.Now(),
+			},
+			want: Response{models.Money{
+				Amount:   4802.38,
+				Currency: currencies.PLN,
+			},
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "PLN - BYN",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   2678.27,
+					Currency: currencies.PLN,
+				},
+				to:   currencies.BYN,
+				date: time.Now(),
+			},
+			want: Response{models.Money{
+				Amount:   1493.66,
+				Currency: currencies.BYN,
+			},
+			},
+			wantErr: assert.NoError,
+		},
 	}
 
 	for _, tt := range tests {
@@ -187,11 +271,23 @@ func TestConverter_Convert(t *testing.T) {
 			}
 
 			got, err := c.Convert(tt.args.ctx, tt.args.m, tt.args.to, tt.args.date)
-			if !tt.wantErr(t, err, fmt.Sprintf("Convert(%v, %v, %v, %v)", tt.args.ctx, tt.args.m, tt.args.to, tt.args.date)) {
+			if !tt.wantErr(t, err, fmt.Sprintf(
+				"Convert(%v, %v, %v, %v)",
+				tt.args.ctx,
+				tt.args.m,
+				tt.args.to,
+				tt.args.date,
+			)) {
 				return
 			}
 
-			assert.Equalf(t, tt.want, got, "Convert(%v, %v, %v, %v)", tt.args.ctx, tt.args.m, tt.args.to, tt.args.date)
+			assert.Equalf(t, tt.want, got,
+				"Convert(%v, %v, %v, %v)",
+				tt.args.ctx,
+				tt.args.m,
+				tt.args.to,
+				tt.args.date,
+			)
 		})
 	}
 }

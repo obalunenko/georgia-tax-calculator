@@ -61,9 +61,9 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 		return Response{}, err
 	}
 
-	fromingel := convert(m.Amount, fromCurrency.Rate)
+	fromingel := convert(m.Amount, fromCurrency.Rate, float64(fromCurrency.Quantity))
 
-	tosum := convert(fromingel, 1/toCurrency.Rate)
+	tosum := convert(fromingel, 1/toCurrency.Rate, 1/float64(toCurrency.Quantity))
 
 	const places int32 = 2
 
@@ -103,8 +103,10 @@ func (c converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge
 	return currency, nil
 }
 
-func convert(amount, rate float64) float64 {
-	return moneyutils.Multiply(amount, rate)
+func convert(amount, rate, quantity float64) float64 {
+	r := moneyutils.Div(rate, quantity)
+
+	return moneyutils.Multiply(amount, r)
 }
 
 func round(amount float64, places int32) float64 {
