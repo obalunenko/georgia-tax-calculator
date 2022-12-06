@@ -175,7 +175,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 		Renderer:      survey.Renderer{},
 		Message:       "Choose a tax type:",
 		Options:       titles,
-		Default:       nil,
+		Default:       taxes.TaxTypeSmallBusiness.String(),
 		Help:          "",
 		PageSize:      0,
 		VimMode:       false,
@@ -195,17 +195,23 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 func makeCurrencyMenu() survey.Prompt {
 	currs := currencies.All()
 
+	sort.Strings(currs)
+
 	msg := "Select currency of income"
 
-	return makeSurveySelect(msg, currs)
+	return makeSurveySelect(msg, currs, currencies.EUR)
 }
 
 func makeYearsMenu() survey.Prompt {
 	years := getYears(time.Now())
 
+	sort.Slice(years, func(i, j int) bool {
+		return years[i] > years[j]
+	})
+
 	msg := "Select year of income"
 
-	return makeSurveySelect(msg, years)
+	return makeSurveySelect(msg, years, strconv.Itoa(time.Now().Year()))
 }
 
 func makeMonthMenu() survey.Prompt {
@@ -213,7 +219,7 @@ func makeMonthMenu() survey.Prompt {
 
 	msg := "Select month of income"
 
-	return makeSurveySelect(msg, months)
+	return makeSurveySelect(msg, months, time.Now().Month().String())
 }
 
 func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
@@ -234,12 +240,18 @@ func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
 	return makeSurveySelect(msg, days), nil
 }
 
-func makeSurveySelect(msg string, items []string) survey.Prompt {
+func makeSurveySelect(msg string, items []string, defaultVal ...any) survey.Prompt {
+	var defval any
+
+	if len(defaultVal) == 1 {
+		defval = defaultVal[0]
+	}
+
 	return &survey.Select{
 		Renderer:      survey.Renderer{},
 		Message:       msg,
 		Options:       items,
-		Default:       nil,
+		Default:       defval,
 		Help:          "",
 		PageSize:      len(items),
 		VimMode:       false,
