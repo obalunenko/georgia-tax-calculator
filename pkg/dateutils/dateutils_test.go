@@ -66,6 +66,7 @@ func TestDaysList(t *testing.T) {
 	type args struct {
 		num int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -98,6 +99,7 @@ func TestParseMonth(t *testing.T) {
 	type args struct {
 		raw string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -155,6 +157,7 @@ func TestGetMonths(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, GetMonths(), "GetMonths()")
@@ -166,6 +169,7 @@ func TestParseYear(t *testing.T) {
 	type args struct {
 		raw string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -205,12 +209,14 @@ func TestParseYear(t *testing.T) {
 			wantErr: assert.Error,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseYear(tt.args.raw)
 			if !tt.wantErr(t, err, fmt.Sprintf("ParseYear(%v)", tt.args.raw)) {
 				return
 			}
+
 			assert.Equalf(t, tt.want, got, "ParseYear(%v)", tt.args.raw)
 		})
 	}

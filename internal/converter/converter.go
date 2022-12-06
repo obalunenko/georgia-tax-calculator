@@ -1,3 +1,4 @@
+// Package converter provides functionality for converting money from currency to currency.
 package converter
 
 import (
@@ -64,9 +65,11 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 
 	tosum := convert(fromingel, 1/toCurrency.Rate)
 
+	const places int32 = 2
+
 	return Response{
 		Money: models.Money{
-			Amount:   round(tosum, 2),
+			Amount:   round(tosum, places),
 			Currency: to,
 		},
 	}, nil

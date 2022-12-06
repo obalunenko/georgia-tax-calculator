@@ -1,7 +1,6 @@
 package taxes
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -136,7 +135,7 @@ func TestTaxType_Rate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.i.Rate()
-			if !tt.wantErr(t, err, fmt.Sprintf("Rate()")) {
+			if !tt.wantErr(t, err, "Rate()") {
 				return
 			}
 

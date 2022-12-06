@@ -1,3 +1,4 @@
+// Package nbggovge provides functionality for fetching currency rates from nbg.gov.ge API.
 package nbggovge
 
 import (

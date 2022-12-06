@@ -100,7 +100,7 @@ func menu(ctx context.Context) cli.ActionFunc {
 							return fmt.Errorf("failed to cast answer to string: [%T], %v", ans, ans)
 						}
 
-						_, err := moneyutils.Parse(s)
+						_, err = moneyutils.Parse(s)
 						if err != nil {
 							return err
 						}
@@ -123,7 +123,7 @@ func menu(ctx context.Context) cli.ActionFunc {
 							return fmt.Errorf("failed to cast answer to OptionAnswer: [%T], %v", ans, ans)
 						}
 
-						_, err := taxes.ParseTaxType(s.Value)
+						_, err = taxes.ParseTaxType(s.Value)
 						if err != nil {
 							return err
 						}
@@ -163,7 +163,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 	}
 
 	sort.Slice(rates, func(i, j int) bool {
-		return rates[i].Type > rates[i].Type
+		return rates[i].Type > rates[j].Type
 	})
 
 	titles := make([]string, len(rates))
@@ -175,14 +175,16 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 		Renderer:      survey.Renderer{},
 		Message:       "Choose a tax type:",
 		Options:       titles,
-		Default:       nil,
+		Default:       taxes.TaxTypeSmallBusiness.String(),
 		Help:          "",
 		PageSize:      0,
 		VimMode:       false,
 		FilterMessage: "",
 		Filter:        nil,
 		Description: func(value string, index int) string {
-			m := moneyutils.Multiply(rates[index].Rate, 100)
+			const toPercentage float64 = 100
+
+			m := moneyutils.Multiply(rates[index].Rate, toPercentage)
 
 			return fmt.Sprintf("%s %%", moneyutils.ToString(m))
 		},
@@ -191,32 +193,33 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 	return qs, nil
 }
 func makeCurrencyMenu() survey.Prompt {
-	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BYN, currencies.GEL}
+	currs := currencies.All()
 
-	items := makeMenuItemsList(currs)
+	sort.Strings(currs)
 
 	msg := "Select currency of income"
 
-	return makeSurveySelect(msg, items)
+	return makeSurveySelect(msg, currs, currencies.EUR)
 }
 
 func makeYearsMenu() survey.Prompt {
 	years := getYears(time.Now())
 
-	items := makeMenuItemsList(years)
+	sort.Slice(years, func(i, j int) bool {
+		return years[i] > years[j]
+	})
 
 	msg := "Select year of income"
-	return makeSurveySelect(msg, items)
+
+	return makeSurveySelect(msg, years, strconv.Itoa(time.Now().Year()))
 }
 
 func makeMonthMenu() survey.Prompt {
 	months := dateutils.GetMonths()
 
-	items := makeMenuItemsList(months)
-
 	msg := "Select month of income"
 
-	return makeSurveySelect(msg, items)
+	return makeSurveySelect(msg, months, time.Now().Month().String())
 }
 
 func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
@@ -232,19 +235,23 @@ func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
 
 	days := dateutils.DaysList(dateutils.DaysInMonth(parseMonth, parseYear))
 
-	items := makeMenuItemsList(days)
-
 	msg := "Select day of income"
 
-	return makeSurveySelect(msg, items), nil
+	return makeSurveySelect(msg, days), nil
 }
 
-func makeSurveySelect(msg string, items []string) survey.Prompt {
+func makeSurveySelect(msg string, items []string, defaultVal ...any) survey.Prompt {
+	var defval any
+
+	if len(defaultVal) == 1 {
+		defval = defaultVal[0]
+	}
+
 	return &survey.Select{
 		Renderer:      survey.Renderer{},
 		Message:       msg,
 		Options:       items,
-		Default:       nil,
+		Default:       defval,
 		Help:          "",
 		PageSize:      len(items),
 		VimMode:       false,
@@ -252,16 +259,6 @@ func makeSurveySelect(msg string, items []string) survey.Prompt {
 		Filter:        nil,
 		Description:   nil,
 	}
-}
-
-func makeMenuItemsList(list []string, commands ...string) []string {
-	items := make([]string, 0, len(list)+len(commands))
-
-	items = append(items, list...)
-
-	items = append(items, commands...)
-
-	return items
 }
 
 // years

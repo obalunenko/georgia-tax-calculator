@@ -1,3 +1,4 @@
+// Package taxes provides functionality for calculating taxes.
 package taxes
 
 import (
@@ -72,7 +73,9 @@ type TaxRate struct {
 }
 
 func (t TaxRate) String() string {
-	return fmt.Sprintf("%s %s %%", t.Type.String(), moneyutils.ToString(moneyutils.Multiply(t.Rate, 100)))
+	const toPercentage float64 = 100
+
+	return fmt.Sprintf("%s %s %%", t.Type.String(), moneyutils.ToString(moneyutils.Multiply(t.Rate, toPercentage)))
 }
 
 func newTaxRate(tt TaxType, rate float64) TaxRate {
