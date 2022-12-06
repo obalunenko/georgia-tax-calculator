@@ -193,7 +193,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 	return qs, nil
 }
 func makeCurrencyMenu() survey.Prompt {
-	currs := []string{currencies.EUR, currencies.USD, currencies.GBP, currencies.BYN, currencies.GEL}
+	currs := currencies.All()
 
 	msg := "Select currency of income"
 

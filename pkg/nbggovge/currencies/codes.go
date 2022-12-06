@@ -48,3 +48,53 @@ const (
 	ZAR = "ZAR"
 	GEL = "GEL"
 )
+
+// All returns list of all currencies.
+func All() []string {
+	return []string{
+		USD,
+		EUR,
+		GBP,
+		AED,
+		AMD,
+		AUD,
+		AZN,
+		BGN,
+		BRL,
+		BYN,
+		CAD,
+		CHF,
+		CNY,
+		CZK,
+		DKK,
+		EGP,
+		HKD,
+		HUF,
+		ILS,
+		INR,
+		IRR,
+		ISK,
+		JPY,
+		KGS,
+		KRW,
+		KWD,
+		KZT,
+		MDL,
+		NOK,
+		NZD,
+		PLN,
+		QAR,
+		RON,
+		RSD,
+		RUB,
+		SEK,
+		SGD,
+		TJS,
+		TMT,
+		TRY,
+		UAH,
+		UZS,
+		ZAR,
+		GEL,
+	}
+}
