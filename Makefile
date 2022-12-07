@@ -4,6 +4,8 @@ BIN_DIR=./bin
 SHELL := env VERSION=$(VERSION) $(SHELL)
 VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
 
+COMPOSE_CMD=docker compose -f scripts/go-tools-docker-compose.yml up --exit-code-from
+
 TARGET_MAX_CHAR_NUM=20
 
 ## Show help
@@ -35,8 +37,7 @@ compile-app:
 
 ## Test coverage report.
 test-cover:
-	#./scripts/tests/coverage.sh
-	docker-compose -f scripts/go-tools-docker-compose.yml up run-tests-coverage
+	$(COMPOSE_CMD) run-tests-coverage run-tests-coverage
 .PHONY: test-cover
 
 ## Tests sonar report generate.
@@ -51,12 +52,12 @@ open-cover-report: test-cover
 
 ## Update readme coverage.
 update-readme-cover: build test-cover
-	docker-compose -f scripts/go-tools-docker-compose.yml up update-readme-coverage
+	$(COMPOSE_CMD) update-readme-coverage update-readme-coverage
 .PHONY: update-readme-cover
 
 ## Run tests.
 test:
-	docker-compose -f scripts/go-tools-docker-compose.yml up run-tests
+	$(COMPOSE_CMD) run-tests run-tests
 .PHONY: test
 
 ## Run regression tests.
@@ -73,14 +74,12 @@ sync-vendor:
 
 ## Fix imports sorting.
 imports:
-	#./scripts/style/fix-imports.sh
-	docker-compose -f scripts/go-tools-docker-compose.yml up fix-imports
+	$(COMPOSE_CMD) fix-imports fix-imports
 .PHONY: imports
 
 ## Format code with go fmt.
 fmt:
-	#./scripts/style/fmt.sh
-	docker-compose -f scripts/go-tools-docker-compose.yml up fix-fmt
+	$(COMPOSE_CMD) fix-fmt fix-fmt
 .PHONY: fmt
 
 ## Format code and sort imports.
@@ -89,7 +88,7 @@ format-project: fmt imports
 
 ## Installs vendored tools.
 install-tools:
-	docker-compose -f scripts/go-tools-docker-compose.yml pull
+	docker compose -f scripts/go-tools-docker-compose.yml pull
 .PHONY: install-tools
 
 ## vet project
@@ -99,23 +98,22 @@ vet:
 
 ## Run full linting
 lint-full:
-	#./scripts/linting/run-linters.sh
-	docker-compose -f scripts/go-tools-docker-compose.yml up lint-full
+	$(COMPOSE_CMD) lint-full lint-full
 .PHONY: lint-full
 
 ## Run linting for build pipeline
 lint-pipeline:
-	docker-compose -f scripts/go-tools-docker-compose.yml up lint-pipeline
+	$(COMPOSE_CMD) lint-pipeline lint-pipeline
 .PHONY: lint-pipeline
 
 ## Run linting for sonar report
 lint-sonar:
-	docker-compose -f scripts/go-tools-docker-compose.yml up lint-sonar
+	$(COMPOSE_CMD) lint-sonar lint-sonar
 .PHONY: lint-sonar
 
 ## recreate all generated code and documentation.
 codegen:
-	docker-compose -f scripts/go-tools-docker-compose.yml up go-generate
+	$(COMPOSE_CMD) go-generate go-generate
 .PHONY: codegen
 
 ## recreate all generated code and swagger documentation and format code.
