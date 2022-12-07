@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -Eeuo pipefail
+set -e
 
 SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(dirname "$0")"
@@ -13,6 +13,22 @@ echo "${SCRIPT_NAME} is running... "
 
 checkInstalled 'goimports'
 
-goimports -local=$(go list -m) -w $(find . -type f -name "*.go" | grep -v "vendor/" | grep -v ".git")
+set -e
+
+LOCAL_PFX=$(go list -m)
+echo "making filelist"
+FILES=( $(find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./tools/vendor/*"-not -path "./.git/*") )
+
+for f in "${FILES[@]}"; do
+  sed -i -- '/^import (/,/)/ {;/^$/ d;}' "$f"
+  goimports -local=${LOCAL_PFX} -w "$f"
+done
+
+
+TORM=( $(find . -type f -name "*.go--" -not -path "./vendor/*" -not -path "./.git/*") )
+
+for f in "${TORM[@]}"; do
+  rm -rf ${f}
+done
 
 echo "${SCRIPT_NAME} done."

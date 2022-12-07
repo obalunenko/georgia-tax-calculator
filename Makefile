@@ -72,12 +72,14 @@ sync-vendor:
 
 ## Fix imports sorting.
 imports:
-	./scripts/style/fix-imports.sh
+	#./scripts/style/fix-imports.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up fix-imports
 .PHONY: imports
 
 ## Format code with go fmt.
 fmt:
-	./scripts/style/fmt.sh
+	#./scripts/style/fmt.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up fix-fmt
 .PHONY: fmt
 
 ## Format code and sort imports.
@@ -86,7 +88,7 @@ format-project: fmt imports
 
 ## Installs vendored tools.
 install-tools:
-	./scripts/install/vendored-tools.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml pull
 .PHONY: install-tools
 
 ## vet project

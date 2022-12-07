@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  fix-imports:
+    image: olegbalunenko/go-tools:latest
+    volumes:
+      - ../:/app/
+    entrypoint: /bin/sh -c 'cd /app/ && ls -la && /app/scripts/style/fix-imports.sh'
+
+  fix-fmt:
+    image: olegbalunenko/go-tools:latest
+    volumes:
+      - ../:/app/
+    entrypoint: /bin/sh -c 'cd /app/ && find ./scripts/ -type f -iname "*.sh" -exec chmod +x {} \; && ls -la && /app/scripts/style/fmt.sh'
+
+
+
