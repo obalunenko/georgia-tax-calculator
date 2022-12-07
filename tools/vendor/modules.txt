@@ -29,9 +29,6 @@ cloud.google.com/go/storage/internal/apiv2/stubs
 # code.gitea.io/sdk/gitea v0.15.1
 ## explicit; go 1.13
 code.gitea.io/sdk/gitea
-# github.com/Abirdcfly/dupword v0.0.7
-## explicit; go 1.19
-github.com/Abirdcfly/dupword
 # github.com/AlekSi/pointer v1.2.0
 ## explicit; go 1.18
 github.com/AlekSi/pointer
@@ -653,7 +650,7 @@ github.com/golangci/gofmt/gofmt
 github.com/golangci/gofmt/gofmt/internal/diff
 github.com/golangci/gofmt/gofmt/internal/execabs
 github.com/golangci/gofmt/goimports
-# github.com/golangci/golangci-lint v1.50.1
+# github.com/golangci/golangci-lint v1.49.0
 ## explicit; go 1.19
 github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/golangci/golangci-lint/internal/cache
@@ -926,9 +923,6 @@ github.com/kisielk/errcheck/errcheck
 ## explicit
 github.com/kisielk/gotool
 github.com/kisielk/gotool/internal/load
-# github.com/kkHAIKE/contextcheck v1.1.3
-## explicit; go 1.15
-github.com/kkHAIKE/contextcheck
 # github.com/klauspost/compress v1.15.12
 ## explicit; go 1.17
 github.com/klauspost/compress
@@ -978,9 +972,6 @@ github.com/lufeee/execinquery
 # github.com/magiconair/properties v1.8.6
 ## explicit; go 1.13
 github.com/magiconair/properties
-# github.com/maratori/testableexamples v1.0.0
-## explicit; go 1.19
-github.com/maratori/testableexamples/pkg/testableexamples
 # github.com/maratori/testpackage v1.1.0
 ## explicit; go 1.18
 github.com/maratori/testpackage/pkg/testpackage
@@ -1270,6 +1261,9 @@ github.com/stretchr/testify/mock
 # github.com/subosito/gotenv v1.4.1
 ## explicit; go 1.18
 github.com/subosito/gotenv
+# github.com/sylvia7788/contextcheck v1.0.6
+## explicit; go 1.15
+github.com/sylvia7788/contextcheck
 # github.com/tdakkota/asciicheck v0.1.1
 ## explicit; go 1.13
 github.com/tdakkota/asciicheck
@@ -1282,15 +1276,9 @@ github.com/tetafro/godot
 # github.com/timakin/bodyclose v0.0.0-20210704033933-f49887972144
 ## explicit; go 1.12
 github.com/timakin/bodyclose/passes/bodyclose
-# github.com/timonwong/loggercheck v0.9.3
-## explicit; go 1.18
-github.com/timonwong/loggercheck
-github.com/timonwong/loggercheck/internal/bytebufferpool
-github.com/timonwong/loggercheck/internal/checkers
-github.com/timonwong/loggercheck/internal/checkers/printf
-github.com/timonwong/loggercheck/internal/rules
-github.com/timonwong/loggercheck/internal/sets
-github.com/timonwong/loggercheck/internal/stringutil
+# github.com/timonwong/logrlint v0.1.0
+## explicit; go 1.16
+github.com/timonwong/logrlint
 # github.com/tomarrell/wrapcheck/v2 v2.7.0
 ## explicit; go 1.18
 github.com/tomarrell/wrapcheck/v2/wrapcheck
@@ -1431,7 +1419,7 @@ golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.2.0
+# golang.org/x/net v0.3.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -1456,7 +1444,7 @@ golang.org/x/oauth2/jwt
 ## explicit
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.2.0
+# golang.org/x/sys v0.3.0
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -1464,10 +1452,10 @@ golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.2.0
+# golang.org/x/term v0.3.0
 ## explicit; go 1.17
 golang.org/x/term
-# golang.org/x/text v0.4.0
+# golang.org/x/text v0.5.0
 ## explicit; go 1.17
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
@@ -1477,7 +1465,7 @@ golang.org/x/text/width
 # golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
 ## explicit
 golang.org/x/time/rate
-# golang.org/x/tools v0.3.0
+# golang.org/x/tools v0.4.0
 ## explicit; go 1.18
 golang.org/x/tools/cmd/cover
 golang.org/x/tools/cmd/goimports
@@ -1548,7 +1536,6 @@ golang.org/x/tools/internal/fastwalk
 golang.org/x/tools/internal/gcimporter
 golang.org/x/tools/internal/gocommand
 golang.org/x/tools/internal/gopathwalk
-golang.org/x/tools/internal/goroot
 golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/pkgbits

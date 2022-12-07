@@ -1,19 +1,19 @@
 package golinters
 
 import (
-	"github.com/maratori/testableexamples/pkg/testableexamples"
+	"github.com/timonwong/logrlint"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
 )
 
-func NewTestableexamples() *goanalysis.Linter {
-	a := testableexamples.NewAnalyzer()
+func NewLogrLint() *goanalysis.Linter {
+	a := logrlint.Analyzer
 
 	return goanalysis.NewLinter(
 		a.Name,
 		a.Doc,
 		[]*analysis.Analyzer{a},
 		nil,
-	).WithLoadMode(goanalysis.LoadModeSyntax)
+	).WithLoadMode(goanalysis.LoadModeTypesInfo)
 }

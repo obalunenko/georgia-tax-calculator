@@ -3,7 +3,7 @@
 
 # contextcheck
 
-`contextcheck` is a static analysis tool, it is used to check whether the function uses a non-inherited context, which will result in a broken call link.
+`contextcheck` is a static analysis tool, it is used to check the function whether use a non-inherited context, which will result in a broken call link.
 
 For example:
 
@@ -71,8 +71,8 @@ func call8() {
 ```
 
 ## Tips
-### need break ctx inheritance
-eg: [issue](https://github.com/kkHAIKE/contextcheck/issues/2).
+
+You can break ctx inheritance by this way, eg: [issue](https://github.com/sylvia7788/contextcheck/issues/2).
 
 ```go
 func call1(ctx context.Context) {
@@ -94,49 +94,12 @@ func NoInheritCancel(_ context.Context) (context.Context,context.CancelFunc) {
 }
 ```
 
-### skip check specify function
-You can add `// nolint: contextcheck` in function decl doc comment, to skip this linter in some false-positive case.
-
-```go
-// nolint: contextcheck
-func call1() {
-    doSomeThing(context.Background()) // add nolint will no issuss for that
-}
-
-func call2(ctx context.Context) {
-    call1()
-}
-
-func call3() {
-    call2(context.Background())
-}
-```
-
-### force mark specify function have server-side http.Request parameter
-default behavior is mark http.HandlerFunc or a function use r.Context().
-
-```go
-// @contextcheck(req_has_ctx)
-func writeErr(w http.ResponseWriter, r *http.Request, err error) {
-    doSomeThing(r.Context())
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-    ...
-    if err != nil {
-        writeErr(w, r, err)
-        return
-    }
-    ...
-}
-```
-
 ## Installation
 
 You can get `contextcheck` by `go get` command.
 
 ```bash
-$ go get -u github.com/kkHAIKE/contextcheck
+$ go get -u github.com/sylvia7788/contextcheck
 ```
 
 or build yourself.
