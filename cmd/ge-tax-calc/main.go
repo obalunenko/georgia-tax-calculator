@@ -5,9 +5,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/urfave/cli/v2"
-
 	log "github.com/obalunenko/logger"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
