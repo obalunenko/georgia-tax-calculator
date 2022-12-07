@@ -250,6 +250,11 @@ jobs:
           make build
         shell: bash
 
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          install-only: true
+
       - name: Check release
         run: |
           make check-releaser

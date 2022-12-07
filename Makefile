@@ -35,7 +35,8 @@ compile-app:
 
 ## Test coverage report.
 test-cover:
-	./scripts/tests/coverage.sh
+	#./scripts/tests/coverage.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up run-tests-coverage
 .PHONY: test-cover
 
 ## Tests sonar report generate.
@@ -50,12 +51,12 @@ open-cover-report: test-cover
 
 ## Update readme coverage.
 update-readme-cover: build test-cover
-	./scripts/update-readme-coverage.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up update-readme-coverage
 .PHONY: update-readme-cover
 
 ## Run tests.
 test:
-	./scripts/tests/run.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up run-tests
 .PHONY: test
 
 ## Run regression tests.
@@ -98,22 +99,23 @@ vet:
 
 ## Run full linting
 lint-full:
-	./scripts/linting/run-linters.sh
+	#./scripts/linting/run-linters.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up lint-full
 .PHONY: lint-full
 
 ## Run linting for build pipeline
 lint-pipeline:
-	./scripts/linting/golangci-pipeline.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up lint-pipeline
 .PHONY: lint-pipeline
 
 ## Run linting for sonar report
 lint-sonar:
-	./scripts/linting/golangci-sonar.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up lint-sonar
 .PHONY: lint-sonar
 
 ## recreate all generated code and documentation.
 codegen:
-	./scripts/codegen/go-generate.sh
+	docker-compose -f scripts/go-tools-docker-compose.yml up go-generate
 .PHONY: codegen
 
 ## recreate all generated code and swagger documentation and format code.
