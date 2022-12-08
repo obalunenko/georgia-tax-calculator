@@ -18,10 +18,10 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
-func menu(ctx context.Context) cli.ActionFunc {
+func menuConvert(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		var (
-			answers service.InputParams
+			answers service.ConvertRequest
 		)
 
 		isCorrect := []*survey.Question{
@@ -61,7 +61,125 @@ func menu(ctx context.Context) cli.ActionFunc {
 				return err
 			}
 
-			dq, err := makeDayMenu(answers)
+			dq, err := makeDayMenu(answers.DateRequest)
+			if err != nil {
+				return err
+			}
+
+			questions = []*survey.Question{
+				{
+					Name:      "day",
+					Prompt:    dq,
+					Validate:  nil,
+					Transform: nil,
+				},
+			}
+
+			if err := survey.Ask(questions, &answers); err != nil {
+				return err
+			}
+
+			questions = []*survey.Question{
+				{
+					Name: "amount",
+					Prompt: &survey.Input{
+						Renderer: survey.Renderer{},
+						Message:  "Input amount of income",
+						Default:  "0",
+						Help:     "",
+						Suggest:  nil,
+					},
+					Validate: func(ans interface{}) error {
+						s, ok := ans.(string)
+						if !ok {
+							return fmt.Errorf("failed to cast answer to string: [%T], %v", ans, ans)
+						}
+
+						_, err = moneyutils.Parse(s)
+						if err != nil {
+							return err
+						}
+						return nil
+					},
+					Transform: nil,
+				},
+				{
+					Name:      "currency_from",
+					Prompt:    makeCurrencyMenu(),
+					Validate:  nil,
+					Transform: nil,
+				},
+				{
+					Name:      "currency_to",
+					Prompt:    makeCurrencyMenu(),
+					Validate:  nil,
+					Transform: nil,
+				},
+			}
+			if err := survey.Ask(questions, &answers); err != nil {
+				return err
+			}
+
+			if err := survey.Ask(isCorrect, &correct); err != nil {
+				return err
+			}
+		}
+
+		resp, err := service.New().Convert(ctx, answers)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println()
+		fmt.Println(resp)
+
+		return nil
+	}
+}
+func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		var (
+			answers service.CalculateRequest
+		)
+
+		isCorrect := []*survey.Question{
+			{
+				Name: "",
+				Prompt: &survey.Confirm{
+
+					Renderer: survey.Renderer{},
+					Message:  "Are your answers correct?",
+					Default:  true,
+					Help:     "",
+				},
+				Validate:  nil,
+				Transform: nil,
+			},
+		}
+
+		var correct bool
+
+		for !correct {
+			questions := []*survey.Question{
+				{
+					Name:      "year",
+					Prompt:    makeYearsMenu(),
+					Validate:  nil,
+					Transform: nil,
+				},
+				{
+					Name:      "month",
+					Prompt:    makeMonthMenu(),
+					Validate:  nil,
+					Transform: nil,
+				},
+			}
+
+			if err := survey.Ask(questions, &answers); err != nil {
+				return err
+			}
+
+			dq, err := makeDayMenu(answers.DateRequest)
 			if err != nil {
 				return err
 			}
@@ -222,7 +340,7 @@ func makeMonthMenu() survey.Prompt {
 	return makeSurveySelect(msg, months, time.Now().Month().String())
 }
 
-func makeDayMenu(p service.InputParams) (survey.Prompt, error) {
+func makeDayMenu(p service.DateRequest) (survey.Prompt, error) {
 	parseMonth, err := dateutils.ParseMonth(p.Month)
 	if err != nil {
 		return nil, fmt.Errorf("parse month: %w", err)

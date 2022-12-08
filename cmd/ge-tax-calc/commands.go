@@ -8,14 +8,15 @@ import (
 
 func commands(ctx context.Context) []*cli.Command {
 	const (
-		cmdRun = "run"
+		cmdRun     = "run"
+		cmdConvert = "convert"
 	)
 
 	cmds := []*cli.Command{
 		{
 			Name:                   cmdRun,
 			Aliases:                nil,
-			Usage:                  "Runs ge-tax-calc application",
+			Usage:                  "Runs taxes calculations",
 			UsageText:              "",
 			Description:            "",
 			ArgsUsage:              "",
@@ -23,7 +24,30 @@ func commands(ctx context.Context) []*cli.Command {
 			BashComplete:           nil,
 			Before:                 nil,
 			After:                  nil,
-			Action:                 menu(ctx),
+			Action:                 menuCalcTaxes(ctx),
+			OnUsageError:           nil,
+			Subcommands:            nil,
+			Flags:                  nil,
+			SkipFlagParsing:        false,
+			HideHelp:               false,
+			HideHelpCommand:        false,
+			Hidden:                 false,
+			UseShortOptionHandling: false,
+			HelpName:               "",
+			CustomHelpTemplate:     "",
+		},
+		{
+			Name:                   cmdConvert,
+			Aliases:                nil,
+			Usage:                  "Runs currency converter",
+			UsageText:              "",
+			Description:            "",
+			ArgsUsage:              "",
+			Category:               "",
+			BashComplete:           nil,
+			Before:                 nil,
+			After:                  nil,
+			Action:                 menuConvert(ctx),
 			OnUsageError:           nil,
 			Subcommands:            nil,
 			Flags:                  nil,
