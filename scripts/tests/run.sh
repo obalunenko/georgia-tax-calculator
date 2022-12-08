@@ -1,12 +1,6 @@
 #!/bin/bash
 
-set -eu pipefail
-
-go version
-
-go list -m
-
-cat /usr/bin/log_build.txt
+set -e
 
 SCRIPT_NAME="$(basename "$0")"
 
@@ -17,6 +11,6 @@ if command -v "gotestsum" &>/dev/null; then
   GOTEST="gotestsum --format pkgname-and-test-fails --"
 fi
 
-${GOTEST} -race $(go list -m)/...
+${GOTEST} -race ./...
 
 echo "${SCRIPT_NAME} done."

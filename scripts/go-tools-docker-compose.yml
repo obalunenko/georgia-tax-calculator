@@ -5,52 +5,52 @@ services:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/style/fix-imports.sh && /app/scripts/style/fix-imports.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/style/fix-imports.sh'
 
   fix-fmt:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/style/fmt.sh && /app/scripts/style/fmt.sh'
+    entrypoint: /bin/sh -c 'cd /app/ &&/app/scripts/style/fmt.sh'
 
   run-tests:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/tests/run.sh && /app/scripts/tests/run.sh'
+    entrypoint: /bin/sh -c 'cd /app/ &&/app/scripts/tests/run.sh'
 
   run-tests-coverage:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/tests/coverage.sh && /app/scripts/tests/coverage.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/tests/coverage.sh'
 
   update-readme-coverage:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/update-readme-coverage.sh && /app/scripts/update-readme-coverage.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/update-readme-coverage.sh'
 
   lint-full:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/linting/run-linters.sh && /app/scripts/linting/run-linters.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/linting/run-linters.sh'
 
   lint-pipeline:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/linting/golangci-pipeline.sh && /app/scripts/linting/golangci-pipeline.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/linting/golangci-pipeline.sh'
 
   lint-sonar:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/linting/golangci-sonar.sh && /app/scripts/linting/golangci-sonar.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/linting/golangci-sonar.sh'
 
   go-generate:
     image: olegbalunenko/go-tools:latest
     volumes:
       - ../:/app/
-    entrypoint: /bin/sh -c 'chmod +x /app/scripts/codegen/go-generate.sh && /app/scripts/codegen/go-generate.sh'
+    entrypoint: /bin/sh -c 'cd /app/ && /app/scripts/codegen/go-generate.sh'
