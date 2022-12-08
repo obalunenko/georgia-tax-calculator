@@ -71,11 +71,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.2.6
-        with:
-          key: docker-${{ runner.os }}-${{ hashFiles(...) }}
-
       - name: Install tools
         run: |
           make install-tools
@@ -128,11 +123,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.2.6
-        with:
-          key: docker-${{ runner.os }}-${{ hashFiles(...) }}
-
       - name: Install tools
         run: |
           make install-tools
@@ -179,11 +169,6 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.2.6
-        with:
-          key: docker-${{ runner.os }}-${{ hashFiles(...) }}
 
       - name: Install tools
         run: |
@@ -254,11 +239,6 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.2.6
-        with:
-          key: docker-${{ runner.os }}-${{ hashFiles(...) }}
 
       - name: Install tools
         run: |
