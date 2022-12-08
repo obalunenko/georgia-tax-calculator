@@ -13,7 +13,9 @@ echo "${SCRIPT_NAME} is running... "
 
 checkInstalled 'goreleaser'
 
-APP=ge-tax-calc
+APP=${APP_NAME}
+
+echo "${SCRIPT_NAME} is running fo ${APP}... "
 
 # Get new tags from the remote
 git fetch --tags -f
