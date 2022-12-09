@@ -20,112 +20,36 @@ import (
 
 func menuConvert(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		var (
-			answers service.ConvertRequest
-		)
-
-		isCorrect := []*survey.Question{
-			{
-				Name: "",
-				Prompt: &survey.Confirm{
-
-					Renderer: survey.Renderer{},
-					Message:  "Are your answers correct?",
-					Default:  true,
-					Help:     "",
-				},
-				Validate:  nil,
-				Transform: nil,
-			},
+		type convertAnswers struct {
+			service.ConvertRequest
+			isCorrect bool `survey:"confirm"`
 		}
 
-		var correct bool
+		var (
+			answers convertAnswers
+		)
 
-		for !correct {
-			questions := []*survey.Question{
-				{
-					Name:      "year",
-					Prompt:    makeYearsMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
-				{
-					Name:      "month",
-					Prompt:    makeMonthMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
-			}
-
-			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
-
-			dq, err := makeDayMenu(answers.DateRequest)
+		for !answers.isCorrect {
+			datereq, err := getDateRequest()
 			if err != nil {
 				return err
 			}
 
-			questions = []*survey.Question{
-				{
-					Name:      "day",
-					Prompt:    dq,
-					Validate:  nil,
-					Transform: nil,
-				},
+			answers.DateRequest = datereq
+
+			questions := []*survey.Question{
+				makeMoneyAmountQuestion("amount", "Input amount to convert"),
+				makeCurrencyQuestion("currency_from", "Select currency of conversion 'from'"),
+				makeCurrencyQuestion("currency_to", "Select currency of conversion 'to'"),
 			}
 
+			questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
 			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
-
-			questions = []*survey.Question{
-				{
-					Name: "amount",
-					Prompt: &survey.Input{
-						Renderer: survey.Renderer{},
-						Message:  "Input amount of income",
-						Default:  "0",
-						Help:     "",
-						Suggest:  nil,
-					},
-					Validate: func(ans interface{}) error {
-						s, ok := ans.(string)
-						if !ok {
-							return fmt.Errorf("failed to cast answer to string: [%T], %v", ans, ans)
-						}
-
-						_, err = moneyutils.Parse(s)
-						if err != nil {
-							return err
-						}
-						return nil
-					},
-					Transform: nil,
-				},
-				{
-					Name:      "currency_from",
-					Prompt:    makeCurrencyMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
-				{
-					Name:      "currency_to",
-					Prompt:    makeCurrencyMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
-			}
-			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
-
-			if err := survey.Ask(isCorrect, &correct); err != nil {
 				return err
 			}
 		}
 
-		resp, err := service.New().Convert(ctx, answers)
+		resp, err := service.New().Convert(ctx, answers.ConvertRequest)
 		if err != nil {
 			return err
 		}
@@ -136,102 +60,125 @@ func menuConvert(ctx context.Context) cli.ActionFunc {
 		return nil
 	}
 }
-func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		var (
-			answers service.CalculateRequest
-		)
 
-		isCorrect := []*survey.Question{
-			{
-				Name: "",
-				Prompt: &survey.Confirm{
-
-					Renderer: survey.Renderer{},
-					Message:  "Are your answers correct?",
-					Default:  true,
-					Help:     "",
-				},
-				Validate:  nil,
-				Transform: nil,
-			},
-		}
-
-		var correct bool
-
-		for !correct {
-			questions := []*survey.Question{
-				{
-					Name:      "year",
-					Prompt:    makeYearsMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
-				{
-					Name:      "month",
-					Prompt:    makeMonthMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
+func makeMoneyAmountQuestion(fieldname, msg string) *survey.Question {
+	return &survey.Question{
+		Name: fieldname,
+		Prompt: &survey.Input{
+			Renderer: survey.Renderer{},
+			Message:  msg,
+			Default:  "0",
+			Help:     "",
+			Suggest:  nil,
+		},
+		Validate: func(ans interface{}) error {
+			s, ok := ans.(string)
+			if !ok {
+				return fmt.Errorf("failed to cast answer to string: [%T], %v", ans, ans)
 			}
 
-			if err := survey.Ask(questions, &answers); err != nil {
+			_, err := moneyutils.Parse(s)
+			if err != nil {
 				return err
 			}
+			return nil
+		},
+		Transform: nil,
+	}
+}
 
-			dq, err := makeDayMenu(answers.DateRequest)
+func makeCurrencyQuestion(fieldname, msg string) *survey.Question {
+	return &survey.Question{
+		Name:      fieldname,
+		Prompt:    makeCurrencyMenu(msg),
+		Validate:  nil,
+		Transform: nil,
+	}
+}
+
+func makeConfirmQuestion(fieldname, msg string) *survey.Question {
+	return &survey.Question{
+		Name: fieldname,
+		Prompt: &survey.Confirm{
+
+			Renderer: survey.Renderer{},
+			Message:  msg,
+			Default:  true,
+			Help:     "",
+		},
+		Validate:  nil,
+		Transform: nil,
+	}
+}
+
+func getDateRequest() (service.DateRequest, error) {
+	var datereq service.DateRequest
+
+	questions := []*survey.Question{
+		{
+			Name:      "year",
+			Prompt:    makeYearsMenu(),
+			Validate:  nil,
+			Transform: nil,
+		},
+		{
+			Name:      "month",
+			Prompt:    makeMonthMenu(),
+			Validate:  nil,
+			Transform: nil,
+		},
+	}
+
+	if err := survey.Ask(questions, &datereq); err != nil {
+		return service.DateRequest{}, err
+	}
+
+	dq, err := makeDayMenu(datereq)
+	if err != nil {
+		return service.DateRequest{}, err
+	}
+
+	questions = []*survey.Question{
+		{
+			Name:      "day",
+			Prompt:    dq,
+			Validate:  nil,
+			Transform: nil,
+		},
+	}
+
+	if err := survey.Ask(questions, &datereq); err != nil {
+		return service.DateRequest{}, err
+	}
+
+	return datereq, nil
+}
+
+func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		type calculateAnswers struct {
+			service.CalculateRequest
+			isCorrect bool `survey:"confirm"`
+		}
+
+		var answers calculateAnswers
+
+		for !answers.isCorrect {
+			datereq, err := getDateRequest()
 			if err != nil {
 				return err
 			}
 
-			questions = []*survey.Question{
-				{
-					Name:      "day",
-					Prompt:    dq,
-					Validate:  nil,
-					Transform: nil,
-				},
-			}
-
-			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
+			answers.DateRequest = datereq
 
 			taxMenu, err := makeTaxTypeMenu()
 			if err != nil {
 				return err
 			}
 
-			questions = []*survey.Question{
-				{
-					Name: "amount",
-					Prompt: &survey.Input{
-						Renderer: survey.Renderer{},
-						Message:  "Input amount of income",
-						Default:  "0",
-						Help:     "",
-						Suggest:  nil,
-					},
-					Validate: func(ans interface{}) error {
-						s, ok := ans.(string)
-						if !ok {
-							return fmt.Errorf("failed to cast answer to string: [%T], %v", ans, ans)
-						}
-
-						_, err = moneyutils.Parse(s)
-						if err != nil {
-							return err
-						}
-						return nil
-					},
-					Transform: nil,
-				},
-				{
-					Name:      "currency",
-					Prompt:    makeCurrencyMenu(),
-					Validate:  nil,
-					Transform: nil,
-				},
+			questions := []*survey.Question{
+				makeMoneyAmountQuestion("amount", "Input amount of income"),
+				makeCurrencyQuestion("currency", "Select currency of income"),
 				{
 					Name:   "tax_type",
 					Prompt: taxMenu,
@@ -251,18 +198,16 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 				},
 			}
 
-			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
+			questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
 
-			if err := survey.Ask(isCorrect, &correct); err != nil {
+			if err := survey.Ask(questions, &answers); err != nil {
 				return err
 			}
 		}
 
 		svc := service.New()
 
-		resp, err := svc.Calculate(ctx, answers)
+		resp, err := svc.Calculate(ctx, answers.CalculateRequest)
 		if err != nil {
 			return err
 		}
@@ -310,12 +255,11 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 
 	return qs, nil
 }
-func makeCurrencyMenu() survey.Prompt {
+
+func makeCurrencyMenu(msg string) survey.Prompt {
 	currs := currencies.All()
 
 	sort.Strings(currs)
-
-	msg := "Select currency of income"
 
 	return makeSurveySelect(msg, currs, currencies.EUR)
 }
@@ -379,7 +323,6 @@ func makeSurveySelect(msg string, items []string, defaultVal ...any) survey.Prom
 	}
 }
 
-// years
 func getYears(now time.Time) []string {
 	var years []string
 
