@@ -163,15 +163,13 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 
 		var answers calculateAnswers
 
+		taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
+		if err != nil {
+			return err
+		}
+
 		for !answers.IsCorrect {
-			datereq, err := getDateRequest()
-			if err != nil {
-				return err
-			}
-
-			answers.DateRequest = datereq
-
-			taxMenu, err := makeTaxTypeMenu()
+			answers.DateRequest, err = getDateRequest()
 			if err != nil {
 				return err
 			}
@@ -179,28 +177,11 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 			questions := []*survey.Question{
 				makeMoneyAmountQuestion("amount", "Input amount of income"),
 				makeCurrencyQuestion("currency", "Select currency of income"),
-				{
-					Name:   "tax_type",
-					Prompt: taxMenu,
-					Validate: func(ans interface{}) error {
-						s, ok := ans.(core.OptionAnswer)
-						if !ok {
-							return fmt.Errorf("failed to cast answer to OptionAnswer: [%T], %v", ans, ans)
-						}
-
-						_, err = taxes.ParseTaxType(s.Value)
-						if err != nil {
-							return err
-						}
-						return nil
-					},
-					Transform: nil,
-				},
 			}
 
-			questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
+			questions = append(questions, taxq, makeConfirmQuestion("confirm", "Are your answers correct?"))
 
-			if err := survey.Ask(questions, &answers); err != nil {
+			if err = survey.Ask(questions, &answers); err != nil {
 				return err
 			}
 		}
@@ -219,7 +200,32 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 	}
 }
 
-func makeTaxTypeMenu() (survey.Prompt, error) {
+func makeTaxTypeQuestion(fieldname, msg string) (*survey.Question, error) {
+	taxMenu, err := makeTaxTypeMenu(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &survey.Question{
+		Name:   fieldname,
+		Prompt: taxMenu,
+		Validate: func(ans interface{}) error {
+			s, ok := ans.(core.OptionAnswer)
+			if !ok {
+				return fmt.Errorf("failed to cast answer to OptionAnswer: [%T], %v", ans, ans)
+			}
+
+			_, err = taxes.ParseTaxType(s.Value)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		Transform: nil,
+	}, nil
+}
+
+func makeTaxTypeMenu(msg string) (survey.Prompt, error) {
 	rates, err := taxes.AllTaxRates()
 	if err != nil {
 		return nil, err
@@ -236,7 +242,7 @@ func makeTaxTypeMenu() (survey.Prompt, error) {
 
 	var qs = &survey.Select{
 		Renderer:      survey.Renderer{},
-		Message:       "Choose a tax type:",
+		Message:       msg,
 		Options:       titles,
 		Default:       taxes.TaxTypeSmallBusiness.String(),
 		Help:          "",
