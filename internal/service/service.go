@@ -54,7 +54,6 @@ func (c CalculateResponse) String() string {
 	resp += fmt.Sprintf("Taxes: %s\n", c.Tax.String())
 
 	return resp
-
 }
 
 // ConvertRequest model.
