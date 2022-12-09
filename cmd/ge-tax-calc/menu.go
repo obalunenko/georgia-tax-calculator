@@ -22,14 +22,14 @@ func menuConvert(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		type convertAnswers struct {
 			service.ConvertRequest
-			isCorrect bool `survey:"confirm"`
+			IsCorrect bool `survey:"confirm"`
 		}
 
 		var (
 			answers convertAnswers
 		)
 
-		for !answers.isCorrect {
+		for !answers.IsCorrect {
 			datereq, err := getDateRequest()
 			if err != nil {
 				return err
@@ -158,12 +158,12 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		type calculateAnswers struct {
 			service.CalculateRequest
-			isCorrect bool `survey:"confirm"`
+			IsCorrect bool `survey:"confirm"`
 		}
 
 		var answers calculateAnswers
 
-		for !answers.isCorrect {
+		for !answers.IsCorrect {
 			datereq, err := getDateRequest()
 			if err != nil {
 				return err
