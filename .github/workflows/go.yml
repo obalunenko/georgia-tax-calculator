@@ -35,7 +35,6 @@ on:
 
 jobs:
   build:
-    needs:
     strategy:
       fail-fast: false
       max-parallel: 3
