@@ -5,24 +5,6 @@ import (
 	"fmt"
 )
 
-// ResultOutput model.
-type ResultOutput struct {
-	Message string
-	Money
-}
-
-// NewResultOutput constructor for ResultOutput.
-func NewResultOutput(msg string, m Money) ResultOutput {
-	return ResultOutput{
-		Message: msg,
-		Money:   m,
-	}
-}
-
-func (r ResultOutput) String() string {
-	return fmt.Sprintf("%s: %s", r.Message, r.Money.String())
-}
-
 // Money model.
 type Money struct {
 	Amount   float64
