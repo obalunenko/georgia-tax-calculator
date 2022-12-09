@@ -60,10 +60,16 @@ func (i TaxType) Valid() bool {
 	return i > taxTypeUnknown && i < taxTypeSentinel
 }
 
+const (
+	onePercent     = 0.01
+	threePercents  = onePercent * 3
+	twentyPercents = onePercent * 20
+)
+
 var taxrates = map[TaxType]TaxRate{
-	TaxTypeSmallBusiness:          newTaxRate(TaxTypeSmallBusiness, 0.01),
-	TaxTypeIndividualEntrepreneur: newTaxRate(TaxTypeIndividualEntrepreneur, 0.03),
-	TaxTypeEmployment:             newTaxRate(TaxTypeEmployment, 0.2),
+	TaxTypeSmallBusiness:          newTaxRate(TaxTypeSmallBusiness, onePercent),
+	TaxTypeIndividualEntrepreneur: newTaxRate(TaxTypeIndividualEntrepreneur, threePercents),
+	TaxTypeEmployment:             newTaxRate(TaxTypeEmployment, twentyPercents),
 }
 
 // TaxRate represents tuple TaxType - rate.

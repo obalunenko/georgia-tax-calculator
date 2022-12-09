@@ -9,7 +9,7 @@ BIN_DIR=${REPO_ROOT}/bin
 
 echo "${SCRIPT_NAME} is running... "
 
-APP=ge-tax-calc
+APP=${APP_NAME}
 
 echo "Building ${APP}..."
 

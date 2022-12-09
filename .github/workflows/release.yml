@@ -53,6 +53,7 @@ jobs:
       - name: Build
         run: |
           make build
+
   regression_test:
     strategy:
       fail-fast: false

@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/obalunenko/georgia-tax-calculator)](https://goreportcard.com/report/github.com/obalunenko/georgia-tax-calculator)
 [![codecov](https://codecov.io/gh/obalunenko/georgia-tax-calculator/branch/master/graph/badge.svg)](https://codecov.io/gh/obalunenko/georgia-tax-calculator)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=obalunenko_georgia-tax-calculator&metric=alert_status)](https://sonarcloud.io/summary/overall?id=obalunenko_georgia-tax-calculator)
-![coverbadger-tag-do-not-edit](https://img.shields.io/badge/coverage-69.13%25-brightgreen?longCache=true&style=flat)
+![coverbadger-tag-do-not-edit](https://img.shields.io/badge/coverage-71.72%25-brightgreen?longCache=true&style=flat)
 
 
 # georgia-tax-calculator

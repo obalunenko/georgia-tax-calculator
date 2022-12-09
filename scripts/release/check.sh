@@ -9,11 +9,12 @@ SCRIPTS_DIR="${REPO_ROOT}/scripts"
 
 source "${SCRIPTS_DIR}/helpers-source.sh"
 
-echo "${SCRIPT_NAME} is running... "
+APP=${APP_NAME}
+
+echo "${SCRIPT_NAME} is running fo ${APP}... "
 
 checkInstalled 'goreleaser'
 
-APP=ge-tax-calc
 
 # Get new tags from the remote
 git fetch --tags -f
