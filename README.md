@@ -55,4 +55,10 @@ GLOBAL OPTIONS:
 
 ### Demo
 
+#### Taxes calculations
+
 [![asciicast](https://asciinema.org/a/rqN2ZwN72LNAfRQoGdmJmV4j5.svg)](https://asciinema.org/a/rqN2ZwN72LNAfRQoGdmJmV4j5)
+
+#### Cuurency conversion
+
+[![asciicast](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5.svg)](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5)
