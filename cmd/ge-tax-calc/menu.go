@@ -56,6 +56,7 @@ func menuConvert(ctx context.Context) cli.ActionFunc {
 
 		fmt.Println()
 		fmt.Println(resp)
+		fmt.Println()
 
 		return nil
 	}
@@ -195,6 +196,7 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 
 		fmt.Println()
 		fmt.Println(resp)
+		fmt.Println()
 
 		return nil
 	}
