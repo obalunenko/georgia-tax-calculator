@@ -33,32 +33,18 @@ NAME:
 USAGE:
    ge-tax-calc [global options] command [command options] [arguments...]
 
-VERSION:
-   
-| app_name:     ge-tax-calc                              |
-| version:      v1.0.2                                   |
-| short_commit: 9f05a34                                  |
-| commit:       9f05a3430f4c10f564fc2bfd16f4a488b0a2963a |
-| build_date:   2022-12-04T21:42:32Z                     |
-| goversion:    go1.19.3                                 |
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||
-
-
 DESCRIPTION:
    Helper tool for preparing tax declarations in Georgia.
-   It get income amount in received currency, converts it to GEL according to 
-   official rates on date of income and calculates tax amount 
+   It get income amount in received currency, converts it to GEL according to
+   official rates on date of income and calculates tax amount
    according to selected taxes category.
 
 AUTHOR:
    Oleg Balunenko <oleg.balunenko@gmail.com>
 
 COMMANDS:
-   run      Runs ge-tax-calc application
+   run      Runs taxes calculations
+   convert  Runs currency converter
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
