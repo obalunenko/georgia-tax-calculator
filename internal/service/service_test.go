@@ -259,3 +259,105 @@ func Test_service_Calculate(t *testing.T) {
 		})
 	}
 }
+
+func TestCalculateResponse_String(t *testing.T) {
+	type fields struct {
+		Date            time.Time
+		TaxRate         taxes.TaxRate
+		Income          models.Money
+		IncomeConverted models.Money
+		Tax             models.Money
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "",
+			fields: fields{
+				Date: time.Date(2022, 12, 8, 0, 0, 0, 0, time.Local),
+				TaxRate: taxes.TaxRate{
+					Type: taxes.TaxTypeEmployment,
+					Rate: 0.2,
+				},
+				Income: models.Money{
+					Amount:   568.99,
+					Currency: currencies.AED,
+				},
+				IncomeConverted: models.Money{
+					Amount:   789.99,
+					Currency: currencies.EUR,
+				},
+				Tax: models.Money{
+					Amount:   99.02,
+					Currency: currencies.AMD,
+				},
+			},
+			want: "Date: 2022-12-08\n" +
+				"Tax Rate: Employment 20 %\n" +
+				"Income: 568.99 AED\n" +
+				"Converted: 789.99 EUR\n" +
+				"Taxes: 99.02 AMD",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := CalculateResponse{
+				Date:            tt.fields.Date,
+				TaxRate:         tt.fields.TaxRate,
+				Income:          tt.fields.Income,
+				IncomeConverted: tt.fields.IncomeConverted,
+				Tax:             tt.fields.Tax,
+			}
+
+			assert.Equalf(t, tt.want, c.String(), "String()")
+		})
+	}
+}
+
+func TestConvertResponse_String(t *testing.T) {
+	type fields struct {
+		Date      time.Time
+		Amount    models.Money
+		Converted models.Money
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "",
+			fields: fields{
+				Date: time.Date(2022, 12, 8, 0, 0, 0, 0, time.Local),
+				Amount: models.Money{
+					Amount:   568.99,
+					Currency: currencies.AED,
+				},
+				Converted: models.Money{
+					Amount:   789.99,
+					Currency: currencies.EUR,
+				},
+			},
+			want: "Date: 2022-12-08\n" +
+				"Amount: 568.99 AED\n" +
+				"Converted: 789.99 EUR",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := ConvertResponse{
+				Date:      tt.fields.Date,
+				Amount:    tt.fields.Amount,
+				Converted: tt.fields.Converted,
+			}
+
+			assert.Equalf(t, tt.want, c.String(), "String()")
+		})
+	}
+}

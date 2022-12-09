@@ -51,7 +51,7 @@ func (c CalculateResponse) String() string {
 	resp += fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String())
 	resp += fmt.Sprintf("Income: %s\n", c.Income.String())
 	resp += fmt.Sprintf("Converted: %s\n", c.IncomeConverted.String())
-	resp += fmt.Sprintf("Taxes: %s\n", c.Tax.String())
+	resp += fmt.Sprintf("Taxes: %s", c.Tax.String())
 
 	return resp
 }
@@ -76,7 +76,7 @@ func (c ConvertResponse) String() string {
 
 	resp += fmt.Sprintf("Date: %s\n", c.Date.Format(layout))
 	resp += fmt.Sprintf("Amount: %s\n", c.Amount.String())
-	resp += fmt.Sprintf("Converted: %s\n", c.Converted.String())
+	resp += fmt.Sprintf("Converted: %s", c.Converted.String())
 
 	return resp
 }
