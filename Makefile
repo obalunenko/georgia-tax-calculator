@@ -6,8 +6,10 @@ VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
 APP_NAME?=ge-tax-calc
 SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
 
+GOTOOLS_IMAGE_TAG?=v0.0.1
+SHELL := env GOTOOLS_IMAGE_TAG=$(GOTOOLS_IMAGE_TAG) $(SHELL)
 
-COMPOSE_CMD=docker compose -f scripts/go-tools-docker-compose.yml up --exit-code-from
+COMPOSE_CMD=docker compose -f deployments/docker-compose/go-tools-docker-compose.yml up --exit-code-from
 
 TARGET_MAX_CHAR_NUM=20
 
