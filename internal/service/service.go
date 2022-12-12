@@ -23,9 +23,10 @@ const (
 // CalculateRequest model.
 type CalculateRequest struct {
 	DateRequest
-	Currency string `survey:"currency"`
-	Amount   string `survey:"amount"`
-	Taxtype  string `survey:"tax_type"`
+	Currency   string `survey:"currency"`
+	Amount     string `survey:"amount"`
+	Taxtype    string `survey:"tax_type"`
+	YearIncome string `survey:"year_income"`
 }
 
 // DateRequest model.
@@ -39,6 +40,7 @@ type DateRequest struct {
 type CalculateResponse struct {
 	Date            time.Time
 	TaxRate         taxes.TaxRate
+	YearIncome      models.Money
 	Income          models.Money
 	IncomeConverted models.Money
 	Tax             models.Money
@@ -49,6 +51,7 @@ func (c CalculateResponse) String() string {
 
 	resp += fmt.Sprintf("Date: %s\n", c.Date.Format(layout))
 	resp += fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String())
+	resp += fmt.Sprintf("Year Income: %s\n", c.YearIncome.String())
 	resp += fmt.Sprintf("Income: %s\n", c.Income.String())
 	resp += fmt.Sprintf("Converted: %s\n", c.IncomeConverted.String())
 	resp += fmt.Sprintf("Taxes: %s", c.Tax.String())
@@ -172,9 +175,17 @@ func (s service) Calculate(ctx context.Context, p CalculateRequest) (*CalculateR
 		return nil, fmt.Errorf("failed to Calculate taxes: %w", err)
 	}
 
+	yi, err := moneyutils.Parse(p.YearIncome)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse year income: %w", err)
+	}
+
+	yi = moneyutils.Add(yi, convertResp.Converted.Amount)
+
 	return &CalculateResponse{
 		Date:            convertResp.Date,
 		TaxRate:         tax.Rate,
+		YearIncome:      models.NewMoney(yi, currencies.GEL),
 		Income:          convertResp.Amount,
 		IncomeConverted: convertResp.Converted,
 		Tax:             tax.Money,

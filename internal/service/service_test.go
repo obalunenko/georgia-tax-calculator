@@ -174,9 +174,10 @@ func Test_service_Calculate(t *testing.T) {
 						Month: "December",
 						Day:   "08",
 					},
-					Currency: currencies.EUR,
-					Amount:   "1000",
-					Taxtype:  taxes.TaxTypeEmployment.String(),
+					Currency:   currencies.EUR,
+					Amount:     "1000",
+					Taxtype:    taxes.TaxTypeEmployment.String(),
+					YearIncome: "67.99",
 				},
 			},
 			want: &CalculateResponse{
@@ -184,6 +185,10 @@ func Test_service_Calculate(t *testing.T) {
 				TaxRate: taxes.TaxRate{
 					Type: taxes.TaxTypeEmployment,
 					Rate: 0.2,
+				},
+				YearIncome: models.Money{
+					Amount:   1067.99,
+					Currency: currencies.GEL,
 				},
 				Income: models.Money{
 					Amount:   1000,
@@ -213,9 +218,10 @@ func Test_service_Calculate(t *testing.T) {
 						Month: "12",
 						Day:   "08",
 					},
-					Currency: currencies.GEL,
-					Amount:   "568",
-					Taxtype:  taxes.TaxTypeSmallBusiness.String(),
+					Currency:   currencies.GEL,
+					Amount:     "568",
+					Taxtype:    taxes.TaxTypeSmallBusiness.String(),
+					YearIncome: "0",
 				},
 			},
 			want:    nil,
@@ -234,9 +240,10 @@ func Test_service_Calculate(t *testing.T) {
 						Month: "12",
 						Day:   "08",
 					},
-					Currency: currencies.GEL,
-					Amount:   "568",
-					Taxtype:  taxes.TaxTypeSmallBusiness.String(),
+					Currency:   currencies.GEL,
+					Amount:     "568",
+					Taxtype:    taxes.TaxTypeSmallBusiness.String(),
+					YearIncome: "0",
 				},
 			},
 			want:    nil,
@@ -264,6 +271,7 @@ func TestCalculateResponse_String(t *testing.T) {
 	type fields struct {
 		Date            time.Time
 		TaxRate         taxes.TaxRate
+		YearIncome      models.Money
 		Income          models.Money
 		IncomeConverted models.Money
 		Tax             models.Money
@@ -282,6 +290,10 @@ func TestCalculateResponse_String(t *testing.T) {
 					Type: taxes.TaxTypeEmployment,
 					Rate: 0.2,
 				},
+				YearIncome: models.Money{
+					Amount:   0,
+					Currency: currencies.GEL,
+				},
 				Income: models.Money{
 					Amount:   568.99,
 					Currency: currencies.AED,
@@ -297,6 +309,7 @@ func TestCalculateResponse_String(t *testing.T) {
 			},
 			want: "Date: 2022-12-08\n" +
 				"Tax Rate: Employment 20 %\n" +
+				"Year Income: 0.00 GEL\n" +
 				"Income: 568.99 AED\n" +
 				"Converted: 789.99 EUR\n" +
 				"Taxes: 99.02 AMD",
@@ -308,6 +321,7 @@ func TestCalculateResponse_String(t *testing.T) {
 			c := CalculateResponse{
 				Date:            tt.fields.Date,
 				TaxRate:         tt.fields.TaxRate,
+				YearIncome:      tt.fields.YearIncome,
 				Income:          tt.fields.Income,
 				IncomeConverted: tt.fields.IncomeConverted,
 				Tax:             tt.fields.Tax,
