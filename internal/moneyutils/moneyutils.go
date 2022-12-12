@@ -19,6 +19,16 @@ func Div(a, b float64) float64 {
 	return d.InexactFloat64()
 }
 
+// Add returns sum of two floats.
+func Add(a, b float64) float64 {
+	s := add(decimal.NewFromFloat(a), decimal.NewFromFloat(b))
+
+	return s.InexactFloat64()
+}
+
+func add(a, b decimal.Decimal) decimal.Decimal {
+	return a.Add(b)
+}
 func div(a, b decimal.Decimal) decimal.Decimal {
 	return a.Div(b)
 }

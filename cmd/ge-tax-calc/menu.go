@@ -18,6 +18,54 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
+func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		type calculateAnswers struct {
+			service.CalculateRequest
+			IsCorrect bool `survey:"confirm"`
+		}
+
+		var answers calculateAnswers
+
+		taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
+		if err != nil {
+			return err
+		}
+
+		for !answers.IsCorrect {
+			answers.DateRequest, err = getDateRequest()
+			if err != nil {
+				return err
+			}
+
+			questions := []*survey.Question{
+				makeMoneyAmountQuestion("amount", "Input amount of income"),
+				makeCurrencyQuestion("currency", "Select currency of income"),
+				makeMoneyAmountQuestion("year_income", "Income from the beginning of a calendar year (GEL)"),
+			}
+
+			questions = append(questions, taxq, makeConfirmQuestion("confirm", "Are your answers correct?"))
+
+			if err = survey.Ask(questions, &answers); err != nil {
+				return err
+			}
+		}
+
+		svc := service.New()
+
+		resp, err := svc.Calculate(ctx, answers.CalculateRequest)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println()
+		fmt.Println(resp)
+		fmt.Println()
+
+		return nil
+	}
+}
+
 func menuConvert(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		type convertAnswers struct {
@@ -153,53 +201,6 @@ func getDateRequest() (service.DateRequest, error) {
 	}
 
 	return datereq, nil
-}
-
-func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		type calculateAnswers struct {
-			service.CalculateRequest
-			IsCorrect bool `survey:"confirm"`
-		}
-
-		var answers calculateAnswers
-
-		taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
-		if err != nil {
-			return err
-		}
-
-		for !answers.IsCorrect {
-			answers.DateRequest, err = getDateRequest()
-			if err != nil {
-				return err
-			}
-
-			questions := []*survey.Question{
-				makeMoneyAmountQuestion("amount", "Input amount of income"),
-				makeCurrencyQuestion("currency", "Select currency of income"),
-			}
-
-			questions = append(questions, taxq, makeConfirmQuestion("confirm", "Are your answers correct?"))
-
-			if err = survey.Ask(questions, &answers); err != nil {
-				return err
-			}
-		}
-
-		svc := service.New()
-
-		resp, err := svc.Calculate(ctx, answers.CalculateRequest)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println()
-		fmt.Println(resp)
-		fmt.Println()
-
-		return nil
-	}
 }
 
 func makeTaxTypeQuestion(fieldname, msg string) (*survey.Question, error) {
