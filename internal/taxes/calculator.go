@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
-	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 )
 
 var (

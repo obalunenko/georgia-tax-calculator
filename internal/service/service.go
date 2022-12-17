@@ -8,10 +8,10 @@ import (
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
-	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )

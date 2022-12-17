@@ -11,10 +11,10 @@ import (
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/urfave/cli/v2"
 
-	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
