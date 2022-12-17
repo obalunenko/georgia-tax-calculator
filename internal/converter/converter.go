@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
-	"github.com/obalunenko/georgia-tax-calculator/internal/moneyutils"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
