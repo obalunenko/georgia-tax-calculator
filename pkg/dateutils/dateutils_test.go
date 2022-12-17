@@ -221,3 +221,53 @@ func TestParseYear(t *testing.T) {
 		})
 	}
 }
+
+func TestDaysInMonthTillDate(t *testing.T) {
+	type args struct {
+		m    time.Month
+		year int
+		now  time.Time
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "2022/10; now is 2022/12/18 - 31",
+			args: args{
+				m:    time.October,
+				year: 2022,
+				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+			},
+			want: 31,
+		},
+		{
+			name: "2022/12; now is 2022/12/18 - 18",
+			args: args{
+				m:    time.December,
+				year: 2022,
+				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+			},
+			want: 18,
+		},
+		{
+			name: "2021/12; now is 2022/12/18 - 18",
+			args: args{
+				m:    time.December,
+				year: 2021,
+				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+			},
+			want: 31,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := DaysInMonthTillDate(tt.args.m, tt.args.year, tt.args.now)
+
+			assert.Equalf(t, tt.want, got, "DaysInMonthTillDate(%v, %v, %v)", tt.args.m, tt.args.year, tt.args.now)
+		})
+	}
+}

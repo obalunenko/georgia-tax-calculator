@@ -17,6 +17,22 @@ func DaysInMonth(m time.Month, year int) int {
 	return time.Date(year, m+1, 0, 0, 0, 0, 0, time.UTC).Day()
 }
 
+// DaysInMonthTillDate return number of days in Month for specific year, and takes in attention current day.
+// It will not return days in the future.
+func DaysInMonthTillDate(m time.Month, year int, now time.Time) int {
+	days := DaysInMonth(m, year)
+
+	nowy, nowm, nowd := now.Date()
+
+	if nowy == year && nowm == m {
+		if days > nowd {
+			return nowd
+		}
+	}
+
+	return days
+}
+
 // GetMonths returns list of all month.
 func GetMonths() []string {
 	const totalMonth = 12
