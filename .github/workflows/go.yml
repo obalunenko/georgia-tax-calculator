@@ -17,6 +17,7 @@ on:
       - '!**.*md'
       - '.github/workflows/**'
       - '!.github/workflows/readme-stars.yml'
+      - 'deployments/docker-compose/go-tools-docker-compose.yml'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
