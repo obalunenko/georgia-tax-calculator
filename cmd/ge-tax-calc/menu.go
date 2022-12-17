@@ -304,7 +304,7 @@ func makeDayMenu(p service.DateRequest) (survey.Prompt, error) {
 		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
-	days := dateutils.DaysList(dateutils.DaysInMonth(parseMonth, parseYear))
+	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(parseMonth, parseYear, time.Now()))
 
 	msg := "Select day of income"
 
