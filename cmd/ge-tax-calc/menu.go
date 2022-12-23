@@ -304,14 +304,22 @@ func makeDayMenu(p service.DateRequest) (survey.Prompt, error) {
 		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
-	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(parseMonth, parseYear, time.Now()))
+	now := time.Now()
+
+	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(parseMonth, parseYear, now))
 
 	msg := "Select day of income"
 
-	return makeSurveySelect(msg, days), nil
+	var defval []string
+
+	if now.Year() == parseYear && now.Month() == parseMonth {
+		defval = append(defval, strconv.Itoa(now.Day()))
+	}
+
+	return makeSurveySelect(msg, days, defval...), nil
 }
 
-func makeSurveySelect(msg string, items []string, defaultVal ...any) survey.Prompt {
+func makeSurveySelect(msg string, items []string, defaultVal ...string) survey.Prompt {
 	var defval any
 
 	if len(defaultVal) == 1 {
