@@ -338,7 +338,7 @@ func makeDayMenu(p service.DateRequest) (survey.Prompt, error) {
 	var defval []string
 
 	if now.Year() == parseYear && now.Month() == parseMonth {
-		defval = append(defval, strconv.Itoa(now.Day()))
+		defval = append(defval, days[now.Day()-1])
 	}
 
 	return makeSurveySelect(msg, days, defval...), nil
