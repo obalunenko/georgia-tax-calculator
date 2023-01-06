@@ -279,6 +279,7 @@ func TestGetMonthsInYearTillDate(t *testing.T) {
 		year int
 		now  time.Time
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -306,9 +307,11 @@ func TestGetMonthsInYearTillDate(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, GetMonthsInYearTillDate(tt.args.year, tt.args.now), "GetMonthsInYearTillDate(%v, %v)", tt.args.year, tt.args.now)
+			assert.Equalf(t, tt.want, GetMonthsInYearTillDate(tt.args.year, tt.args.now),
+				"GetMonthsInYearTillDate(%v, %v)", tt.args.year, tt.args.now)
 		})
 	}
 }
