@@ -271,3 +271,44 @@ func TestDaysInMonthTillDate(t *testing.T) {
 		})
 	}
 }
+
+func TestGetMonthsInYearTillDate(t *testing.T) {
+	now := time.Date(2023, 01, 06, 12, 0, 0, 0, time.UTC)
+
+	type args struct {
+		year int
+		now  time.Time
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "",
+			args: args{
+				year: 2022,
+				now:  now,
+			},
+			want: []string{
+				"January", "February", "March", "April", "May", "June", "July", "August",
+				"September", "October", "November", "December",
+			},
+		},
+		{
+			name: "",
+			args: args{
+				year: 2023,
+				now:  now,
+			},
+			want: []string{
+				"January",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, GetMonthsInYearTillDate(tt.args.year, tt.args.now), "GetMonthsInYearTillDate(%v, %v)", tt.args.year, tt.args.now)
+		})
+	}
+}
