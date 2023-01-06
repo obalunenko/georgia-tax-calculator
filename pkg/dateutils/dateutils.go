@@ -50,6 +50,7 @@ func getMonths(last time.Month) []string {
 	return months
 }
 
+// GetMonthsInYearTillDate returns list of all month for specific year, and takes in attention current day.
 func GetMonthsInYearTillDate(year int, now time.Time) []string {
 	nowy := now.Year()
 
