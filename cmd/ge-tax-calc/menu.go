@@ -170,15 +170,27 @@ func getDateRequest() (service.DateRequest, error) {
 			Validate:  nil,
 			Transform: nil,
 		},
+	}
+
+	if err := survey.Ask(questions, &datereq); err != nil {
+		return service.DateRequest{}, err
+	}
+
+	mq, err := makeMonthMenu(datereq)
+	if err != nil {
+		return service.DateRequest{}, err
+	}
+
+	questions = []*survey.Question{
 		{
 			Name:      "month",
-			Prompt:    makeMonthMenu(),
+			Prompt:    mq,
 			Validate:  nil,
 			Transform: nil,
 		},
 	}
 
-	if err := survey.Ask(questions, &datereq); err != nil {
+	if err = survey.Ask(questions, &datereq); err != nil {
 		return service.DateRequest{}, err
 	}
 
@@ -196,7 +208,7 @@ func getDateRequest() (service.DateRequest, error) {
 		},
 	}
 
-	if err := survey.Ask(questions, &datereq); err != nil {
+	if err = survey.Ask(questions, &datereq); err != nil {
 		return service.DateRequest{}, err
 	}
 
@@ -285,12 +297,25 @@ func makeYearsMenu() survey.Prompt {
 	return makeSurveySelect(msg, years, strconv.Itoa(time.Now().Year()))
 }
 
-func makeMonthMenu() survey.Prompt {
-	months := dateutils.GetMonths()
+func makeMonthMenu(p service.DateRequest) (survey.Prompt, error) {
+	parseYear, err := dateutils.ParseYear(p.Year)
+	if err != nil {
+		return nil, fmt.Errorf("parse year: %w", err)
+	}
+
+	now := time.Now()
+
+	months := dateutils.GetMonthsInYearTillDate(parseYear, now)
 
 	msg := "Select month of income"
 
-	return makeSurveySelect(msg, months, time.Now().Month().String())
+	var defval []string
+
+	if now.Year() == parseYear {
+		defval = append(defval, time.Now().Month().String())
+	}
+
+	return makeSurveySelect(msg, months, defval...), nil
 }
 
 func makeDayMenu(p service.DateRequest) (survey.Prompt, error) {
