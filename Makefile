@@ -6,7 +6,7 @@ VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
 APP_NAME?=ge-tax-calc
 SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
 
-GOTOOLS_IMAGE_TAG?=v0.0.2
+GOTOOLS_IMAGE_TAG?=v0.1.4
 SHELL := env GOTOOLS_IMAGE_TAG=$(GOTOOLS_IMAGE_TAG) $(SHELL)
 
 COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
@@ -45,13 +45,12 @@ compile-app:
 
 ## Test coverage report.
 test-cover:
-	$(COMPOSE_TOOLS_CMD_UP) run-tests-coverage run-tests-coverage
+	./scripts/tests/coverage.sh
 .PHONY: test-cover
 
-## Tests sonar report generate.
-test-sonar-report:
-	./scripts/tests/sonar-report.sh
-.PHONY: test-sonar-report
+prepare-cover-report: test-cover
+	$(COMPOSE_TOOLS_CMD_UP) prepare-cover-report prepare-cover-report
+.PHONY: prepare-cover-report
 
 ## Open coverage report.
 open-cover-report: test-cover
