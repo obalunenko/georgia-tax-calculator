@@ -35,15 +35,32 @@ func DaysInMonthTillDate(m time.Month, year int, now time.Time) int {
 
 // GetMonths returns list of all month.
 func GetMonths() []string {
+	return getMonths(time.December)
+}
+
+func getMonths(last time.Month) []string {
 	const totalMonth = 12
 
 	months := make([]string, 0, totalMonth)
 
-	for i := time.January; i <= time.December; i++ {
+	for i := time.January; i <= last; i++ {
 		months = append(months, i.String())
 	}
 
 	return months
+}
+
+// GetMonthsInYearTillDate returns list of all month for specific year, and takes in attention current day.
+func GetMonthsInYearTillDate(year int, now time.Time) []string {
+	nowy := now.Year()
+
+	lastM := time.December
+
+	if nowy == year {
+		lastM = now.Month()
+	}
+
+	return getMonths(lastM)
 }
 
 // ErrIncorrectMonth returned when month is incorrect.
