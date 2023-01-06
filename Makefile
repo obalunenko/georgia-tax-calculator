@@ -53,12 +53,12 @@ prepare-cover-report: test-cover
 .PHONY: prepare-cover-report
 
 ## Open coverage report.
-open-cover-report: test-cover
+open-cover-report: prepare-cover-report
 	./scripts/open-coverage-report.sh
 .PHONY: open-cover-report
 
 ## Update readme coverage.
-update-readme-cover: build test-cover
+update-readme-cover: build prepare-cover-report
 	$(COMPOSE_TOOLS_CMD_UP) update-readme-coverage update-readme-coverage
 .PHONY: update-readme-cover
 
