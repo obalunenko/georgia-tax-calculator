@@ -162,7 +162,7 @@ jobs:
         run: |
           make vet
         shell: bash
-      
+
       - name: Set up cache
         uses: actions/cache@v3
         env:
@@ -187,7 +187,7 @@ jobs:
         shell: bash
 
   reports:
-    needs: [testing, linting, build]
+    needs: [ testing, linting, build ]
     strategy:
       fail-fast: true
       max-parallel: 1
@@ -225,7 +225,7 @@ jobs:
 
       - name: Install tools
         run: |
-           make install-tools
+          make install-tools
         shell: bash
 
       - name: Prepare test coverage and reports
@@ -237,7 +237,7 @@ jobs:
         run: |
           make lint-sonar
         shell: bash
-          
+
       - name: Cover report upload
         if: success()
         run: |

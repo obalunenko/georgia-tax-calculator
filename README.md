@@ -8,7 +8,6 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=obalunenko_georgia-tax-calculator&metric=alert_status)](https://sonarcloud.io/summary/overall?id=obalunenko_georgia-tax-calculator)
 ![coverbadger-tag-do-not-edit](https://img.shields.io/badge/coverage-74.65%25-brightgreen?longCache=true&style=flat)
 
-
 # georgia-tax-calculator
 
 Calculates income taxes in Georgia.
@@ -17,10 +16,10 @@ Calculates income taxes in Georgia.
 - Converts income to GEL.
 - Calculate taxes amount according to specified Taxes Category.
 
-
 ## Usage
 
-1. Download binary from [![Latest release artifacts](https://img.shields.io/badge/artifacts-download-blue.svg)](https://github.com/obalunenko/georgia-tax-calculator/releases/latest)
+1. Download binary
+   from [![Latest release artifacts](https://img.shields.io/badge/artifacts-download-blue.svg)](https://github.com/obalunenko/georgia-tax-calculator/releases/latest)
 
 2. Run `ge-tax-calc run` and follow instructions
 
@@ -51,7 +50,6 @@ GLOBAL OPTIONS:
    --help, -h     show help (default: false)
    --version, -v  print the version (default: false)
 ```
-
 
 ### Demo
 
