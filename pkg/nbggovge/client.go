@@ -32,9 +32,9 @@ func New() Client {
 }
 
 // NewWithHTTPClient returns nbg.gov.ge API client with specified http client.
-func NewWithHTTPClient(cli HTTPClient) Client {
+func NewWithHTTPClient(c HTTPClient) Client {
 	return client{
-		HTTPClient: cli,
+		HTTPClient: c,
 	}
 }
 
