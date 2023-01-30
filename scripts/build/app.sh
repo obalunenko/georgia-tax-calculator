@@ -19,8 +19,7 @@ DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 VERSION="$(git tag | sort -V | tail -1)"
 GOVERSION="$(go version | awk '{print $3;}')"
 
-if [ -z "${VERSION}" ] || [ "${VERSION}" = "${SHORTCOMMIT}" ]
- then
+if [ -z "${VERSION}" ] || [ "${VERSION}" = "${SHORTCOMMIT}" ]; then
   VERSION="v0.0.0"
 fi
 
@@ -39,6 +38,6 @@ GO_BUILD_PACKAGE="${REPO_ROOT}/cmd/${APP}"
 
 rm -rf "${BIN_OUT}"
 
-go build -o "${BIN_OUT}" -a -ldflags "${GO_BUILD_LDFLAGS}" "${GO_BUILD_PACKAGE}"
+go build -trimpath -o "${BIN_OUT}" -a -ldflags "${GO_BUILD_LDFLAGS}" "${GO_BUILD_PACKAGE}"
 
 echo "Binary compiled at ${BIN_OUT}"
