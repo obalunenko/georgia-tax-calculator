@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
-	github.com/briandowns/spinner v1.20.0
+	github.com/briandowns/spinner v1.21.0
 	github.com/obalunenko/logger v0.5.1
 	github.com/obalunenko/version v1.1.0
 	github.com/shopspring/decimal v1.3.1

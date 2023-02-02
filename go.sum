@@ -2,8 +2,8 @@ github.com/AlecAivazis/survey/v2 v2.3.6 h1:NvTuVHISgTHEHeBFqt6BHOe4Ny/NwGZr7w+F8
 github.com/AlecAivazis/survey/v2 v2.3.6/go.mod h1:4AuI9b7RjAR+G7v9+C4YSlX/YL3K3cWNXgWXOhllqvI=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63nhn5WAunQHLTznkw5W8b1Xc0dNjp83s=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
-github.com/briandowns/spinner v1.20.0 h1:GQq1Yf1KyzYT8CY19GzWrDKP6hYOFB6J72Ks7d8aO1U=
-github.com/briandowns/spinner v1.20.0/go.mod h1:TcwZHb7Wb6vn/+bcVv1UXEzaA4pLS7yznHlkY/HzH44=
+github.com/briandowns/spinner v1.21.0 h1:2lVBzf3iZ3cT/ulVXljc4BzlL3yTWZDzsGsamI7si+A=
+github.com/briandowns/spinner v1.21.0/go.mod h1:TcwZHb7Wb6vn/+bcVv1UXEzaA4pLS7yznHlkY/HzH44=
 github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d h1:S2NE3iHSwP0XV47EEXL8mWmRdEfGscSJ+7EgePNgt0s=
 github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/cpuguy83/go-md2man/v2 v2.0.2 h1:p1EgwI/C7NhT0JmVkwCD2ZBK8j4aeHQX2pMHHBfMQ6w=
