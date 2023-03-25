@@ -5,6 +5,8 @@ linters:
     - gofmt
     - revive
     - goimports
+    - unused
+    - gosimple
 
 linters-settings:
   errcheck:

@@ -28,7 +28,7 @@ func (m mockConverter) Convert(_ context.Context, money models.Money, toCurrency
 
 type mockConverterError struct{}
 
-func (m mockConverterError) Convert(_ context.Context, money models.Money, toCurrency string, _ time.Time) (converter.Response, error) {
+func (m mockConverterError) Convert(_ context.Context, _ models.Money, _ string, _ time.Time) (converter.Response, error) {
 	return converter.Response{}, fmt.Errorf("mocked error")
 }
 
