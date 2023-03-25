@@ -9,6 +9,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
+	"github.com/savioxavier/termlink"
 	"github.com/urfave/cli/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
@@ -18,8 +19,18 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
+func createLink(text, url string) {
+	if !termlink.SupportsHyperlinks() {
+		return
+	}
+
+	fmt.Println(termlink.Link(text, url))
+}
+
 func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
+		createLink("Declarations", "https://decl.rs.ge/decls.aspx")
+
 		type calculateAnswers struct {
 			service.CalculateRequest
 			IsCorrect bool `survey:"confirm"`

@@ -24,6 +24,10 @@ github.com/fatih/color
 # github.com/getsentry/raven-go v0.2.0
 ## explicit
 github.com/getsentry/raven-go
+# github.com/jwalton/go-supportscolor v1.1.0
+## explicit; go 1.15
+github.com/jwalton/go-supportscolor
+github.com/jwalton/go-supportscolor/pkg/hasFlag
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote
@@ -51,6 +55,9 @@ github.com/pmezard/go-difflib/difflib
 # github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
+# github.com/savioxavier/termlink v1.2.1
+## explicit; go 1.17
+github.com/savioxavier/termlink
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
@@ -67,13 +74,13 @@ github.com/urfave/cli/v2
 # github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673
 ## explicit
 github.com/xrash/smetrics
-# golang.org/x/sys v0.2.0
+# golang.org/x/sys v0.6.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.2.0
+# golang.org/x/term v0.6.0
 ## explicit; go 1.17
 golang.org/x/term
 # golang.org/x/text v0.4.0
