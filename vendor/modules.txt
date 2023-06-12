@@ -24,10 +24,6 @@ github.com/fatih/color
 # github.com/getsentry/raven-go v0.2.0
 ## explicit
 github.com/getsentry/raven-go
-# github.com/jwalton/go-supportscolor v1.1.0
-## explicit; go 1.15
-github.com/jwalton/go-supportscolor
-github.com/jwalton/go-supportscolor/pkg/hasFlag
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote
@@ -55,7 +51,7 @@ github.com/pmezard/go-difflib/difflib
 # github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/savioxavier/termlink v1.2.1
+# github.com/savioxavier/termlink v1.3.0
 ## explicit; go 1.17
 github.com/savioxavier/termlink
 # github.com/shopspring/decimal v1.3.1
