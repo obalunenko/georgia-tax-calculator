@@ -3,7 +3,7 @@ module github.com/obalunenko/georgia-tax-calculator
 go 1.20
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/briandowns/spinner v1.23.0
 	github.com/obalunenko/logger v0.6.0
 	github.com/obalunenko/version v1.1.0
