@@ -22,11 +22,15 @@ const (
 
 // CalculateRequest model.
 type CalculateRequest struct {
-	DateRequest
-	Currency   string `survey:"currency"`
-	Amount     string `survey:"amount"`
-	Taxtype    string `survey:"tax_type"`
+	Income     []Income
+	TaxType    string `survey:"tax_type"`
 	YearIncome string `survey:"year_income"`
+}
+
+type Income struct {
+	DateRequest
+	Currency string `survey:"currency"`
+	Amount   string `survey:"amount"`
 }
 
 // DateRequest model.
@@ -36,12 +40,14 @@ type DateRequest struct {
 	Day   string `survey:"day"`
 }
 
+func (d DateRequest) String() string {
+	return fmt.Sprintf("%s-%s-%s", d.Year, d.Month, d.Day)
+}
+
 // CalculateResponse model.
 type CalculateResponse struct {
-	Date            time.Time
 	TaxRate         taxes.TaxRate
 	YearIncome      models.Money
-	Income          models.Money
 	IncomeConverted models.Money
 	Tax             models.Money
 }
@@ -49,10 +55,8 @@ type CalculateResponse struct {
 func (c CalculateResponse) String() string {
 	var resp string
 
-	resp += fmt.Sprintf("Date: %s\n", c.Date.Format(layout))
 	resp += fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String())
 	resp += fmt.Sprintf("Year Income: %s\n", c.YearIncome.String())
-	resp += fmt.Sprintf("Income: %s\n", c.Income.String())
 	resp += fmt.Sprintf("Converted: %s\n", c.IncomeConverted.String())
 	resp += fmt.Sprintf("Taxes: %s", c.Tax.String())
 
@@ -86,7 +90,15 @@ func (c ConvertResponse) String() string {
 
 // Service for calculations of taxes and currency conversions.
 type Service interface {
+	Converter
+	TaxCalculator
+}
+
+type Converter interface {
 	Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error)
+}
+
+type TaxCalculator interface {
 	Calculate(ctx context.Context, p CalculateRequest) (*CalculateResponse, error)
 }
 
@@ -150,45 +162,60 @@ func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertRespons
 }
 
 // Calculate calculates taxes amount.
-func (s service) Calculate(ctx context.Context, p CalculateRequest) (*CalculateResponse, error) {
-	convertResp, err := s.Convert(ctx, ConvertRequest{
-		DateRequest: DateRequest{
-			Year:  p.Year,
-			Month: p.Month,
-			Day:   p.Day,
-		},
-		CurrencyFrom: p.Currency,
-		CurrencyTo:   currencies.GEL,
-		Amount:       p.Amount,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert income: %w", err)
-	}
-
-	tt, err := taxes.ParseTaxType(p.Taxtype)
+func (s service) Calculate(ctx context.Context, req CalculateRequest) (*CalculateResponse, error) {
+	tt, err := taxes.ParseTaxType(req.TaxType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse tax type: %w", err)
 	}
 
-	tax, err := taxes.Calc(convertResp.Converted, tt)
+	tr, err := tt.Rate()
 	if err != nil {
-		return nil, fmt.Errorf("failed to Calculate taxes: %w", err)
+		return nil, fmt.Errorf("failed to get tax rate: %w", err)
 	}
 
-	yi, err := moneyutils.Parse(p.YearIncome)
+	yi, err := moneyutils.Parse(req.YearIncome)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse year income: %w", err)
 	}
 
-	yi = moneyutils.Add(yi, convertResp.Converted.Amount)
+	var (
+		inc float64
+		txs float64
+	)
+
+	for _, p := range req.Income {
+		r := ConvertRequest{
+			DateRequest: DateRequest{
+				Year:  p.Year,
+				Month: p.Month,
+				Day:   p.Day,
+			},
+			CurrencyFrom: p.Currency,
+			CurrencyTo:   currencies.GEL,
+			Amount:       p.Amount,
+		}
+
+		convertResp, err := s.Convert(ctx, r)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert income: %w", err)
+		}
+
+		tax, err := taxes.Calc(convertResp.Converted, tt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to Calculate taxes: %w", err)
+		}
+
+		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
+		inc = moneyutils.Add(inc, convertResp.Converted.Amount)
+		txs = moneyutils.Add(txs, tax.Money.Amount)
+
+	}
 
 	return &CalculateResponse{
-		Date:            convertResp.Date,
-		TaxRate:         tax.Rate,
+		TaxRate:         tr,
 		YearIncome:      models.NewMoney(yi, currencies.GEL),
-		Income:          convertResp.Amount,
-		IncomeConverted: convertResp.Converted,
-		Tax:             tax.Money,
+		IncomeConverted: models.NewMoney(inc, currencies.GEL),
+		Tax:             models.NewMoney(txs, currencies.GEL),
 	}, nil
 }
 
