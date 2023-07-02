@@ -133,7 +133,7 @@ func Test_service_Convert(t *testing.T) {
 			}
 
 			got, err := s.Convert(tt.args.ctx, tt.args.p)
-			if tt.wantErr(t, err) {
+			if !tt.wantErr(t, err) {
 				return
 			}
 
