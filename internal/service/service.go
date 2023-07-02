@@ -121,7 +121,10 @@ func New() Service {
 }
 
 func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error) {
-	stop := spinner.Start()
+	name := fmt.Sprintf("Converting %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
+	finalMsg := fmt.Sprintf("Converted %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
+
+	stop := spinner.Start(name, finalMsg)
 	defer stop()
 
 	year, err := dateutils.ParseYear(p.Year)
