@@ -44,47 +44,9 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 			return fmt.Errorf("failed to ask questions abot tax rate and year income: %w", err)
 		}
 
-		var isCorrect bool
-
-		type incomeAnswers struct {
-			service.Income
-			AddMore bool `survey:"add_more"`
-		}
-
-		var income []service.Income
-
-		for !isCorrect {
-			income = make([]service.Income, 0) // reset slice
-
-			answers := incomeAnswers{
-				Income:  service.Income{},
-				AddMore: true, // to start loop
-			}
-
-			for answers.AddMore {
-				answers.DateRequest, err = getDateRequest()
-				if err != nil {
-					return err
-				}
-
-				questions := []*survey.Question{
-					makeMoneyAmountQuestion("amount", "Input amount of income"),
-					makeCurrencyQuestion("currency", "Select currency of income"),
-					makeConfirmQuestion("add_more", "Add more?"),
-				}
-
-				if err = survey.Ask(questions, &answers); err != nil {
-					return fmt.Errorf("failed to ask questions about income: %w", err)
-				}
-
-				income = append(income, answers.Income)
-			}
-
-			confirmQ := makeConfirmQuestion("confirm", "Are your answers correct?")
-
-			if err = survey.Ask([]*survey.Question{confirmQ}, &isCorrect); err != nil {
-				return fmt.Errorf("failed to ask questions about confirmation: %w", err)
-			}
+		income, err := getIncomeRequest()
+		if err != nil {
+			return fmt.Errorf("failed to get income request: %w", err)
 		}
 
 		req.Income = income
@@ -102,6 +64,54 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 
 		return nil
 	}
+}
+
+type incomeAnswers struct {
+	service.Income
+	AddMore bool `survey:"add_more"`
+}
+
+func getIncomeRequest() ([]service.Income, error) {
+	var isCorrect bool
+	var err error
+
+	var income []service.Income
+
+	for !isCorrect {
+		income = make([]service.Income, 0) // reset slice
+
+		answers := incomeAnswers{
+			Income:  service.Income{},
+			AddMore: true, // to start loop
+		}
+
+		for answers.AddMore {
+			answers.DateRequest, err = getDateRequest()
+			if err != nil {
+				return nil, err
+			}
+
+			questions := []*survey.Question{
+				makeMoneyAmountQuestion("amount", "Input amount of income"),
+				makeCurrencyQuestion("currency", "Select currency of income"),
+				makeConfirmQuestion("add_more", "Add more?"),
+			}
+
+			if err = survey.Ask(questions, &answers); err != nil {
+				return nil, fmt.Errorf("failed to ask questions about income: %w", err)
+			}
+
+			income = append(income, answers.Income)
+		}
+
+		confirmQ := makeConfirmQuestion("confirm", "Are your answers correct?")
+
+		if err = survey.Ask([]*survey.Question{confirmQ}, &isCorrect); err != nil {
+			return nil, fmt.Errorf("failed to ask questions about confirmation: %w", err)
+		}
+	}
+
+	return income, nil
 }
 
 func menuConvert(ctx context.Context) cli.ActionFunc {
