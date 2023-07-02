@@ -31,40 +31,29 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		createLink("Declarations", "https://decl.rs.ge/decls.aspx")
 
-		type calculateAnswers struct {
-			service.CalculateRequest
-			IsCorrect bool `survey:"confirm"`
-		}
-
-		var answers calculateAnswers
+		var req service.CalculateRequest
 
 		taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create tax type question: %w", err)
 		}
 
-		for !answers.IsCorrect {
-			answers.DateRequest, err = getDateRequest()
-			if err != nil {
-				return err
-			}
+		yincQ := makeMoneyAmountQuestion("year_income", "Income from the beginning of a calendar year (GEL)")
 
-			questions := []*survey.Question{
-				makeMoneyAmountQuestion("amount", "Input amount of income"),
-				makeCurrencyQuestion("currency", "Select currency of income"),
-				makeMoneyAmountQuestion("year_income", "Income from the beginning of a calendar year (GEL)"),
-			}
-
-			questions = append(questions, taxq, makeConfirmQuestion("confirm", "Are your answers correct?"))
-
-			if err = survey.Ask(questions, &answers); err != nil {
-				return err
-			}
+		if err = survey.Ask([]*survey.Question{taxq, yincQ}, &req); err != nil {
+			return fmt.Errorf("failed to ask questions abot tax rate and year income: %w", err)
 		}
+
+		income, err := getIncomeRequest()
+		if err != nil {
+			return fmt.Errorf("failed to get income request: %w", err)
+		}
+
+		req.Income = income
 
 		svc := service.New()
 
-		resp, err := svc.Calculate(ctx, answers.CalculateRequest)
+		resp, err := svc.Calculate(ctx, req)
 		if err != nil {
 			return err
 		}
@@ -77,6 +66,55 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 	}
 }
 
+type incomeAnswers struct {
+	service.Income
+	AddMore bool `survey:"add_more"`
+}
+
+func getIncomeRequest() ([]service.Income, error) {
+	var (
+		isCorrect bool
+		err       error
+		income    []service.Income
+	)
+
+	for !isCorrect {
+		income = make([]service.Income, 0) // reset slice
+
+		answers := incomeAnswers{
+			Income:  service.Income{},
+			AddMore: true, // to start loop
+		}
+
+		for answers.AddMore {
+			answers.DateRequest, err = getDateRequest()
+			if err != nil {
+				return nil, err
+			}
+
+			questions := []*survey.Question{
+				makeMoneyAmountQuestion("amount", "Input amount of income"),
+				makeCurrencyQuestion("currency", "Select currency of income"),
+				makeConfirmQuestion("add_more", "Add more?"),
+			}
+
+			if err = survey.Ask(questions, &answers); err != nil {
+				return nil, fmt.Errorf("failed to ask questions about income: %w", err)
+			}
+
+			income = append(income, answers.Income)
+		}
+
+		confirmQ := makeConfirmQuestion("confirm", "Are your answers correct?")
+
+		if err = survey.Ask([]*survey.Question{confirmQ}, &isCorrect); err != nil {
+			return nil, fmt.Errorf("failed to ask questions about confirmation: %w", err)
+		}
+	}
+
+	return income, nil
+}
+
 func menuConvert(ctx context.Context) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		type convertAnswers struct {
@@ -84,9 +122,7 @@ func menuConvert(ctx context.Context) cli.ActionFunc {
 			IsCorrect bool `survey:"confirm"`
 		}
 
-		var (
-			answers convertAnswers
-		)
+		var answers convertAnswers
 
 		for !answers.IsCorrect {
 			datereq, err := getDateRequest()
@@ -160,7 +196,6 @@ func makeConfirmQuestion(fieldname, msg string) *survey.Question {
 	return &survey.Question{
 		Name: fieldname,
 		Prompt: &survey.Confirm{
-
 			Renderer: survey.Renderer{},
 			Message:  msg,
 			Default:  true,
@@ -266,7 +301,7 @@ func makeTaxTypeMenu(msg string) (survey.Prompt, error) {
 		titles[i] = r.Type.String()
 	}
 
-	var qs = &survey.Select{
+	qs := &survey.Select{
 		Renderer:      survey.Renderer{},
 		Message:       msg,
 		Options:       titles,

@@ -14,8 +14,7 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
-type mockConverter struct {
-}
+type mockConverter struct{}
 
 func (m mockConverter) Convert(_ context.Context, money models.Money, toCurrency string, _ time.Time) (converter.Response, error) {
 	return converter.Response{
@@ -133,7 +132,7 @@ func Test_service_Convert(t *testing.T) {
 			}
 
 			got, err := s.Convert(tt.args.ctx, tt.args.p)
-			if tt.wantErr(t, err) {
+			if !tt.wantErr(t, err) {
 				return
 			}
 
@@ -162,26 +161,30 @@ func Test_service_Calculate(t *testing.T) {
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
-			name: "correct request",
+			name: "correct request with one income",
 			fields: fields{
 				c: mockConverter{},
 			},
 			args: args{
 				ctx: ctx,
 				p: CalculateRequest{
-					DateRequest: DateRequest{
-						Year:  "2022",
-						Month: "December",
-						Day:   "08",
+					Income: []Income{
+						{
+							DateRequest: DateRequest{
+								Year:  "2022",
+								Month: "December",
+								Day:   "08",
+							},
+							Currency: currencies.EUR,
+							Amount:   "1000",
+						},
 					},
-					Currency:   currencies.EUR,
-					Amount:     "1000",
-					Taxtype:    taxes.TaxTypeEmployment.String(),
+
+					TaxType:    taxes.TaxTypeEmployment.String(),
 					YearIncome: "67.99",
 				},
 			},
 			want: &CalculateResponse{
-				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
 				TaxRate: taxes.TaxRate{
 					Type: taxes.TaxTypeEmployment,
 					Rate: 0.2,
@@ -189,10 +192,6 @@ func Test_service_Calculate(t *testing.T) {
 				YearIncome: models.Money{
 					Amount:   1067.99,
 					Currency: currencies.GEL,
-				},
-				Income: models.Money{
-					Amount:   1000,
-					Currency: currencies.EUR,
 				},
 				IncomeConverted: models.Money{
 					Amount:   1000,
@@ -206,6 +205,58 @@ func Test_service_Calculate(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 		{
+			name: "correct request with multiple income",
+			fields: fields{
+				c: mockConverter{},
+			},
+			args: args{
+				ctx: ctx,
+				p: CalculateRequest{
+					Income: []Income{
+						{
+							DateRequest: DateRequest{
+								Year:  "2022",
+								Month: "December",
+								Day:   "08",
+							},
+							Currency: currencies.EUR,
+							Amount:   "1000",
+						},
+						{
+							DateRequest: DateRequest{
+								Year:  "2023",
+								Month: "June",
+								Day:   "08",
+							},
+							Currency: currencies.USD,
+							Amount:   "200",
+						},
+					},
+					TaxType:    taxes.TaxTypeEmployment.String(),
+					YearIncome: "67.99",
+				},
+			},
+			want: &CalculateResponse{
+				TaxRate: taxes.TaxRate{
+					Type: taxes.TaxTypeEmployment,
+					Rate: 0.2,
+				},
+				YearIncome: models.Money{
+					Amount:   1267.99,
+					Currency: currencies.GEL,
+				},
+				IncomeConverted: models.Money{
+					Amount:   1200,
+					Currency: currencies.GEL,
+				},
+				Tax: models.Money{
+					Amount:   240,
+					Currency: currencies.GEL,
+				},
+			},
+			wantErr: assert.NoError,
+		},
+		{
 			name: "incorrect request",
 			fields: fields{
 				c: mockConverter{},
@@ -213,14 +264,19 @@ func Test_service_Calculate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				p: CalculateRequest{
-					DateRequest: DateRequest{
-						Year:  "2022",
-						Month: "12",
-						Day:   "08",
+					Income: []Income{
+						{
+							DateRequest: DateRequest{
+								Year:  "2022",
+								Month: "12",
+								Day:   "08",
+							},
+							Currency: currencies.GEL,
+							Amount:   "568",
+						},
 					},
-					Currency:   currencies.GEL,
-					Amount:     "568",
-					Taxtype:    taxes.TaxTypeSmallBusiness.String(),
+
+					TaxType:    taxes.TaxTypeSmallBusiness.String(),
 					YearIncome: "0",
 				},
 			},
@@ -235,14 +291,19 @@ func Test_service_Calculate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				p: CalculateRequest{
-					DateRequest: DateRequest{
-						Year:  "2022",
-						Month: "12",
-						Day:   "08",
+					Income: []Income{
+						{
+							DateRequest: DateRequest{
+								Year:  "2022",
+								Month: "12",
+								Day:   "08",
+							},
+							Currency: currencies.GEL,
+							Amount:   "568",
+						},
 					},
-					Currency:   currencies.GEL,
-					Amount:     "568",
-					Taxtype:    taxes.TaxTypeSmallBusiness.String(),
+
+					TaxType:    taxes.TaxTypeSmallBusiness.String(),
 					YearIncome: "0",
 				},
 			},
@@ -258,7 +319,7 @@ func Test_service_Calculate(t *testing.T) {
 			}
 
 			got, err := s.Calculate(tt.args.ctx, tt.args.p)
-			if tt.wantErr(t, err) {
+			if !tt.wantErr(t, err) {
 				return
 			}
 
@@ -307,10 +368,8 @@ func TestCalculateResponse_String(t *testing.T) {
 					Currency: currencies.AMD,
 				},
 			},
-			want: "Date: 2022-12-08\n" +
-				"Tax Rate: Employment 20 %\n" +
+			want: "Tax Rate: Employment 20 %\n" +
 				"Year Income: 0.00 GEL\n" +
-				"Income: 568.99 AED\n" +
 				"Converted: 789.99 EUR\n" +
 				"Taxes: 99.02 AMD",
 		},
@@ -319,10 +378,8 @@ func TestCalculateResponse_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := CalculateResponse{
-				Date:            tt.fields.Date,
 				TaxRate:         tt.fields.TaxRate,
 				YearIncome:      tt.fields.YearIncome,
-				Income:          tt.fields.Income,
 				IncomeConverted: tt.fields.IncomeConverted,
 				Tax:             tt.fields.Tax,
 			}

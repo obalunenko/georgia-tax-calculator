@@ -6,10 +6,8 @@ import (
 	"strings"
 )
 
-var (
-	// ErrCodeNotFound returned when specified code could not be found in set.
-	ErrCodeNotFound = errors.New("code not found in set")
-)
+// ErrCodeNotFound returned when specified code could not be found in set.
+var ErrCodeNotFound = errors.New("code not found in set")
 
 // Currency represents rates for one currency.
 type Currency struct {
