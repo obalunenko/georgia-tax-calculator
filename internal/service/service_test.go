@@ -258,7 +258,7 @@ func Test_service_Calculate(t *testing.T) {
 			}
 
 			got, err := s.Calculate(tt.args.ctx, tt.args.p)
-			if tt.wantErr(t, err) {
+			if !tt.wantErr(t, err) {
 				return
 			}
 
