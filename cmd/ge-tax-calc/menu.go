@@ -72,10 +72,11 @@ type incomeAnswers struct {
 }
 
 func getIncomeRequest() ([]service.Income, error) {
-	var isCorrect bool
-	var err error
-
-	var income []service.Income
+	var (
+		isCorrect bool
+		err       error
+		income    []service.Income
+	)
 
 	for !isCorrect {
 		income = make([]service.Income, 0) // reset slice
