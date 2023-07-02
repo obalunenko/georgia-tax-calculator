@@ -44,9 +44,7 @@ func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
 			return fmt.Errorf("failed to ask questions abot tax rate and year income: %w", err)
 		}
 
-		var (
-			isCorrect bool
-		)
+		var isCorrect bool
 
 		type incomeAnswers struct {
 			service.Income
@@ -113,9 +111,7 @@ func menuConvert(ctx context.Context) cli.ActionFunc {
 			IsCorrect bool `survey:"confirm"`
 		}
 
-		var (
-			answers convertAnswers
-		)
+		var answers convertAnswers
 
 		for !answers.IsCorrect {
 			datereq, err := getDateRequest()
@@ -189,7 +185,6 @@ func makeConfirmQuestion(fieldname, msg string) *survey.Question {
 	return &survey.Question{
 		Name: fieldname,
 		Prompt: &survey.Confirm{
-
 			Renderer: survey.Renderer{},
 			Message:  msg,
 			Default:  true,
@@ -295,7 +290,7 @@ func makeTaxTypeMenu(msg string) (survey.Prompt, error) {
 		titles[i] = r.Type.String()
 	}
 
-	var qs = &survey.Select{
+	qs := &survey.Select{
 		Renderer:      survey.Renderer{},
 		Message:       msg,
 		Options:       titles,

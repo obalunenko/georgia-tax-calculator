@@ -74,10 +74,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.GEL,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   7557.54,
-				Currency: currencies.GEL,
-			},
+			want: Response{
+				models.Money{
+					Amount:   7557.54,
+					Currency: currencies.GEL,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -95,10 +96,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.EUR,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   2678.27,
-				Currency: currencies.EUR,
-			},
+			want: Response{
+				models.Money{
+					Amount:   2678.27,
+					Currency: currencies.EUR,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -116,10 +118,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.GBP,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   2299.50,
-				Currency: currencies.GBP,
-			},
+			want: Response{
+				models.Money{
+					Amount:   2299.50,
+					Currency: currencies.GBP,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -171,10 +174,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.GEL,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   2678.27,
-				Currency: currencies.GEL,
-			},
+			want: Response{
+				models.Money{
+					Amount:   2678.27,
+					Currency: currencies.GEL,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -192,10 +196,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.GEL,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   1607.93,
-				Currency: currencies.GEL,
-			},
+			want: Response{
+				models.Money{
+					Amount:   1607.93,
+					Currency: currencies.GEL,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -213,10 +218,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.GEL,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   2883.16,
-				Currency: currencies.GEL,
-			},
+			want: Response{
+				models.Money{
+					Amount:   2883.16,
+					Currency: currencies.GEL,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -234,10 +240,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.PLN,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   4802.38,
-				Currency: currencies.PLN,
-			},
+			want: Response{
+				models.Money{
+					Amount:   4802.38,
+					Currency: currencies.PLN,
+				},
 			},
 			wantErr: assert.NoError,
 		},
@@ -255,10 +262,11 @@ func TestConverter_Convert(t *testing.T) {
 				to:   currencies.BYN,
 				date: time.Now(),
 			},
-			want: Response{models.Money{
-				Amount:   1493.66,
-				Currency: currencies.BYN,
-			},
+			want: Response{
+				models.Money{
+					Amount:   1493.66,
+					Currency: currencies.BYN,
+				},
 			},
 			wantErr: assert.NoError,
 		},

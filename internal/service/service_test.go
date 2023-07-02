@@ -14,8 +14,7 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
-type mockConverter struct {
-}
+type mockConverter struct{}
 
 func (m mockConverter) Convert(_ context.Context, money models.Money, toCurrency string, _ time.Time) (converter.Response, error) {
 	return converter.Response{

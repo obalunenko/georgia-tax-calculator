@@ -29,6 +29,7 @@ func Add(a, b float64) float64 {
 func add(a, b decimal.Decimal) decimal.Decimal {
 	return a.Add(b)
 }
+
 func div(a, b decimal.Decimal) decimal.Decimal {
 	return a.Div(b)
 }

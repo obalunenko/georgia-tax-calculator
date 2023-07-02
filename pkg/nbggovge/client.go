@@ -52,9 +52,7 @@ const (
 // Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
 // By default, it fetches all currencies for today.
 func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (Rates, error) {
-	var (
-		params internal.RatesParams
-	)
+	var params internal.RatesParams
 
 	for _, opt := range opts {
 		opt.Apply(&params)

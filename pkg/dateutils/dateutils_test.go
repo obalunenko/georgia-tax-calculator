@@ -273,7 +273,7 @@ func TestDaysInMonthTillDate(t *testing.T) {
 }
 
 func TestGetMonthsInYearTillDate(t *testing.T) {
-	now := time.Date(2023, 01, 06, 12, 0, 0, 0, time.UTC)
+	now := time.Date(2023, 1, 6, 12, 0, 0, 0, time.UTC)
 
 	type args struct {
 		year int
