@@ -27,6 +27,7 @@ type CalculateRequest struct {
 	YearIncome string `survey:"year_income"`
 }
 
+// Income model.
 type Income struct {
 	DateRequest
 	Currency string `survey:"currency"`
@@ -94,10 +95,12 @@ type Service interface {
 	TaxCalculator
 }
 
+// Converter converts currencies.
 type Converter interface {
 	Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error)
 }
 
+// TaxCalculator calculates taxes.
 type TaxCalculator interface {
 	Calculate(ctx context.Context, p CalculateRequest) (*CalculateResponse, error)
 }
