@@ -211,7 +211,6 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
 		inc = moneyutils.Add(inc, convertResp.Converted.Amount)
 		txs = moneyutils.Add(txs, tax.Money.Amount)
-
 	}
 
 	return &CalculateResponse{
