@@ -34,7 +34,7 @@ func main() {
 	app.Before = printHeader(ctx)
 	app.After = onExit(ctx)
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.WithError(ctx, err).Fatal("Run failed")
 	}
 }
