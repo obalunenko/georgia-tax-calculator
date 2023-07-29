@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
-
 	"github.com/urfave/cli/v2"
 )
 
-func commands(ctx context.Context) []*cli.Command {
+func commands() []*cli.Command {
 	const (
 		cmdRun     = "run"
 		cmdConvert = "convert"

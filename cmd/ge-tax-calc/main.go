@@ -29,7 +29,7 @@ func main() {
 	}
 
 	app.CommandNotFound = notFound
-	app.Commands = commands(ctx)
+	app.Commands = commands()
 	app.Version = printVersion(ctx)
 	app.Before = printHeader
 	app.After = onExit
