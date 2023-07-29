@@ -28,11 +28,11 @@ func main() {
 		},
 	}
 
-	app.CommandNotFound = notFound(ctx)
+	app.CommandNotFound = notFound
 	app.Commands = commands(ctx)
 	app.Version = printVersion(ctx)
-	app.Before = printHeader(ctx)
-	app.After = onExit(ctx)
+	app.Before = printHeader
+	app.After = onExit
 
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.WithError(ctx, err).Fatal("Run failed")

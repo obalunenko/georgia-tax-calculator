@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"text/tabwriter"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func printHeader(_ context.Context) cli.BeforeFunc {
+func printHeader(c *cli.Context) error {
 	const (
 		padding  int  = 1
 		minWidth int  = 0
@@ -17,10 +16,9 @@ func printHeader(_ context.Context) cli.BeforeFunc {
 		padChar  byte = ' '
 	)
 
-	return func(c *cli.Context) error {
-		w := tabwriter.NewWriter(c.App.Writer, minWidth, tabWidth, padding, padChar, tabwriter.TabIndent)
+	w := tabwriter.NewWriter(c.App.Writer, minWidth, tabWidth, padding, padChar, tabwriter.TabIndent)
 
-		_, err := fmt.Fprintf(w, `
+	_, err := fmt.Fprintf(w, `
 
  ██████╗ ███████╗ ████████╗ █████╗ ██╗  ██╗      ██████╗ █████╗ ██╗      ██████╗
 ██╔════╝ ██╔════╝ ╚══██╔══╝██╔══██╗╚██╗██╔╝     ██╔════╝██╔══██╗██║     ██╔════╝
@@ -31,30 +29,27 @@ func printHeader(_ context.Context) cli.BeforeFunc {
                                                                                 
 
 `)
-		if err != nil {
-			return fmt.Errorf("print version: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("print version: %w", err)
+	}
 
-		return nil
+	return nil
+}
+
+func notFound(c *cli.Context, command string) {
+	ctx := c.Context
+
+	if _, err := fmt.Fprintf(
+		c.App.Writer,
+		"Command [%s] not supported.\nTry --help flag to see how to use it\n",
+		command,
+	); err != nil {
+		log.WithError(ctx, err).Fatal("Failed to print not found message")
 	}
 }
 
-func notFound(ctx context.Context) cli.CommandNotFoundFunc {
-	return func(c *cli.Context, command string) {
-		if _, err := fmt.Fprintf(
-			c.App.Writer,
-			"Command [%s] not supported.\nTry --help flag to see how to use it\n",
-			command,
-		); err != nil {
-			log.WithError(ctx, err).Fatal("Failed to print not found message")
-		}
-	}
-}
+func onExit(_ *cli.Context) error {
+	fmt.Println("Exit...")
 
-func onExit(_ context.Context) cli.AfterFunc {
-	return func(c *cli.Context) error {
-		fmt.Println("Exit...")
-
-		return nil
-	}
+	return nil
 }

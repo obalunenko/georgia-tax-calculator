@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -27,43 +26,43 @@ func createLink(text, url string) {
 	fmt.Println(termlink.Link(text, url))
 }
 
-func menuCalcTaxes(ctx context.Context) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		createLink("Declarations", "https://decl.rs.ge/decls.aspx")
+func menuCalcTaxes(c *cli.Context) error {
+	ctx := c.Context
 
-		var req service.CalculateRequest
+	createLink("Declarations", "https://decl.rs.ge/decls.aspx")
 
-		taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
-		if err != nil {
-			return fmt.Errorf("failed to create tax type question: %w", err)
-		}
+	var req service.CalculateRequest
 
-		yincQ := makeMoneyAmountQuestion("year_income", "Income from the beginning of a calendar year (GEL)")
-
-		if err = survey.Ask([]*survey.Question{taxq, yincQ}, &req); err != nil {
-			return fmt.Errorf("failed to ask questions abot tax rate and year income: %w", err)
-		}
-
-		income, err := getIncomeRequest()
-		if err != nil {
-			return fmt.Errorf("failed to get income request: %w", err)
-		}
-
-		req.Income = income
-
-		svc := service.New()
-
-		resp, err := svc.Calculate(ctx, req)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println()
-		fmt.Println(resp)
-		fmt.Println()
-
-		return nil
+	taxq, err := makeTaxTypeQuestion("tax_type", "Select your taxes type")
+	if err != nil {
+		return fmt.Errorf("failed to create tax type question: %w", err)
 	}
+
+	yincQ := makeMoneyAmountQuestion("year_income", "Income from the beginning of a calendar year (GEL)")
+
+	if err = survey.Ask([]*survey.Question{taxq, yincQ}, &req); err != nil {
+		return fmt.Errorf("failed to ask questions abot tax rate and year income: %w", err)
+	}
+
+	income, err := getIncomeRequest()
+	if err != nil {
+		return fmt.Errorf("failed to get income request: %w", err)
+	}
+
+	req.Income = income
+
+	svc := service.New()
+
+	resp, err := svc.Calculate(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println()
+	fmt.Println(resp)
+	fmt.Println()
+
+	return nil
 }
 
 type incomeAnswers struct {
@@ -115,46 +114,46 @@ func getIncomeRequest() ([]service.Income, error) {
 	return income, nil
 }
 
-func menuConvert(ctx context.Context) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		type convertAnswers struct {
-			service.ConvertRequest
-			IsCorrect bool `survey:"confirm"`
-		}
+func menuConvert(c *cli.Context) error {
+	ctx := c.Context
 
-		var answers convertAnswers
+	type convertAnswers struct {
+		service.ConvertRequest
+		IsCorrect bool `survey:"confirm"`
+	}
 
-		for !answers.IsCorrect {
-			datereq, err := getDateRequest()
-			if err != nil {
-				return err
-			}
+	var answers convertAnswers
 
-			answers.DateRequest = datereq
-
-			questions := []*survey.Question{
-				makeMoneyAmountQuestion("amount", "Input amount to convert"),
-				makeCurrencyQuestion("currency_from", "Select currency of conversion 'from'"),
-				makeCurrencyQuestion("currency_to", "Select currency of conversion 'to'"),
-			}
-
-			questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
-			if err := survey.Ask(questions, &answers); err != nil {
-				return err
-			}
-		}
-
-		resp, err := service.New().Convert(ctx, answers.ConvertRequest)
+	for !answers.IsCorrect {
+		datereq, err := getDateRequest()
 		if err != nil {
 			return err
 		}
 
-		fmt.Println()
-		fmt.Println(resp)
-		fmt.Println()
+		answers.DateRequest = datereq
 
-		return nil
+		questions := []*survey.Question{
+			makeMoneyAmountQuestion("amount", "Input amount to convert"),
+			makeCurrencyQuestion("currency_from", "Select currency of conversion 'from'"),
+			makeCurrencyQuestion("currency_to", "Select currency of conversion 'to'"),
+		}
+
+		questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
+		if err := survey.Ask(questions, &answers); err != nil {
+			return err
+		}
 	}
+
+	resp, err := service.New().Convert(ctx, answers.ConvertRequest)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println()
+	fmt.Println(resp)
+	fmt.Println()
+
+	return nil
 }
 
 func makeMoneyAmountQuestion(fieldname, msg string) *survey.Question {
