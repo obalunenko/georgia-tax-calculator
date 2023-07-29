@@ -19,9 +19,6 @@ APP=${APP_NAME}
 
 echo "${SCRIPT_NAME} is running fo ${APP}... "
 
-# Get new tags from the remote
-git fetch --tags -f
-
 COMMIT="$(git rev-parse HEAD)"
 SHORTCOMMIT="$(git rev-parse --short HEAD)"
 DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

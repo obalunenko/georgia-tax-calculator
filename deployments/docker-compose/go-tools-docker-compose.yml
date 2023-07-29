@@ -8,6 +8,11 @@ services:
       - ../../:/app/
     command: /bin/sh -c ''
 
+  vet:
+    extends:
+      service: tools
+    entrypoint: /bin/sh -c './scripts/linting/run-vet.sh'
+
   fix-imports:
     extends:
       service: tools
@@ -57,3 +62,38 @@ services:
     extends:
       service: tools
     entrypoint: /bin/sh -c './scripts/codegen/go-generate.sh'
+
+  build:
+    extends:
+      service: tools
+    entrypoint: /bin/sh -c './scripts/build/app.sh'
+    environment:
+      APP_NAME: ${APP_NAME}
+      GOOS: ${GOOS}
+      GOARCH: ${GOARCH}
+
+  release-local-snapshot:
+    extends:
+      service: tools
+    entrypoint: /bin/sh -c './scripts/release/local-snapshot-release.sh'
+    environment:
+      APP_NAME: ${APP_NAME}
+      GOOS: ${GOOS}
+      GOARCH: ${GOARCH}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+
+  release-check-config:
+    extends:
+      service: tools
+    entrypoint: /bin/sh -c './scripts/release/check.sh'
+    environment:
+      APP_NAME: ${APP_NAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+
+  release:
+    extends:
+      service: tools
+    entrypoint: /bin/sh -c './scripts/release/release.sh'
+    environment:
+      APP_NAME: ${APP_NAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
