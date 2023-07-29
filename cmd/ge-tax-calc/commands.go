@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
-
 	"github.com/urfave/cli/v2"
 )
 
-func commands(ctx context.Context) []*cli.Command {
+func commands() []*cli.Command {
 	const (
 		cmdRun     = "run"
 		cmdConvert = "convert"
@@ -24,7 +22,7 @@ func commands(ctx context.Context) []*cli.Command {
 			BashComplete:           nil,
 			Before:                 nil,
 			After:                  nil,
-			Action:                 menuCalcTaxes(ctx),
+			Action:                 menuCalcTaxes,
 			OnUsageError:           nil,
 			Subcommands:            nil,
 			Flags:                  nil,
@@ -47,7 +45,7 @@ func commands(ctx context.Context) []*cli.Command {
 			BashComplete:           nil,
 			Before:                 nil,
 			After:                  nil,
-			Action:                 menuConvert(ctx),
+			Action:                 menuConvert,
 			OnUsageError:           nil,
 			Subcommands:            nil,
 			Flags:                  nil,

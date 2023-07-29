@@ -15,8 +15,7 @@ echo "${SCRIPT_NAME} is running fo ${APP}... "
 
 checkInstalled 'goreleaser'
 
-# Get new tags from the remote
-git fetch --tags -f
+goreleaser healthcheck
 
 COMMIT="$(git rev-parse HEAD)"
 SHORTCOMMIT="$(git rev-parse --short HEAD)"

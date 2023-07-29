@@ -180,11 +180,6 @@ jobs:
           go version
         shell: bash
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          install-only: true
-
       - name: Run GoReleaser
         if: success()
         env:
