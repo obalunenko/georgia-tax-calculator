@@ -11,27 +11,27 @@ services:
   vet:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/linting/run-vet.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/linting/run-vet.sh'
 
   fix-imports:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/style/fix-imports.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/style/fix-imports.sh'
 
   fix-fmt:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/style/fmt.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/style/fmt.sh'
 
   run-tests:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/tests/run.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/tests/run.sh'
 
   run-tests-coverage:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/tests/coverage.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/tests/coverage.sh'
 
   prepare-cover-report:
     extends:
@@ -41,12 +41,12 @@ services:
   update-readme-coverage:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/update-readme-coverage.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/update-readme-coverage.sh'
 
   lint-full:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/linting/run-linters.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/linting/run-linters.sh'
 
   lint-pipeline:
     extends:
@@ -61,12 +61,12 @@ services:
   go-generate:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/codegen/go-generate.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/codegen/go-generate.sh'
 
   build:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/build/app.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app &&  ./scripts/build/app.sh'
     environment:
       APP_NAME: ${APP_NAME}
       GOOS: ${GOOS}
@@ -75,7 +75,7 @@ services:
   release-local-snapshot:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/release/local-snapshot-release.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app && ./scripts/release/local-snapshot-release.sh'
     environment:
       APP_NAME: ${APP_NAME}
       GOOS: ${GOOS}
@@ -85,7 +85,7 @@ services:
   release-check-config:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/release/check.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app &&  ./scripts/release/check.sh'
     environment:
       APP_NAME: ${APP_NAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
@@ -93,7 +93,7 @@ services:
   release:
     extends:
       service: tools
-    entrypoint: /bin/sh -c './scripts/release/release.sh'
+    entrypoint: /bin/sh -c 'git config --global --add safe.directory /app &&  ./scripts/release/release.sh'
     environment:
       APP_NAME: ${APP_NAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
