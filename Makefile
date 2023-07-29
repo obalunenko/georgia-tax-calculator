@@ -35,7 +35,7 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 ## Build project.
-build: compile-app
+build: sync-vendor generate compile-app
 .PHONY: build
 
 ## Compile app.
