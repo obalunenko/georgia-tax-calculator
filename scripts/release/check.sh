@@ -15,6 +15,8 @@ echo "${SCRIPT_NAME} is running fo ${APP}... "
 
 checkInstalled 'goreleaser'
 
+goreleaser healthcheck
+
 # Get new tags from the remote
 git fetch --tags -f
 

@@ -33,7 +33,7 @@ fi
 
 if [[ $(git diff --stat) != '' ]]; then
   echo 'dirty'
-  
+
   COMMIT="${COMMIT}-dirty"
   SHORTCOMMIT="${SHORTCOMMIT}-dirty"
   VERSION="${VERSION}-dirty"

@@ -13,6 +13,8 @@ echo "${SCRIPT_NAME} is running... "
 
 checkInstalled 'goreleaser'
 
+goreleaser healthcheck
+
 APP=${APP_NAME}
 
 echo "${SCRIPT_NAME} is running fo ${APP}... "
