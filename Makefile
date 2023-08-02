@@ -6,9 +6,6 @@ VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
 APP_NAME?=ge-tax-calc
 SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
 
-GOTOOLS_IMAGE_TAG?=v0.13.0
-SHELL := env GOTOOLS_IMAGE_TAG=$(GOTOOLS_IMAGE_TAG) $(SHELL)
-
 COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
 COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
 COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --remove-orphans --exit-code-from
@@ -95,7 +92,6 @@ format-project: fmt imports
 
 ## Installs vendored tools.
 install-tools:
-	echo "Installing ${GOTOOLS_IMAGE_TAG}"
 	$(COMPOSE_TOOLS_CMD_PULL)
 .PHONY: install-tools
 
