@@ -7,33 +7,34 @@ on:
       - 'master'
     paths:
       - 'scripts/**'
-      - 'tools/**'
       - '**/*.go'
       - '**/*.gohtml'
+      - '**/*.gotmpl'
       - '**/*.proto'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
       - '!**.*md'
       - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
       - 'deployments/docker-compose/go-tools-docker-compose.yml'
+      - 'build/docker/go-tools/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
       - '*'
     paths:
       - 'scripts/**'
-      - 'tools/**'
       - '**/*.go'
       - '**/*.gohtml'
+      - '**/*.gotmpl'
       - '**/*.proto'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
       - '!**.*md'
       - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
+      - 'deployments/docker-compose/go-tools-docker-compose.yml'
+      - 'build/docker/go-tools/**'
 
 jobs:
   build:
