@@ -7,33 +7,34 @@ on:
       - 'master'
     paths:
       - 'scripts/**'
-      - 'tools/**'
       - '**/*.go'
       - '**/*.gohtml'
+      - '**/*.gotmpl'
       - '**/*.proto'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
       - '!**.*md'
       - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
       - 'deployments/docker-compose/go-tools-docker-compose.yml'
+      - 'build/docker/go-tools/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
       - '*'
     paths:
       - 'scripts/**'
-      - 'tools/**'
       - '**/*.go'
       - '**/*.gohtml'
+      - '**/*.gotmpl'
       - '**/*.proto'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
       - '!**.*md'
       - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
+      - 'deployments/docker-compose/go-tools-docker-compose.yml'
+      - 'build/docker/go-tools/**'
 
 jobs:
   build:
@@ -52,7 +53,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v4.0.1
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go }}
 
@@ -99,7 +100,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v4.0.1
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go }}
 
@@ -146,7 +147,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v4.0.1
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go }}
       - run: |
@@ -198,7 +199,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v4.0.1
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go }}
       - run: |
