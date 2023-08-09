@@ -6,6 +6,7 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
+      - "go"
     assignees:
       - "obalunenko"
     reviewers:
@@ -20,6 +21,7 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+      - "github-actions"
     assignees:
       - "obalunenko"
     reviewers:
@@ -29,11 +31,12 @@ updates:
       include: "scope"
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/build/docker/go-tools"
     schedule:
       interval: "daily"
     labels:
       - "dependencies"
+      - "docker"
     assignees:
       - "obalunenko"
     reviewers:
