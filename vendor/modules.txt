@@ -36,8 +36,8 @@ github.com/mattn/go-isatty
 # github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 ## explicit
 github.com/mgutz/ansi
-# github.com/obalunenko/logger v0.6.0
-## explicit; go 1.20
+# github.com/obalunenko/logger v0.7.1
+## explicit; go 1.21
 github.com/obalunenko/logger
 # github.com/obalunenko/version v1.1.0
 ## explicit; go 1.17
@@ -57,7 +57,7 @@ github.com/savioxavier/termlink
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
-# github.com/sirupsen/logrus v1.9.0
+# github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.4
