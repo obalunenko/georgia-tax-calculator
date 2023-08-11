@@ -6,6 +6,9 @@ VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
 APP_NAME?=ge-tax-calc
 SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
 
+RELEASE_BRANCH?=master
+SHELL := env RELEASE_BRANCH=$(RELEASE_BRANCH) $(SHELL)
+
 COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
 COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
 COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --remove-orphans --exit-code-from
