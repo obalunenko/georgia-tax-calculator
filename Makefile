@@ -14,6 +14,8 @@ COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
 COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --remove-orphans --exit-code-from
 COMPOSE_TOOLS_CMD_PULL=$(COMPOSE_TOOLS_CMD_BASE) build
 
+GOVERSION:=1.21
+
 TARGET_MAX_CHAR_NUM=20
 
 ## Show help
@@ -146,6 +148,10 @@ check-releaser:
 new-version: vet test-regression build
 	./scripts/release/new-version.sh
 .PHONY: new-release
+
+bump-go-version:
+	./scripts/bump-go.sh $(GOVERSION)
+.PHONY: bump-go-version
 
 .DEFAULT_GOAL := help
 
