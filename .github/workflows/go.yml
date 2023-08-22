@@ -43,7 +43,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ 'ubuntu-22.04' ]
-        go: [ '1.21' ]
+        go-version: [1.21.x, 1.x]
     runs-on: ${{ matrix.os }}
     name: Build
     steps:
@@ -55,7 +55,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ matrix.go-version }}
 
       - run: |
           go version
@@ -90,7 +90,7 @@ jobs:
       max-parallel: 2
       matrix:
         os: [ 'ubuntu-22.04' ]
-        go: [ '1.21' ]
+        go-version: [1.21.x, 1.x]
     runs-on: ${{ matrix.os }}
     name: Run Tests
     steps:
@@ -102,7 +102,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ matrix.go-version }}
 
       - run: |
           go version
@@ -137,7 +137,7 @@ jobs:
       max-parallel: 2
       matrix:
         os: [ 'ubuntu-22.04' ]
-        go: [ '1.21' ]
+        go-version: [1.21.x, 1.x]
     runs-on: ${{ matrix.os }}
     name: Run linters
     steps:
@@ -149,7 +149,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ matrix.go-version }}
       - run: |
           go version
         shell: bash
@@ -189,7 +189,7 @@ jobs:
       max-parallel: 1
       matrix:
         os: [ 'ubuntu-22.04' ]
-        go: [ '1.21' ]
+        go-version: [1.21.x, 1.x]
     runs-on: ${{ matrix.os }}
     name: Quality reports
     steps:
@@ -201,7 +201,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ matrix.go-version }}
       - run: |
           go version
         shell: bash
