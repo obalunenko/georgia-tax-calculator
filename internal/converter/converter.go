@@ -10,7 +10,6 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
 
@@ -91,30 +90,10 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 }
 
 func (c converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge.Currency, error) {
-	if code == currencies.GEL {
-		return createGelCurrency(rates.Date), nil
-	}
-
 	currency, err := rates.CurrencyByCode(code)
 	if err != nil {
 		return nbggovge.Currency{}, err
 	}
 
 	return currency, nil
-}
-
-// GEL is presumably a base currency used for comparison with all others.
-// It is not included in the response from the API.
-func createGelCurrency(date string) nbggovge.Currency {
-	return nbggovge.Currency{
-		Code:          currencies.GEL,
-		Quantity:      1,
-		RateFormated:  "1",
-		DiffFormated:  "0",
-		Rate:          1,
-		Name:          "Georgian Lari",
-		Diff:          0,
-		Date:          date,
-		ValidFromDate: date,
-	}
 }
