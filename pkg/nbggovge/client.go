@@ -107,5 +107,50 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (Rates, e
 		return Rates{}, fmt.Errorf("unmarshal body to rates: %w", err)
 	}
 
-	return resp.Rates(), nil
+	rates := maybeAddGELCodeToResponse(resp.Rates(), params.CurrencyCodes)
+
+	return sortRates(rates), nil
+}
+
+func sortRates(r Rates) Rates {
+	slices.SortFunc(r.Currencies, func(a, b Currency) int {
+		return cmp.Compare(a.Code, b.Code)
+	})
+
+	return r
+}
+
+func maybeAddGELCodeToResponse(r Rates, codes []string) Rates {
+	// Add GEL if no codes specified or GEL is specified.
+	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, currencies.GEL)
+
+	if !shouldAddGEL {
+		return r
+	}
+
+	const (
+		rateFormated = "1.0000"
+		diffFormated = "0.0000"
+		qty          = 1
+		rate         = 1
+		diff         = 0
+		name         = "Georgian Lari"
+	)
+
+	// Add GEL if it is not in the response.
+	if _, err := r.CurrencyByCode(currencies.GEL); err != nil {
+		r.Currencies = append(r.Currencies, Currency{
+			Code:          currencies.GEL,
+			Quantity:      qty,
+			RateFormated:  rateFormated,
+			DiffFormated:  diffFormated,
+			Rate:          rate,
+			Name:          name,
+			Diff:          diff,
+			Date:          r.Date,
+			ValidFromDate: r.Date,
+		})
+	}
+
+	return r
 }
