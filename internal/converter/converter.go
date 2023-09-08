@@ -34,6 +34,7 @@ func NewConverter(client nbggovge.Client) Converter {
 // Response of conversion.
 type Response struct {
 	models.Money
+	Rate float64
 }
 
 // Convert converts amount from currency to with rates according to passed date.
@@ -65,13 +66,19 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 
 	tosum := convert(fromingel, 1/toCurrency.Rate, 1/float64(toCurrency.Quantity))
 
-	const places int32 = 2
+	rate := moneyutils.Div(tosum, m.Amount)
+
+	const (
+		amountPlaces int32 = 2
+		ratePlaces   int32 = 4
+	)
 
 	return Response{
 		Money: models.Money{
-			Amount:   round(tosum, places),
+			Amount:   round(tosum, amountPlaces),
 			Currency: to,
 		},
+		Rate: round(rate, ratePlaces),
 	}, nil
 }
 

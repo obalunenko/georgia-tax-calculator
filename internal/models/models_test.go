@@ -25,7 +25,7 @@ func TestMoney_String(t *testing.T) {
 				Amount:   25.26789,
 				Currency: currencies.GEL,
 			},
-			want: "25.27 GEL",
+			want: "25.26789 GEL",
 		},
 		{
 			name: "",
@@ -33,7 +33,7 @@ func TestMoney_String(t *testing.T) {
 				Amount:   25.21289,
 				Currency: currencies.GEL,
 			},
-			want: "25.21 GEL",
+			want: "25.21289 GEL",
 		},
 		{
 			name: "",
@@ -41,7 +41,15 @@ func TestMoney_String(t *testing.T) {
 				Amount:   25.21489,
 				Currency: currencies.GEL,
 			},
-			want: "25.21 GEL",
+			want: "25.21489 GEL",
+		},
+		{
+			name: "",
+			fields: fields{
+				Amount:   25.21489,
+				Currency: "",
+			},
+			want: "25.21489",
 		},
 	}
 

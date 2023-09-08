@@ -3,6 +3,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 )
 
 // Money model.
@@ -20,5 +21,10 @@ func NewMoney(amount float64, currency string) Money {
 }
 
 func (r Money) String() string {
-	return fmt.Sprintf("%.2f %s", r.Amount, r.Currency)
+	a := strconv.FormatFloat(r.Amount, 'f', -1, 64)
+	if r.Currency == "" {
+		return a
+	}
+
+	return fmt.Sprintf("%s %s", a, r.Currency)
 }
