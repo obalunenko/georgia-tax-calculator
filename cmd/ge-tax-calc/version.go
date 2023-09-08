@@ -38,7 +38,7 @@ func printVersion(ctx context.Context) string {
 		log.WithError(ctx, err).Fatal("fprintf")
 	}
 
-	if err := w.Flush(); err != nil {
+	if err = w.Flush(); err != nil {
 		log.WithError(ctx, err).Fatal("flush")
 	}
 

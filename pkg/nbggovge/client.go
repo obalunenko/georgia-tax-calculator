@@ -2,15 +2,18 @@
 package nbggovge
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	log "github.com/obalunenko/logger"
 
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
@@ -44,9 +47,9 @@ type client struct {
 
 const (
 	basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
-	currenciesParam = "currencies"
-	dateParam       = "date"
-	dateLayout      = "2006-01-02"
+	currenciesParam = internal.CurrencyCodesParam
+	dateParam       = internal.DateParam
+	dateLayout      = internal.DateLayout
 )
 
 // Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
@@ -107,5 +110,50 @@ func (c client) Rates(ctx context.Context, opts ...option.RatesOption) (Rates, e
 		return Rates{}, fmt.Errorf("unmarshal body to rates: %w", err)
 	}
 
-	return resp.Rates(), nil
+	rates := maybeAddGELCodeToResponse(resp.Rates(), params.CurrencyCodes)
+
+	return sortRates(rates), nil
+}
+
+func sortRates(r Rates) Rates {
+	slices.SortFunc(r.Currencies, func(a, b Currency) int {
+		return cmp.Compare(a.Code, b.Code)
+	})
+
+	return r
+}
+
+func maybeAddGELCodeToResponse(r Rates, codes []string) Rates {
+	// Add GEL if no codes specified or GEL is specified.
+	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, currencies.GEL)
+
+	if !shouldAddGEL {
+		return r
+	}
+
+	const (
+		rateFormated = "1.0000"
+		diffFormated = "0.0000"
+		qty          = 1
+		rate         = 1
+		diff         = 0
+		name         = "Georgian Lari"
+	)
+
+	// Add GEL if it is not in the response.
+	if _, err := r.CurrencyByCode(currencies.GEL); err != nil {
+		r.Currencies = append(r.Currencies, Currency{
+			Code:          currencies.GEL,
+			Quantity:      qty,
+			RateFormated:  rateFormated,
+			DiffFormated:  diffFormated,
+			Rate:          rate,
+			Name:          name,
+			Diff:          diff,
+			Date:          r.Date,
+			ValidFromDate: r.Date,
+		})
+	}
+
+	return r
 }

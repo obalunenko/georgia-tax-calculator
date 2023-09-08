@@ -10,7 +10,6 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
 
@@ -62,11 +61,19 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 		return Response{}, err
 	}
 
-	fromingel := convert(m.Amount, fromCurrency.Rate, float64(fromCurrency.Quantity))
+	// The mathematical formula for the calculation is:
+	// rate = (fromCurrency.Rate / fromCurrency.Quantity) / (toCurrency.Rate / toCurrency.Quantity).
 
-	tosum := convert(fromingel, 1/toCurrency.Rate, 1/float64(toCurrency.Quantity))
+	// Dividing fromCurrency's rate by its quantity.
+	divFrom := moneyutils.Div(fromCurrency.Rate, float64(fromCurrency.Quantity))
 
-	rate := moneyutils.Div(tosum, m.Amount)
+	// Dividing toCurrency's rate by its quantity.
+	divTo := moneyutils.Div(toCurrency.Rate, float64(toCurrency.Quantity))
+
+	// Calculating the rate by dividing divFrom by divTo according to the formula.
+	rate := moneyutils.Div(divFrom, divTo)
+
+	convertedAmount := moneyutils.Multiply(m.Amount, rate)
 
 	const (
 		amountPlaces int32 = 2
@@ -75,47 +82,18 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 
 	return Response{
 		Money: models.Money{
-			Amount:   round(tosum, amountPlaces),
+			Amount:   moneyutils.Round(convertedAmount, amountPlaces),
 			Currency: to,
 		},
-		Rate: round(rate, ratePlaces),
+		Rate: moneyutils.Round(rate, ratePlaces),
 	}, nil
 }
 
 func (c converter) getCurrencyRates(code string, rates nbggovge.Rates) (nbggovge.Currency, error) {
-	var (
-		currency nbggovge.Currency
-		err      error
-	)
-
-	if code == currencies.GEL {
-		currency = nbggovge.Currency{
-			Code:          currencies.GEL,
-			Quantity:      1,
-			RateFormated:  "1",
-			DiffFormated:  "0",
-			Rate:          1,
-			Name:          "GEL",
-			Diff:          0,
-			Date:          rates.Date,
-			ValidFromDate: rates.Date,
-		}
-	} else {
-		currency, err = rates.CurrencyByCode(code)
-		if err != nil {
-			return nbggovge.Currency{}, err
-		}
+	currency, err := rates.CurrencyByCode(code)
+	if err != nil {
+		return nbggovge.Currency{}, err
 	}
 
 	return currency, nil
-}
-
-func convert(amount, rate, quantity float64) float64 {
-	r := moneyutils.Div(rate, quantity)
-
-	return moneyutils.Multiply(amount, r)
-}
-
-func round(amount float64, places int32) float64 {
-	return moneyutils.Round(amount, places)
 }
