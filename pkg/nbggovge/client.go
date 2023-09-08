@@ -2,15 +2,18 @@
 package nbggovge
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	log "github.com/obalunenko/logger"
 
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
@@ -44,9 +47,9 @@ type client struct {
 
 const (
 	basePath        = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json"
-	currenciesParam = "currencies"
-	dateParam       = "date"
-	dateLayout      = "2006-01-02"
+	currenciesParam = internal.CurrencyCodesParam
+	dateParam       = internal.DateParam
+	dateLayout      = internal.DateLayout
 )
 
 // Rates fetches rates, list of currencies and date could be set by optional option.RatesOption.
