@@ -24,7 +24,7 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 	}{
 		{
 			name: "usd - valid",
-			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
+			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-all.json")),
 			args: args{
 				code: currencies.USD,
 			},
@@ -42,8 +42,27 @@ func TestRatesResponse_CurrencyByCode(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 		{
+			name: "rub - valid",
+			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-all.json")),
+			args: args{
+				code: currencies.RUB,
+			},
+			want: Currency{
+				Code:          currencies.RUB,
+				Quantity:      100,
+				RateFormated:  "4.4871",
+				DiffFormated:  "0.0063",
+				Rate:          4.4871,
+				Name:          "Russian Ruble",
+				Diff:          0.0063,
+				Date:          "2022-11-24T17:45:14.293Z",
+				ValidFromDate: "2022-11-25T00:00:00.000Z",
+			},
+			wantErr: assert.NoError,
+		},
+		{
 			name: "not_exist - error",
-			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-usd-gbp.json")),
+			r:    ratesFromFile(t, filepath.Join("testdata", "2022-11-25-all.json")),
 			args: args{
 				code: "NOT_EXIST",
 			},

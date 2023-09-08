@@ -22,6 +22,7 @@ func (m mockConverter) Convert(_ context.Context, money models.Money, toCurrency
 			Amount:   money.Amount,
 			Currency: toCurrency,
 		},
+		Rate: 1,
 	}, nil
 }
 
@@ -78,6 +79,7 @@ func Test_service_Convert(t *testing.T) {
 					Amount:   568,
 					Currency: currencies.EUR,
 				},
+				Rate: models.NewMoney(1, ""),
 			},
 			wantErr: assert.NoError,
 		},
@@ -369,7 +371,7 @@ func TestCalculateResponse_String(t *testing.T) {
 				},
 			},
 			want: "Tax Rate: Employment 20 %\n" +
-				"Year Income: 0.00 GEL\n" +
+				"Year Income: 0 GEL\n" +
 				"Converted: 789.99 EUR\n" +
 				"Taxes: 99.02 AMD",
 		},
@@ -394,6 +396,7 @@ func TestConvertResponse_String(t *testing.T) {
 		Date      time.Time
 		Amount    models.Money
 		Converted models.Money
+		Rate      models.Money
 	}
 
 	tests := []struct {
@@ -413,10 +416,12 @@ func TestConvertResponse_String(t *testing.T) {
 					Amount:   789.99,
 					Currency: currencies.EUR,
 				},
+				Rate: models.NewMoney(1.39, ""),
 			},
 			want: "Date: 2022-12-08\n" +
 				"Amount: 568.99 AED\n" +
-				"Converted: 789.99 EUR",
+				"Converted: 789.99 EUR\n" +
+				"Rate: 1.39",
 		},
 	}
 
@@ -426,6 +431,7 @@ func TestConvertResponse_String(t *testing.T) {
 				Date:      tt.fields.Date,
 				Amount:    tt.fields.Amount,
 				Converted: tt.fields.Converted,
+				Rate:      tt.fields.Rate,
 			}
 
 			assert.Equalf(t, tt.want, c.String(), "String()")

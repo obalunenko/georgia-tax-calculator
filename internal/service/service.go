@@ -77,6 +77,7 @@ type ConvertResponse struct {
 	Date      time.Time
 	Amount    models.Money
 	Converted models.Money
+	Rate      models.Money
 }
 
 func (c ConvertResponse) String() string {
@@ -84,7 +85,8 @@ func (c ConvertResponse) String() string {
 
 	resp += fmt.Sprintf("Date: %s\n", c.Date.Format(layout))
 	resp += fmt.Sprintf("Amount: %s\n", c.Amount.String())
-	resp += fmt.Sprintf("Converted: %s", c.Converted.String())
+	resp += fmt.Sprintf("Converted: %s\n", c.Converted.String())
+	resp += fmt.Sprintf("Rate: %s", c.Rate.String())
 
 	return resp
 }
@@ -160,10 +162,13 @@ func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertRespons
 		return nil, fmt.Errorf("failed to convert: %w", err)
 	}
 
+	rate := models.NewMoney(converted.Rate, "")
+
 	return &ConvertResponse{
 		Date:      date,
 		Amount:    amount,
 		Converted: converted.Money,
+		Rate:      rate,
 	}, nil
 }
 
