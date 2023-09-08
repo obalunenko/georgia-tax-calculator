@@ -170,7 +170,7 @@ func TestClient_Rates(t *testing.T) {
 				ctx: ctx,
 				opts: []option.RatesOption{
 					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
-					option.WithCurrency("NOT_EXIST"),
+					option.WithCurrency(NOTEXIST),
 				},
 			},
 			wantPath: filepath.Join("testdata", "2022-11-25-notexist.json"),

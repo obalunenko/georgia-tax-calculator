@@ -15,28 +15,18 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/mock"
 )
 
-type mockRatesClient struct {
-	data nbggovge.Rates
-}
-
-func newMockRatesClient(t testing.TB) mockRatesClient {
-	bytes, err := os.ReadFile(filepath.Join("testdata", "2022-11-25-all.json"))
+func newMockRatesClient(t testing.TB) nbggovge.Client {
+	b, err := os.ReadFile(filepath.Join("testdata", "2023-09-09-all.json"))
 	require.NoError(t, err)
 
-	var resp nbggovge.Rates
+	var resp []nbggovge.Rates
 
-	require.NoError(t, json.Unmarshal(bytes, &resp))
+	require.NoError(t, json.Unmarshal(b, &resp))
 
-	return mockRatesClient{
-		data: resp,
-	}
-}
-
-func (m mockRatesClient) Rates(_ context.Context, _ ...option.RatesOption) (nbggovge.Rates, error) {
-	return m.data, nil
+	return mock.NewClient(resp)
 }
 
 func TestConverter_Convert(t *testing.T) {
@@ -76,10 +66,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   7_557.54,
+					Amount:   7521.39,
 					Currency: currencies.GEL,
 				},
-				Rate: 2.8218,
+				Rate: 2.8083,
 			},
 			wantErr: assert.NoError,
 		},
@@ -122,10 +112,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   2_299.50,
+					Amount:   2_297.45,
 					Currency: currencies.GBP,
 				},
-				Rate: 0.8586,
+				Rate: 0.8578,
 			},
 			wantErr: assert.NoError,
 		},
@@ -202,10 +192,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   1_607.93,
+					Amount:   1_625.9,
 					Currency: currencies.GEL,
 				},
-				Rate: 0.6004,
+				Rate: 0.6071,
 			},
 			wantErr: assert.NoError,
 		},
@@ -225,10 +215,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   2_883.16,
+					Amount:   2_792.1,
 					Currency: currencies.GEL,
 				},
-				Rate: 1.0765,
+				Rate: 1.0425,
 			},
 			wantErr: assert.NoError,
 		},
@@ -248,10 +238,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   4_802.38,
+					Amount:   4_599.3,
 					Currency: currencies.PLN,
 				},
-				Rate: 1.7931,
+				Rate: 1.7173,
 			},
 			wantErr: assert.NoError,
 		},
@@ -271,10 +261,10 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   1_493.66,
+					Amount:   1_559.61,
 					Currency: currencies.BYN,
 				},
-				Rate: 0.5577,
+				Rate: 0.5823,
 			},
 			wantErr: assert.NoError,
 		},
@@ -286,7 +276,7 @@ func TestConverter_Convert(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				m: models.Money{
-					Amount:   500_000,
+					Amount:   50_000,
 					Currency: currencies.RUB,
 				},
 				to:   currencies.EUR,
@@ -294,10 +284,102 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			want: Response{
 				Money: models.Money{
-					Amount:   7_950.78,
+					Amount:   477.74,
 					Currency: currencies.EUR,
 				},
-				Rate: 0.0159,
+				Rate: 0.0096,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "EUR - RUB",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   550,
+					Currency: currencies.EUR,
+				},
+				to:   currencies.RUB,
+				date: time.Now(),
+			},
+			want: Response{
+				Money: models.Money{
+					Amount:   57_562.14,
+					Currency: currencies.RUB,
+				},
+				Rate: 104.6584,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "RUB - GEL",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   50_000,
+					Currency: currencies.RUB,
+				},
+				to:   currencies.GEL,
+				date: time.Now(),
+			},
+			want: Response{
+				Money: models.Money{
+					Amount:   1_341.65,
+					Currency: currencies.GEL,
+				},
+				Rate: 0.0268,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "RUB - TMT",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   50_000,
+					Currency: currencies.RUB,
+				},
+				to:   currencies.TMT,
+				date: time.Now(),
+			},
+			want: Response{
+				Money: models.Money{
+					Amount:   1_788.8,
+					Currency: currencies.TMT,
+				},
+				Rate: 0.0358,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "TMT - RUB",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   1_787.95,
+					Currency: currencies.TMT,
+				},
+				to:   currencies.RUB,
+				date: time.Now(),
+			},
+			want: Response{
+				Money: models.Money{
+					Amount:   49976.38,
+					Currency: currencies.RUB,
+				},
+				Rate: 27.9518,
 			},
 			wantErr: assert.NoError,
 		},
