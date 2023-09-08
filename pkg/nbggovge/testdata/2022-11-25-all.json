@@ -168,6 +168,17 @@
         "validFromDate": "2022-11-25T00:00:00.000Z"
       },
       {
+        "code": "GEL",
+        "quantity": 1,
+        "rateFormated": "1.0000",
+        "diffFormated": "0.0000",
+        "rate": 1,
+        "name": "Georgian Lari",
+        "diff": 0,
+        "date": "2022-11-25T00:00:00.000Z",
+        "validFromDate": "2022-11-25T00:00:00.000Z"
+      },
+      {
         "code": "HKD",
         "quantity": 10,
         "rateFormated": "3.4727",

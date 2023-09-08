@@ -1,3 +1,4 @@
+[
   {
     "date": "2022-11-25T00:00:00.000Z",
     "currencies": [
@@ -165,6 +166,17 @@
         "diff": 0.0611,
         "date": "2022-11-24T17:45:14.293Z",
         "validFromDate": "2022-11-25T00:00:00.000Z"
+      },
+      {
+        "code": "GEL",
+        "quantity": 1,
+        "rateFormated": "1.0000",
+        "diffFormated": "0.0000",
+        "rate": 1,
+        "name": "Georgian Lari",
+        "diff": 0,
+        "date": "2023-09-09T00:00:00.000Z",
+        "validFromDate": "2023-09-09T00:00:00.000Z"
       },
       {
         "code": "HKD",
@@ -476,3 +488,4 @@
       }
     ]
   }
+]
