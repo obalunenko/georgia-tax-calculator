@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/obalunenko/getenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -98,6 +99,10 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestClient_Rates(t *testing.T) {
+	if !getenv.EnvOrDefault("INTEGRATION_TESTS", false) {
+		t.Skip("skipping integration tests")
+	}
+
 	ctx := context.Background()
 
 	type fields struct {
