@@ -14,14 +14,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# IDEs and editors
-.idea
-.vscode
-
 bin/
 *.tape
 dist/
 coverage/
 .DS_Store
 tests-report.json
-report.xml
+README_doc.md

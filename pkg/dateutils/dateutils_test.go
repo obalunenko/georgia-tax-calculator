@@ -239,7 +239,7 @@ func TestDaysInMonthTillDate(t *testing.T) {
 			args: args{
 				m:    time.October,
 				year: 2022,
-				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+				now:  time.Date(2022, time.December, 18, 0, 0, 0, 0, time.Local),
 			},
 			want: 31,
 		},
@@ -248,7 +248,7 @@ func TestDaysInMonthTillDate(t *testing.T) {
 			args: args{
 				m:    time.December,
 				year: 2022,
-				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+				now:  time.Date(2022, time.December, 18, 0, 0, 0, 0, time.Local),
 			},
 			want: 18,
 		},
@@ -257,7 +257,7 @@ func TestDaysInMonthTillDate(t *testing.T) {
 			args: args{
 				m:    time.December,
 				year: 2021,
-				now:  time.Date(2022, 12, 18, 0, 0, 0, 0, time.Local),
+				now:  time.Date(2022, time.December, 18, 0, 0, 0, 0, time.Local),
 			},
 			want: 31,
 		},
@@ -273,7 +273,7 @@ func TestDaysInMonthTillDate(t *testing.T) {
 }
 
 func TestGetMonthsInYearTillDate(t *testing.T) {
-	now := time.Date(2023, 1, 6, 12, 0, 0, 0, time.UTC)
+	now := time.Date(2023, time.January, 6, 12, 0, 0, 0, time.UTC)
 
 	type args struct {
 		year int

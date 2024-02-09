@@ -1,0 +1,29 @@
+[
+  {
+    "date": "2024-02-10T00:00:00.000Z",
+    "currencies": [
+      {
+        "code": "GBP",
+        "quantity": 1,
+        "rateFormated": "3.3455",
+        "diffFormated": "0.0080",
+        "rate": 3.3455,
+        "name": "United Kingdom Pound",
+        "diff": -0.0080,
+        "date": "2024-02-09T17:45:14.052Z",
+        "validFromDate": "2024-02-10T00:00:00.000Z"
+      },
+      {
+        "code": "USD",
+        "quantity": 1,
+        "rateFormated": "2.6543",
+        "diffFormated": "0.0030",
+        "rate": 2.6543,
+        "name": "US Dollar",
+        "diff": -0.0030,
+        "date": "2024-02-09T17:45:14.052Z",
+        "validFromDate": "2024-02-10T00:00:00.000Z"
+      }
+    ]
+  }
+]

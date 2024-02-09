@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/obalunenko/getenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -98,6 +99,10 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestClient_Rates(t *testing.T) {
+	if !getenv.EnvOrDefault("INTEGRATION_TESTS", false) {
+		t.Skip("skipping integration tests")
+	}
+
 	ctx := context.Background()
 
 	type fields struct {
@@ -124,11 +129,11 @@ func TestClient_Rates(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				opts: []option.RatesOption{
-					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
+					option.WithDate(time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)),
 					option.WithCurrency(currencies.EUR),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2022-11-25-eur.json"),
+			wantPath: filepath.Join("testdata", "2024-02-10-eur.json"),
 			wantErr:  require.NoError,
 		},
 		{
@@ -139,12 +144,12 @@ func TestClient_Rates(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				opts: []option.RatesOption{
-					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
+					option.WithDate(time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)),
 					option.WithCurrency(currencies.USD),
 					option.WithCurrency(currencies.GBP),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2022-11-25-usd-gbp.json"),
+			wantPath: filepath.Join("testdata", "2024-02-10-usd-gbp.json"),
 			wantErr:  require.NoError,
 		},
 		{
@@ -155,10 +160,10 @@ func TestClient_Rates(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				opts: []option.RatesOption{
-					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
+					option.WithDate(time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2022-11-25-all.json"),
+			wantPath: filepath.Join("testdata", "2024-02-10-all.json"),
 			wantErr:  require.NoError,
 		},
 		{
@@ -169,11 +174,11 @@ func TestClient_Rates(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				opts: []option.RatesOption{
-					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
+					option.WithDate(time.Date(2022, time.November, 25, 0, 0, 0, 0, time.UTC)),
 					option.WithCurrency(NOTEXIST),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2022-11-25-notexist.json"),
+			wantPath: filepath.Join("testdata", "2024-02-10-notexist.json"),
 			wantErr:  require.NoError,
 		},
 		{
@@ -184,7 +189,7 @@ func TestClient_Rates(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				opts: []option.RatesOption{
-					option.WithDate(time.Date(2022, 11, 25, 0, 0, 0, 0, time.UTC)),
+					option.WithDate(time.Date(2022, time.November, 25, 0, 0, 0, 0, time.UTC)),
 					option.WithCurrency(NOTEXIST),
 				},
 			},

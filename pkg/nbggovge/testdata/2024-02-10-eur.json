@@ -1,0 +1,18 @@
+[
+  {
+    "date": "2024-02-10T00:00:00.000Z",
+    "currencies": [
+      {
+        "code": "EUR",
+        "quantity": 1,
+        "rateFormated": "2.8584",
+        "diffFormated": "0.0048",
+        "rate": 2.8584,
+        "name": "Euro",
+        "diff": -0.0048,
+        "date": "2024-02-09T17:45:14.052Z",
+        "validFromDate": "2024-02-10T00:00:00.000Z"
+      }
+    ]
+  }
+]
