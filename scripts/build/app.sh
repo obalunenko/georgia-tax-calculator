@@ -52,6 +52,6 @@ export GO_BUILD_LDFLAGS="-s -w \
 
 rm -rf "${BIN_OUT}"
 
-goreleaser build --skip-validate --clean --single-target --output "${BIN_OUT}"
+goreleaser build --skip=validate --clean --single-target --output "${BIN_OUT}"
 
 echo "Binary compiled at ${BIN_OUT}"

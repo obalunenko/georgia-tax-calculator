@@ -60,7 +60,7 @@ universal_binaries:
     # If left as false, your end release might have both several macOS archives: amd64, arm64 and all.
     #
     # Defaults to false.
-    replace: true
+    replace: false
 
 archives:
   - id: cli
