@@ -24,3 +24,4 @@ dist/
 coverage/
 .DS_Store
 tests-report.json
+report.xml

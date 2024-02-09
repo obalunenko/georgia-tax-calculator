@@ -66,7 +66,7 @@ update-readme-cover: build prepare-cover-report
 
 ## Run tests.
 test:
-	$(COMPOSE_TOOLS_CMD_UP) run-tests run-tests
+	./scripts/tests/run.sh
 .PHONY: test
 
 ## Run regression tests.

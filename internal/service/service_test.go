@@ -348,7 +348,7 @@ func TestCalculateResponse_String(t *testing.T) {
 		{
 			name: "",
 			fields: fields{
-				Date: time.Date(2022, 12, 8, 0, 0, 0, 0, time.Local),
+				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
 				TaxRate: taxes.TaxRate{
 					Type: taxes.TaxTypeEmployment,
 					Rate: 0.2,
@@ -407,7 +407,7 @@ func TestConvertResponse_String(t *testing.T) {
 		{
 			name: "",
 			fields: fields{
-				Date: time.Date(2022, 12, 8, 0, 0, 0, 0, time.Local),
+				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
 				Amount: models.Money{
 					Amount:   568.99,
 					Currency: currencies.AED,
