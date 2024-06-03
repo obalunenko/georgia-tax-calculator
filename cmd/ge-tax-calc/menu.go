@@ -139,7 +139,7 @@ func menuConvert(c *cli.Context) error {
 		}
 
 		questions = append(questions, makeConfirmQuestion("confirm", "Are your answers correct?"))
-		if err := survey.Ask(questions, &answers); err != nil {
+		if err = survey.Ask(questions, &answers); err != nil {
 			return err
 		}
 	}
@@ -310,7 +310,7 @@ func makeTaxTypeMenu(msg string) (survey.Prompt, error) {
 		VimMode:       false,
 		FilterMessage: "",
 		Filter:        nil,
-		Description: func(value string, index int) string {
+		Description: func(_ string, index int) string {
 			const toPercentage float64 = 100
 
 			m := moneyutils.Multiply(rates[index].Rate, toPercentage)
