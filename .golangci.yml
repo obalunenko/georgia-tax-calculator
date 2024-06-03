@@ -13,7 +13,11 @@ linters-settings:
     lines: 100
     statements: 50
   gci:
-    local-prefixes: github.com/obalunenko/georgia-tax-calculator
+    sections:
+      - standard                       # Standard section: captures all standard packages.
+      - default                        # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/obalunenko) # Custom section: groups all imports with the specified Prefix.
+      - localmodule                    # Local module section: contains all local packages. This section is not present unless explicitly enabled.
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -35,13 +39,23 @@ linters-settings:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/obalunenko/georgia-tax-calculator
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: [ argument,case,condition,return ]
+  mnd:
+    # List of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
+    # Default: ["argument", "case", "condition", "operation", "return", "assign"]
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+      - assign
   govet:
-    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
+    settings:
+       shadow:
+          strict: false
   lll:
     line-length: 140
   misspell:
@@ -68,7 +82,7 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -177,16 +191,16 @@ issues:
 run:
   issues-exit-code: 0
   tests: true
-  skip-dirs:
+  exclude-dirs:
     - vendor/
-  skip-files:
+  exclude-files:
     - \.pb\.go$
 
 # output configuration options
 output:
   # colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
   # default is "colored-line-number"
-  format: checkstyle
+  formats: checkstyle
 
   # print lines of code with issue, default is true
   print-issued-lines: true
