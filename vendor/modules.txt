@@ -27,8 +27,8 @@ github.com/mattn/go-isatty
 # github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 ## explicit
 github.com/mgutz/ansi
-# github.com/obalunenko/getenv v1.13.0
-## explicit; go 1.22
+# github.com/obalunenko/getenv v1.14.0
+## explicit; go 1.23
 github.com/obalunenko/getenv
 github.com/obalunenko/getenv/internal
 github.com/obalunenko/getenv/option
