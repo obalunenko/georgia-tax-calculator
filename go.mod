@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/briandowns/spinner v1.23.1
 	github.com/obalunenko/getenv v1.14.0
-	github.com/obalunenko/logger v1.1.0
+	github.com/obalunenko/logger v1.2.0
 	github.com/obalunenko/version v1.2.0
 	github.com/savioxavier/termlink v1.4.1
 	github.com/shopspring/decimal v1.4.0
