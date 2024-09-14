@@ -11,7 +11,7 @@ SHELL := env RELEASE_BRANCH=$(RELEASE_BRANCH) $(SHELL)
 
 COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
 COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
-COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --remove-orphans --exit-code-from
+COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --build --remove-orphans --exit-code-from
 COMPOSE_TOOLS_CMD_PULL=$(COMPOSE_TOOLS_CMD_BASE) build
 
 GOVERSION:=1.23
