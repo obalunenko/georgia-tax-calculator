@@ -42,9 +42,7 @@ builds:
     main: ./cmd/ge-tax-calc
     flags:
       - -trimpath
-    ldflags:
-      - "{{ .Env.GO_BUILD_LDFLAGS }}"
-      -
+
 universal_binaries:
   - # ID of the source build
     #
