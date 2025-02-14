@@ -66,11 +66,13 @@ archives:
   - id: cli
     builds:
       - cli
-    format: tar.gz
+    formats:
+      - tar.gz
     wrap_in_directory: true
     format_overrides:
       - goos: windows
-        format: zip
+        formats: 
+          - zip
     name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     files:
       - LICENSE
