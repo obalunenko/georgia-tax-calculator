@@ -1,13 +1,14 @@
 module github.com/obalunenko/georgia-tax-calculator
 
 go 1.23
+toolchain go1.24.0
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/briandowns/spinner v1.23.2
 	github.com/obalunenko/getenv v1.14.0
 	github.com/obalunenko/logger v1.2.0
-	github.com/obalunenko/version v1.2.0
+	github.com/obalunenko/version v1.3.0
 	github.com/savioxavier/termlink v1.4.2
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.10.0
