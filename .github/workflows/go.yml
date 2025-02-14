@@ -42,8 +42,8 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        os: [ 'ubuntu-22.04' ]
-        go-version: [1.23.x]
+        os: [ 'ubuntu-24.04' ]
+        go-version: [1.24.x]
     runs-on: ${{ matrix.os }}
     name: Build
     steps:
@@ -89,8 +89,8 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        os: [ 'ubuntu-22.04' ]
-        go-version: [1.23.x]
+        os: [ 'ubuntu-24.04' ]
+        go-version: [1.24.x]
     runs-on: ${{ matrix.os }}
     name: Run Tests
     steps:
@@ -136,8 +136,8 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        os: [ 'ubuntu-22.04' ]
-        go-version: [1.23.x]
+        os: [ 'ubuntu-24.04' ]
+        go-version: [1.24.x]
     runs-on: ${{ matrix.os }}
     name: Run linters
     steps:
@@ -188,8 +188,8 @@ jobs:
       fail-fast: true
       max-parallel: 1
       matrix:
-        os: [ 'ubuntu-22.04' ]
-        go-version: [1.23.x]
+        os: [ 'ubuntu-24.04' ]
+        go-version: [1.24.x]
     runs-on: ${{ matrix.os }}
     name: Quality reports
     steps:
