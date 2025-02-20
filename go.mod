@@ -9,7 +9,7 @@ require (
 	github.com/briandowns/spinner v1.23.2
 	github.com/obalunenko/getenv v1.14.0
 	github.com/obalunenko/logger v1.2.0
-	github.com/obalunenko/version v1.3.0
+	github.com/obalunenko/version v1.3.1
 	github.com/savioxavier/termlink v1.4.2
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.10.0
