@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/savioxavier/termlink"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
@@ -26,9 +27,7 @@ func createLink(text, url string) {
 	fmt.Println(termlink.Link(text, url))
 }
 
-func menuCalcTaxes(c *cli.Context) error {
-	ctx := c.Context
-
+func menuCalcTaxes(ctx context.Context, _ *cli.Command) error {
 	createLink("Declarations", "https://decl.rs.ge/decls.aspx")
 
 	var req service.CalculateRequest
@@ -88,7 +87,7 @@ func getIncomeRequest() ([]service.Income, error) {
 		for answers.AddMore {
 			answers.DateRequest, err = getDateRequest()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get date request: %w", err)
 			}
 
 			questions := []*survey.Question{
@@ -114,9 +113,7 @@ func getIncomeRequest() ([]service.Income, error) {
 	return income, nil
 }
 
-func menuConvert(c *cli.Context) error {
-	ctx := c.Context
-
+func menuConvert(ctx context.Context, _ *cli.Command) error {
 	type convertAnswers struct {
 		service.ConvertRequest
 		IsCorrect bool `survey:"confirm"`
@@ -127,7 +124,7 @@ func menuConvert(c *cli.Context) error {
 	for !answers.IsCorrect {
 		datereq, err := getDateRequest()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get date request: %w", err)
 		}
 
 		answers.DateRequest = datereq
@@ -174,7 +171,7 @@ func makeMoneyAmountQuestion(fieldname, msg string) *survey.Question {
 
 			_, err := moneyutils.Parse(s)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse answer to string: %w", err)
 			}
 			return nil
 		},
@@ -277,7 +274,7 @@ func makeTaxTypeQuestion(fieldname, msg string) (*survey.Question, error) {
 
 			_, err = taxes.ParseTaxType(s.Value)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse option tax type: %w", err)
 			}
 			return nil
 		},

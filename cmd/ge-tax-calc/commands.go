@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func commands() []*cli.Command {
@@ -12,52 +12,14 @@ func commands() []*cli.Command {
 
 	cmds := []*cli.Command{
 		{
-			Name:                   cmdRun,
-			Aliases:                nil,
-			Usage:                  "Runs taxes calculations",
-			UsageText:              "",
-			Description:            "",
-			Args:                   false,
-			ArgsUsage:              "",
-			Category:               "",
-			BashComplete:           nil,
-			Before:                 nil,
-			After:                  nil,
-			Action:                 menuCalcTaxes,
-			OnUsageError:           nil,
-			Subcommands:            nil,
-			Flags:                  nil,
-			SkipFlagParsing:        false,
-			HideHelp:               false,
-			HideHelpCommand:        false,
-			Hidden:                 false,
-			UseShortOptionHandling: false,
-			HelpName:               "",
-			CustomHelpTemplate:     "",
+			Name:   cmdRun,
+			Usage:  "Runs taxes calculations",
+			Action: menuCalcTaxes,
 		},
 		{
-			Name:                   cmdConvert,
-			Aliases:                nil,
-			Usage:                  "Runs currency converter",
-			UsageText:              "",
-			Description:            "",
-			Args:                   false,
-			ArgsUsage:              "",
-			Category:               "",
-			BashComplete:           nil,
-			Before:                 nil,
-			After:                  nil,
-			Action:                 menuConvert,
-			OnUsageError:           nil,
-			Subcommands:            nil,
-			Flags:                  nil,
-			SkipFlagParsing:        false,
-			HideHelp:               false,
-			HideHelpCommand:        false,
-			Hidden:                 false,
-			UseShortOptionHandling: false,
-			HelpName:               "",
-			CustomHelpTemplate:     "",
+			Name:   cmdConvert,
+			Usage:  "Runs currency converter",
+			Action: menuConvert,
 		},
 	}
 

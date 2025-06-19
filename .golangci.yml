@@ -8,8 +8,6 @@ output:
       path: stdout
       print-linter-name: true
       print-issued-lines: true
-    json:
-      path: stderr
     checkstyle:
       path: report.xml
   path-prefix: ""
