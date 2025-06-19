@@ -1,14 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"text/tabwriter"
 
 	log "github.com/obalunenko/logger"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
-func printHeader(c *cli.Context) error {
+func printHeader(ctx context.Context, cmd *cli.Command) (context.Context, error) {
 	const (
 		padding  int  = 1
 		minWidth int  = 0
@@ -16,7 +17,7 @@ func printHeader(c *cli.Context) error {
 		padChar  byte = ' '
 	)
 
-	w := tabwriter.NewWriter(c.App.Writer, minWidth, tabWidth, padding, padChar, tabwriter.TabIndent)
+	w := tabwriter.NewWriter(cmd.Writer, minWidth, tabWidth, padding, padChar, tabwriter.TabIndent)
 
 	_, err := fmt.Fprintf(w, `
 
@@ -30,17 +31,15 @@ func printHeader(c *cli.Context) error {
 
 `)
 	if err != nil {
-		return fmt.Errorf("print version: %w", err)
+		return ctx, fmt.Errorf("print version: %w", err)
 	}
 
-	return nil
+	return ctx, nil
 }
 
-func notFound(c *cli.Context, command string) {
-	ctx := c.Context
-
+func notFound(ctx context.Context, cmd *cli.Command, command string) {
 	if _, err := fmt.Fprintf(
-		c.App.Writer,
+		cmd.Writer,
 		"Command [%s] not supported.\nTry --help flag to see how to use it\n",
 		command,
 	); err != nil {
@@ -48,7 +47,7 @@ func notFound(c *cli.Context, command string) {
 	}
 }
 
-func onExit(_ *cli.Context) error {
+func onExit(_ context.Context, _ *cli.Command) error {
 	fmt.Println("Exit...")
 
 	return nil

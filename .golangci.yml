@@ -1,218 +1,173 @@
-linters-settings:
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-message:
-      - github.com/sirupsen/logrus: "logging is allowed only by github.com/obalunenko/logger"
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  gci:
-    sections:
-      - standard                       # Standard section: captures all standard packages.
-      - default                        # Default section: contains all imports that could not be matched to another section type.
-      - prefix(github.com/obalunenko) # Custom section: groups all imports with the specified Prefix.
-      - localmodule                    # Local module section: contains all local packages. This section is not present unless explicitly enabled.
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - hugeParam
-      - octalLiteral
-      - wrapperFunc
-      - sloppyReassign
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: github.com/obalunenko/georgia-tax-calculator
-  mnd:
-    # List of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
-    # Default: ["argument", "case", "condition", "operation", "return", "assign"]
-    checks:
-      - argument
-      - case
-      - condition
-      - operation
-      - return
-      - assign
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-    settings:
-       shadow:
-          strict: false
-  lll:
-    line-length: 140
-  misspell:
-    locale: US
-  nolintlint:
-    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-
+version: "2"
+run:
+  issues-exit-code: 0
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+    checkstyle:
+      path: report.xml
+  path-prefix: ""
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
+    - copyloopvar
     - dogsled
     - dupl
     - errcheck
-    - copyloopvar
     - exhaustive
     - funlen
     - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
-    - mnd
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
     - misspell
+    - mnd
     - nakedret
     - noctx
     - nolintlint
+    - revive
     - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
-    - revive
     - wsl
-
-  # don't enable:
-  # - asciicheck
-  # - scopelint
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - interfacer
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-
-issues:
-  exclude-use-default: false
-  exclude:
-    # for "public interface + private struct implementation" cases only!
-    - exported func * returns unexported type *, which can be annoying to use
-    - should have a package comment, unless it's in another file for this package
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - funlen
-        - dupl
-        - gosec
-    - path: internal/input/
-      linters:
-        - gocyclo
-        - funlen
-        - godot
-        - godox
-        - dupl
-        - gofmt
-        - gci
-        - gofumpt
-        - goimports
-        - gosimple
-    - path: internal/puzzles/constants.go
-      linters:
-        - revive
-    - path: internal/puzzles/solutions/
-      linters:
-        - gochecknoinits
-
-      # Show only new issues: if there are unstaged changes or untracked files,
-      # only those changes are analyzed, else only changes in HEAD~ are analyzed.
-      # It's a super-useful option for integration of golangci-lint into existing
-      # large codebase. It's not practical to fix all existing issues at the moment
-      # of integration: much better don't allow issues in new code.
-      # Default is false.
-      new: true
-
-      # Fix found issues (if it's supported by the linter)
-      fix: false
-
-  severity:
-    # Default value is empty string.
-    # Set the default severity for issues. If severity rules are defined and the issues
-    # do not match or no severity is provided to the rule this will be the default
-    # severity applied. Severities should match the supported severity names of the
-    # selected out format.
-    # - Code climate: https://docs.codeclimate.com/docs/issues#issue-severity
-    # -   Checkstyle: https://checkstyle.sourceforge.io/property_types.html#severity
-    # -       GitHub: https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-error-message
-    default-severity: error
-
-    # The default value is false.
-    # If set to true severity-rules regular expressions become case sensitive.
-    case-sensitive: false
-
-    # Default value is empty list.
-    # When a list of severity rules are provided, severity information will be added to lint
-    # issues. Severity rules have the same filtering capability as exclude rules except you
-    # are allowed to specify one matcher per severity rule.
-    # Only affects out formats that support setting severity information.
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: original
+          files:
+            - '!**/*_a _file.go'
+          deny:
+            - pkg: math/rand$
+              desc: use math/rand/v2
+            - pkg: github.com/sirupsen/logrus
+              desc: not allowed - github.com/obalunenko/logger
+            - pkg: github.com/pkg/errors
+              desc: Should be replaced by standard lib errors package
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 100
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    gocritic:
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - hugeParam
+        - octalLiteral
+        - wrapperFunc
+        - sloppyReassign
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 15
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+      settings:
+        shadow:
+          strict: false
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - operation
+        - return
+        - assign
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: true
+  exclusions:
+    generated: lax
     rules:
       - linters:
           - dupl
-        severity: warning
-
-run:
-  issues-exit-code: 0
-  tests: true
-  exclude-dirs:
-    - vendor/
-  exclude-files:
-    - \.pb\.go$
-
-# output configuration options
-output:
-  # colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
-  # default is "colored-line-number"
-  formats: checkstyle
-
-  # print lines of code with issue, default is true
-  print-issued-lines: true
-
-  # print linter name in the end of issue text, default is true
-  print-linter-name: true
-
-  # make issues output unique by line, default is true
+          - funlen
+          - gocyclo
+          - gosec
+        path: _test\.go
+      - linters:
+          - dupl
+          - funlen
+          - gocyclo
+          - godot
+          - godox
+          - staticcheck
+        path: internal/input/
+      - linters:
+          - revive
+        path: internal/puzzles/constants.go
+      - linters:
+          - gochecknoinits
+        path: internal/puzzles/solutions/
+      - path: (.+)\.go$
+        text: exported func * returns unexported type *, which can be annoying to use
+      - path: (.+)\.go$
+        text: should have a package comment, unless it's in another file for this package
+    paths:
+      - \.pb\.go$
+      - vendor/
+      - third_party$
+      - builtin$
+      - examples$
+issues:
   uniq-by-line: true
-
-  # add a prefix to the output file references; default is no prefix
-  path-prefix: ""
-
-  # sorts results by: filepath, line and column
-  sort-results: true
+  new: true
+  fix: false
+severity:
+  default: error
+  rules:
+    - linters:
+        - dupl
+      severity: warning
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/obalunenko)
+        - localmodule
+    goimports:
+      local-prefixes:
+        - github.com/obalunenko/georgia-tax-calculator
+  exclusions:
+    generated: lax
+    paths:
+      - \.pb\.go$
+      - vendor/
+      - third_party$
+      - builtin$
+      - examples$
+      - internal/input/
