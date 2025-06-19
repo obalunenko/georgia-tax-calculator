@@ -64,7 +64,7 @@ universal_binaries:
 
 archives:
   - id: cli
-    builds:
+    ids:
       - cli
     formats:
       - tar.gz
