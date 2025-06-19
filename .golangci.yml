@@ -8,6 +8,7 @@ output:
       path: stdout
       print-linter-name: true
       print-issued-lines: true
+      colors: true
     checkstyle:
       path: report.xml
   path-prefix: ""

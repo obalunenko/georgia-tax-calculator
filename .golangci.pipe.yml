@@ -4,8 +4,7 @@ run:
   tests: true
 output:
   formats:
-    json:
-      path: stderr
+    text:
     checkstyle:
       path: report.xml
   path-prefix: ""
