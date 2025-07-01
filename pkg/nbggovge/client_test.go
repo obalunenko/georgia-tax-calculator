@@ -168,7 +168,7 @@ func TestClient_Rates(t *testing.T) {
 					option.WithCurrency(NOTEXIST),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2024-02-10-notexist.json"),
+			wantPath: filepath.Join("testdata", "empty.json"),
 			wantErr:  require.NoError,
 		},
 		{
@@ -185,7 +185,7 @@ func TestClient_Rates(t *testing.T) {
 					option.WithCurrency(NOTEXIST),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2024-02-10-notexist.json"),
+			wantPath: filepath.Join("testdata", "empty.json"),
 			wantErr:  require.NoError,
 		},
 	}

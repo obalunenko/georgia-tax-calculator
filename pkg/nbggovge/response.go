@@ -73,7 +73,7 @@ func unmarshalRatesResponse(data []byte) (ratesResponse, error) {
 	}
 
 	if len(r) > 1 {
-		return nil, errors.New("response contains more than one rates")
+		return nil, errors.New("response contains more than one rate")
 	}
 
 	if len(r) == 0 {
