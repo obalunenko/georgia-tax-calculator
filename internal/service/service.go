@@ -83,7 +83,7 @@ func (c CalculateResponse) String() string {
 			}
 
 			if err := scanner.Err(); err != nil {
-				log.WithError(context.Background(), err).Warn("scan income response")
+				log.WithError(context.Background(), err).Warn("failed to scan income response")
 			}
 		}
 	}
@@ -253,7 +253,7 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 
 		tax, err := taxes.Calc(convertResp.Converted, tt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to Calculate taxes: %w", err)
+			return nil, fmt.Errorf("failed to calculate taxes: %w", err)
 		}
 
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)

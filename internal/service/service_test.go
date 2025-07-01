@@ -384,7 +384,7 @@ func TestCalculateResponse_String(t *testing.T) {
 					Rate: 0.2,
 				},
 				YearIncome: models.Money{
-					Amount:   0,
+					Amount:   1267.99,
 					Currency: currencies.GEL,
 				},
 				Incomes: []ConvertResponse{
@@ -411,7 +411,7 @@ func TestCalculateResponse_String(t *testing.T) {
 				},
 			},
 			want: "Tax Rate: Employment 20 %\n" +
-				"Year Income: 0 GEL\n" +
+				"Year Income: 1267.99 GEL\n" +
 				"Incomes:\n" +
 				"\t- 1:\n" +
 				"\t\tDate: 2022-12-08\n" +
