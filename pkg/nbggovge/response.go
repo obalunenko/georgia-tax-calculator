@@ -43,6 +43,19 @@ func (r Rates) CurrencyByCode(code string) (Currency, error) {
 // ratesResponse represents response.
 type ratesResponse []Rates
 
+func newRatesResponse(date string, currencies []Currency) ratesResponse {
+	if len(currencies) == 0 {
+		currencies = make([]Currency, 0)
+	}
+
+	return ratesResponse{
+		{
+			Date:       date,
+			Currencies: currencies,
+		},
+	}
+}
+
 func (r ratesResponse) Rates() Rates {
 	if len(r) == 0 {
 		return Rates{}
@@ -55,7 +68,17 @@ func (r ratesResponse) Rates() Rates {
 func unmarshalRatesResponse(data []byte) (ratesResponse, error) {
 	var r ratesResponse
 
-	err := json.Unmarshal(data, &r)
+	if err := json.Unmarshal(data, &r); err != nil {
+		return nil, err
+	}
 
-	return r, err
+	if len(r) > 1 {
+		return nil, errors.New("response contains more than one rate")
+	}
+
+	if len(r) == 0 {
+		return newRatesResponse("", nil), nil
+	}
+
+	return r, nil
 }

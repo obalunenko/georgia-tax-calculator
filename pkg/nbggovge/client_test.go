@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,35 +20,49 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
 
-type doerMock struct{}
+type doerMock struct {
+	tb testing.TB
+}
 
 const (
 	NOTEXIST = "NOT_EXIST"
 )
 
 func (d doerMock) Do(req *http.Request) (*http.Response, error) {
+	d.tb.Helper()
+
 	q := req.URL.Query()
 
 	cur := q.Get(currenciesParam)
 	date := q.Get("date")
 
-	rates := ratesResponse{
-		{
-			Date: date,
-			Currencies: []Currency{
-				{
-					Code:          cur,
-					Quantity:      1,
-					RateFormated:  "2.02",
-					DiffFormated:  "0",
-					Rate:          2.02,
-					Name:          "MOCK",
-					Diff:          0,
-					Date:          date,
-					ValidFromDate: date,
-				},
+	status := http.StatusOK
+
+	var rates ratesResponse
+
+	switch strings.TrimSpace(cur) {
+	case NOTEXIST:
+		d.tb.Log("received request for not existed currency, returning empty response")
+
+		rates = newRatesResponse("", nil)
+	case "":
+		d.tb.Log("received request with empty currency, bad request")
+
+		status = http.StatusBadRequest
+	default:
+		rates = newRatesResponse(date, []Currency{
+			{
+				Code:          cur,
+				Quantity:      1,
+				RateFormated:  "2.02",
+				DiffFormated:  "0",
+				Rate:          2.02,
+				Name:          "MOCK",
+				Diff:          0,
+				Date:          date,
+				ValidFromDate: date,
 			},
-		},
+		})
 	}
 
 	body, err := json.Marshal(rates)
@@ -55,47 +70,22 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 		return nil, fmt.Errorf("marshal body: %w", err)
 	}
 
-	switch cur {
-	case NOTEXIST:
-		status := http.StatusNotFound
-
-		return &http.Response{
-			Status:           http.StatusText(status),
-			StatusCode:       status,
-			Proto:            "",
-			ProtoMajor:       0,
-			ProtoMinor:       0,
-			Header:           nil,
-			Body:             io.NopCloser(nil),
-			ContentLength:    0,
-			TransferEncoding: nil,
-			Close:            false,
-			Uncompressed:     false,
-			Trailer:          nil,
-			Request:          req,
-			TLS:              nil,
-		}, nil
-
-	default:
-		status := http.StatusOK
-
-		return &http.Response{
-			Status:           http.StatusText(status),
-			StatusCode:       status,
-			Proto:            "",
-			ProtoMajor:       0,
-			ProtoMinor:       0,
-			Header:           nil,
-			Body:             io.NopCloser(bytes.NewReader(body)),
-			ContentLength:    0,
-			TransferEncoding: nil,
-			Close:            false,
-			Uncompressed:     false,
-			Trailer:          nil,
-			Request:          req,
-			TLS:              nil,
-		}, nil
-	}
+	return &http.Response{
+		Status:           http.StatusText(status),
+		StatusCode:       status,
+		Proto:            "",
+		ProtoMajor:       0,
+		ProtoMinor:       0,
+		Header:           nil,
+		Body:             io.NopCloser(bytes.NewReader(body)),
+		ContentLength:    0,
+		TransferEncoding: nil,
+		Close:            false,
+		Uncompressed:     false,
+		Trailer:          nil,
+		Request:          req,
+		TLS:              nil,
+	}, nil
 }
 
 func TestClient_Rates(t *testing.T) {
@@ -178,13 +168,15 @@ func TestClient_Rates(t *testing.T) {
 					option.WithCurrency(NOTEXIST),
 				},
 			},
-			wantPath: filepath.Join("testdata", "2024-02-10-notexist.json"),
+			wantPath: filepath.Join("testdata", "empty.json"),
 			wantErr:  require.NoError,
 		},
 		{
 			name: "mocked: not existed currency - empty",
 			fields: fields{
-				httpClient: doerMock{},
+				httpClient: doerMock{
+					tb: t,
+				},
 			},
 			args: args{
 				ctx: ctx,
@@ -194,7 +186,7 @@ func TestClient_Rates(t *testing.T) {
 				},
 			},
 			wantPath: filepath.Join("testdata", "empty.json"),
-			wantErr:  require.Error,
+			wantErr:  require.NoError,
 		},
 	}
 
