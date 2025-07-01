@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	log "github.com/obalunenko/logger"
+
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
 	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
@@ -57,36 +59,40 @@ type CalculateResponse struct {
 }
 
 func (c CalculateResponse) String() string {
-	var resp string
+	var resp strings.Builder
 
-	resp += fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String())
+	resp.WriteString(fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String()))
 
-	resp += fmt.Sprintf("Year Income: %s\n", c.YearIncome.String())
+	resp.WriteString(fmt.Sprintf("Year Income: %s\n", c.YearIncome.String()))
 
 	if len(c.Incomes) != 0 {
-		resp += "Incomes:\n"
+		resp.WriteString("Incomes:\n")
 
 		for i := range c.Incomes {
 			inc := c.Incomes[i]
 
-			resp += fmt.Sprintf("\t- %d:\n", i+1)
+			resp.WriteString(fmt.Sprintf("\t- %d:\n", i+1))
 			scanner := bufio.NewScanner(strings.NewReader(inc.String()))
 
 			for scanner.Scan() {
 				line := scanner.Text()
 
 				if line != "" {
-					resp += fmt.Sprintf("\t\t%s\n", line)
+					resp.WriteString(fmt.Sprintf("\t\t%s\n", line))
 				}
+			}
+
+			if err := scanner.Err(); err != nil {
+				log.WithError(context.Background(), err).Warn("scan income response")
 			}
 		}
 	}
 
-	resp += fmt.Sprintf("Total Income Converted: %s\n", c.TotalIncomeConverted.String())
+	resp.WriteString(fmt.Sprintf("Total Income Converted: %s\n", c.TotalIncomeConverted.String()))
 
-	resp += fmt.Sprintf("Taxes: %s", c.Tax.String())
+	resp.WriteString(fmt.Sprintf("Taxes: %s", c.Tax.String()))
 
-	return resp
+	return resp.String()
 }
 
 // ConvertRequest model.

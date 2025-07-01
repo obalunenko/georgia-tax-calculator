@@ -371,10 +371,6 @@ func Test_service_Calculate(t *testing.T) {
 }
 
 func TestCalculateResponse_String(t *testing.T) {
-	type fields struct {
-		CalculateResponse
-	}
-
 	tests := []struct {
 		name   string
 		fields CalculateResponse
@@ -400,18 +396,18 @@ func TestCalculateResponse_String(t *testing.T) {
 						},
 						Converted: models.Money{
 							Amount:   789.99,
-							Currency: currencies.EUR,
+							Currency: currencies.GEL,
 						},
 						Rate: models.NewMoney(1.39, ""),
 					},
 				},
 				TotalIncomeConverted: models.Money{
 					Amount:   789.99,
-					Currency: currencies.EUR,
+					Currency: currencies.GEL,
 				},
 				Tax: models.Money{
-					Amount:   99.02,
-					Currency: currencies.AMD,
+					Amount:   157.99,
+					Currency: currencies.GEL,
 				},
 			},
 			want: "Tax Rate: Employment 20 %\n" +
@@ -420,10 +416,10 @@ func TestCalculateResponse_String(t *testing.T) {
 				"\t- 1:\n" +
 				"\t\tDate: 2022-12-08\n" +
 				"\t\tAmount: 568.99 AED\n" +
-				"\t\tConverted: 789.99 EUR\n" +
+				"\t\tConverted: 789.99 GEL\n" +
 				"\t\tRate: 1.39\n" +
-				"Total Income Converted: 789.99 EUR\n" +
-				"Taxes: 99.02 AMD",
+				"Total Income Converted: 789.99 GEL\n" +
+				"Taxes: 157.99 GEL",
 		},
 	}
 
