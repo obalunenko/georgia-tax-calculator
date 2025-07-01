@@ -4,6 +4,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
@@ -47,21 +48,49 @@ func (d DateRequest) String() string {
 
 // CalculateResponse model.
 type CalculateResponse struct {
-	TaxRate         taxes.TaxRate
-	YearIncome      models.Money
-	IncomeConverted models.Money
-	Tax             models.Money
+	TaxRate              taxes.TaxRate
+	YearIncome           models.Money
+	Incomes              []ConvertResponse
+	TotalIncomeConverted models.Money
+	Tax                  models.Money
 }
 
 func (c CalculateResponse) String() string {
-	var resp string
+	var resp strings.Builder
 
-	resp += fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String())
-	resp += fmt.Sprintf("Year Income: %s\n", c.YearIncome.String())
-	resp += fmt.Sprintf("Converted: %s\n", c.IncomeConverted.String())
-	resp += fmt.Sprintf("Taxes: %s", c.Tax.String())
+	resp.WriteString(fmt.Sprintf("Tax Rate: %s\n", c.TaxRate.String()))
 
-	return resp
+	resp.WriteString(fmt.Sprintf("Year Income: %s\n", c.YearIncome.String()))
+
+	if len(c.Incomes) != 0 {
+		resp.WriteString("Incomes:\n")
+
+		for i := range c.Incomes {
+			inc := c.Incomes[i]
+
+			raw := inc.String()
+
+			if strings.TrimSpace(raw) == "" {
+				continue
+			}
+
+			resp.WriteString(fmt.Sprintf("\t- %d:\n", i+1))
+
+			lines := strings.Split(raw, "\n")
+
+			for _, line := range lines {
+				if strings.TrimSpace(line) != "" {
+					resp.WriteString(fmt.Sprintf("\t\t%s\n", line))
+				}
+			}
+		}
+	}
+
+	resp.WriteString(fmt.Sprintf("Total Income Converted: %s\n", c.TotalIncomeConverted.String()))
+
+	resp.WriteString(fmt.Sprintf("Taxes: %s", c.Tax.String()))
+
+	return resp.String()
 }
 
 // ConvertRequest model.
@@ -144,7 +173,7 @@ func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertRespons
 		return nil, err
 	}
 
-	date := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+	date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
 	mv, err := moneyutils.Parse(p.Amount)
 	if err != nil {
@@ -194,6 +223,8 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		txs float64
 	)
 
+	incomes := make([]ConvertResponse, 0, len(req.Income))
+
 	for _, p := range req.Income {
 		r := ConvertRequest{
 			DateRequest: DateRequest{
@@ -211,9 +242,16 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 			return nil, fmt.Errorf("failed to convert income: %w", err)
 		}
 
+		incomes = append(incomes, ConvertResponse{
+			Date:      convertResp.Date,
+			Amount:    convertResp.Amount,
+			Converted: convertResp.Converted,
+			Rate:      convertResp.Rate,
+		})
+
 		tax, err := taxes.Calc(convertResp.Converted, tt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to Calculate taxes: %w", err)
+			return nil, fmt.Errorf("failed to calculate taxes: %w", err)
 		}
 
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
@@ -222,10 +260,11 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 	}
 
 	return &CalculateResponse{
-		TaxRate:         tr,
-		YearIncome:      models.NewMoney(yi, currencies.GEL),
-		IncomeConverted: models.NewMoney(inc, currencies.GEL),
-		Tax:             models.NewMoney(txs, currencies.GEL),
+		TaxRate:              tr,
+		YearIncome:           models.NewMoney(yi, currencies.GEL),
+		Incomes:              incomes,
+		TotalIncomeConverted: models.NewMoney(inc, currencies.GEL),
+		Tax:                  models.NewMoney(txs, currencies.GEL),
 	}, nil
 }
 

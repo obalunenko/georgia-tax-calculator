@@ -70,7 +70,7 @@ func Test_service_Convert(t *testing.T) {
 				},
 			},
 			want: &ConvertResponse{
-				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
+				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
 				Amount: models.Money{
 					Amount:   568,
 					Currency: currencies.AED,
@@ -195,7 +195,21 @@ func Test_service_Calculate(t *testing.T) {
 					Amount:   1067.99,
 					Currency: currencies.GEL,
 				},
-				IncomeConverted: models.Money{
+				Incomes: []ConvertResponse{
+					{
+						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
+						Amount: models.Money{
+							Amount:   1000,
+							Currency: currencies.EUR,
+						},
+						Converted: models.Money{
+							Amount:   1000,
+							Currency: currencies.GEL,
+						},
+						Rate: models.NewMoney(1, ""),
+					},
+				},
+				TotalIncomeConverted: models.Money{
 					Amount:   1000,
 					Currency: currencies.GEL,
 				},
@@ -247,7 +261,33 @@ func Test_service_Calculate(t *testing.T) {
 					Amount:   1267.99,
 					Currency: currencies.GEL,
 				},
-				IncomeConverted: models.Money{
+				Incomes: []ConvertResponse{
+					{
+						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
+						Amount: models.Money{
+							Amount:   1000,
+							Currency: currencies.EUR,
+						},
+						Converted: models.Money{
+							Amount:   1000,
+							Currency: currencies.GEL,
+						},
+						Rate: models.NewMoney(1, ""),
+					},
+					{
+						Date: time.Date(2023, time.June, 8, 0, 0, 0, 0, time.UTC),
+						Amount: models.Money{
+							Amount:   200,
+							Currency: currencies.USD,
+						},
+						Converted: models.Money{
+							Amount:   200,
+							Currency: currencies.GEL,
+						},
+						Rate: models.NewMoney(1, ""),
+					},
+				},
+				TotalIncomeConverted: models.Money{
 					Amount:   1200,
 					Currency: currencies.GEL,
 				},
@@ -331,62 +371,61 @@ func Test_service_Calculate(t *testing.T) {
 }
 
 func TestCalculateResponse_String(t *testing.T) {
-	type fields struct {
-		Date            time.Time
-		TaxRate         taxes.TaxRate
-		YearIncome      models.Money
-		Income          models.Money
-		IncomeConverted models.Money
-		Tax             models.Money
-	}
-
 	tests := []struct {
 		name   string
-		fields fields
+		fields CalculateResponse
 		want   string
 	}{
 		{
-			name: "",
-			fields: fields{
-				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
+			name: "one income",
+			fields: CalculateResponse{
 				TaxRate: taxes.TaxRate{
 					Type: taxes.TaxTypeEmployment,
 					Rate: 0.2,
 				},
 				YearIncome: models.Money{
-					Amount:   0,
+					Amount:   1267.99,
 					Currency: currencies.GEL,
 				},
-				Income: models.Money{
-					Amount:   568.99,
-					Currency: currencies.AED,
+				Incomes: []ConvertResponse{
+					{
+						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
+						Amount: models.Money{
+							Amount:   568.99,
+							Currency: currencies.AED,
+						},
+						Converted: models.Money{
+							Amount:   789.99,
+							Currency: currencies.GEL,
+						},
+						Rate: models.NewMoney(1.39, ""),
+					},
 				},
-				IncomeConverted: models.Money{
+				TotalIncomeConverted: models.Money{
 					Amount:   789.99,
-					Currency: currencies.EUR,
+					Currency: currencies.GEL,
 				},
 				Tax: models.Money{
-					Amount:   99.02,
-					Currency: currencies.AMD,
+					Amount:   157.99,
+					Currency: currencies.GEL,
 				},
 			},
 			want: "Tax Rate: Employment 20 %\n" +
-				"Year Income: 0 GEL\n" +
-				"Converted: 789.99 EUR\n" +
-				"Taxes: 99.02 AMD",
+				"Year Income: 1267.99 GEL\n" +
+				"Incomes:\n" +
+				"\t- 1:\n" +
+				"\t\tDate: 2022-12-08\n" +
+				"\t\tAmount: 568.99 AED\n" +
+				"\t\tConverted: 789.99 GEL\n" +
+				"\t\tRate: 1.39\n" +
+				"Total Income Converted: 789.99 GEL\n" +
+				"Taxes: 157.99 GEL",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := CalculateResponse{
-				TaxRate:         tt.fields.TaxRate,
-				YearIncome:      tt.fields.YearIncome,
-				IncomeConverted: tt.fields.IncomeConverted,
-				Tax:             tt.fields.Tax,
-			}
-
-			assert.Equalf(t, tt.want, c.String(), "String()")
+			assert.Equalf(t, tt.want, tt.fields.String(), "String()")
 		})
 	}
 }
@@ -407,7 +446,7 @@ func TestConvertResponse_String(t *testing.T) {
 		{
 			name: "",
 			fields: fields{
-				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.Local),
+				Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
 				Amount: models.Money{
 					Amount:   568.99,
 					Currency: currencies.AED,
