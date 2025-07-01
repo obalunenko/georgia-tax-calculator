@@ -2,13 +2,10 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"strings"
 	"time"
-
-	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
@@ -71,19 +68,20 @@ func (c CalculateResponse) String() string {
 		for i := range c.Incomes {
 			inc := c.Incomes[i]
 
-			resp.WriteString(fmt.Sprintf("\t- %d:\n", i+1))
-			scanner := bufio.NewScanner(strings.NewReader(inc.String()))
+			raw := inc.String()
 
-			for scanner.Scan() {
-				line := scanner.Text()
-
-				if line != "" {
-					resp.WriteString(fmt.Sprintf("\t\t%s\n", line))
-				}
+			if strings.TrimSpace(raw) == "" {
+				continue
 			}
 
-			if err := scanner.Err(); err != nil {
-				log.WithError(context.Background(), err).Warn("failed to scan income response")
+			resp.WriteString(fmt.Sprintf("\t- %d:\n", i+1))
+
+			lines := strings.Split(raw, "\n")
+
+			for _, line := range lines {
+				if strings.TrimSpace(line) != "" {
+					resp.WriteString(fmt.Sprintf("\t\t%s\n", line))
+				}
 			}
 		}
 	}
