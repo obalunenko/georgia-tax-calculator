@@ -13,7 +13,6 @@ import (
 
 	log "github.com/obalunenko/logger"
 
-	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option"
 )
@@ -124,14 +123,8 @@ func sortRates(r Rates) Rates {
 }
 
 func maybeAddGELCodeToResponse(r Rates, codes []string) Rates {
-	// Add GEL if no codes specified or GEL is specified.
-	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, currencies.GEL)
-
-	if !shouldAddGEL {
-		return r
-	}
-
 	const (
+		gelCode      = "GEL"
 		rateFormated = "1.0000"
 		diffFormated = "0.0000"
 		qty          = 1
@@ -139,11 +132,17 @@ func maybeAddGELCodeToResponse(r Rates, codes []string) Rates {
 		diff         = 0
 		name         = "Georgian Lari"
 	)
+	// Add GEL if no codes specified or GEL is specified.
+	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, gelCode)
+
+	if !shouldAddGEL {
+		return r
+	}
 
 	// Add GEL if it is not in the response.
-	if _, err := r.CurrencyByCode(currencies.GEL); err != nil {
+	if _, err := r.CurrencyByCode(gelCode); err != nil {
 		r.Currencies = append(r.Currencies, Currency{
-			Code:          currencies.GEL,
+			Code:          gelCode,
 			Quantity:      qty,
 			RateFormated:  rateFormated,
 			DiffFormated:  diffFormated,
