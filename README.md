@@ -15,6 +15,15 @@ Calculates income taxes in Georgia.
 - Fetches official rates from the [nbg.gov.ge](https://nbg.gov.ge) for the date of income.
 - Converts income to GEL.
 - Calculate taxes amount according to specified Taxes Category.
+- **Includes caching** to reduce HTTP requests and improve performance.
+
+## Features
+
+- **Tax Calculation**: Calculate Georgian income taxes based on official rates
+- **Currency Conversion**: Convert between currencies using NBG official rates  
+- **Smart Caching**: Automatic caching of currency rates to minimize API calls
+- **Interactive CLI**: User-friendly command-line interface
+- **Multi-tax Categories**: Support for different Georgian tax categories
 
 ## Usage
 
@@ -60,3 +69,22 @@ GLOBAL OPTIONS:
 #### Cuurency conversion
 
 [![asciicast](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5.svg)](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5)
+
+## For Developers
+
+### NBG API Client with Caching
+
+The application includes a caching layer for the National Bank of Georgia API client to improve performance:
+
+```go
+// Basic usage with caching (1-hour TTL by default)
+client := nbggovge.NewCached()
+
+// Custom TTL
+client := nbggovge.NewCachedWithTTL(time.Minute * 30)
+
+// No expiration (cache until restart)
+client := nbggovge.NewCachedWithTTL(0)
+```
+
+See [pkg/nbggovge/README_CACHE.md](pkg/nbggovge/README_CACHE.md) for detailed documentation and examples.

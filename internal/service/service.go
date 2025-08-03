@@ -142,7 +142,7 @@ type service struct {
 
 // New is a Service constructor.
 func New() Service {
-	client := nbggovge.New()
+	client := nbggovge.NewCached()
 
 	c := converter.NewConverter(client)
 

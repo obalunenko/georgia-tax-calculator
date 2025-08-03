@@ -40,6 +40,28 @@ func NewWithHTTPClient(c HTTPClient) Client {
 	}
 }
 
+// NewCached returns a cached nbg.gov.ge API client with default TTL of 1 hour.
+// This is a convenience function that wraps the regular client with caching functionality.
+func NewCached() *CachedClient {
+	return NewCachedClientWithDefaultTTL(New())
+}
+
+// NewCachedWithTTL returns a cached nbg.gov.ge API client with specified TTL.
+// This is a convenience function that wraps the regular client with caching functionality.
+func NewCachedWithTTL(ttl time.Duration) *CachedClient {
+	return NewCachedClient(New(), ttl)
+}
+
+// NewCachedWithHTTPClient returns a cached nbg.gov.ge API client with specified HTTP client and default TTL.
+func NewCachedWithHTTPClient(c HTTPClient) *CachedClient {
+	return NewCachedClientWithDefaultTTL(NewWithHTTPClient(c))
+}
+
+// NewCachedWithHTTPClientAndTTL returns a cached nbg.gov.ge API client with specified HTTP client and TTL.
+func NewCachedWithHTTPClientAndTTL(c HTTPClient, ttl time.Duration) *CachedClient {
+	return NewCachedClient(NewWithHTTPClient(c), ttl)
+}
+
 type client struct {
 	HTTPClient
 }
