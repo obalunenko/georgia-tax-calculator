@@ -100,8 +100,8 @@ func (c *CachedClient) generateCacheKey(date time.Time, currencyCodes []string) 
 	// Create key: date + sorted currencies
 	keyData := dateStr + ":" + strings.Join(sortedCodes, ",")
 
-	// Use MD5 hash for shorter, consistent keys
-	hash := md5.Sum([]byte(keyData))
+	// Use CRC32 hash for shorter, consistent keys
+	hash := crc32.ChecksumIEEE([]byte(keyData))
 	return fmt.Sprintf("%x", hash)
 }
 
