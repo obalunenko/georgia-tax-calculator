@@ -8,8 +8,8 @@ package {{.PackageName}}
 // List of supported currency codes.
 const (
 {{- range .CurrencyList }}
-    // {{ .Code }} = "{{ .Name }}"
-    {{ .Code }} = "{{ .Name }}"
+    // {{ .Code }} is "{{ .Name }}"
+    {{ .Code }} = "{{ .Code }}"
 {{- end}}
 )
 
