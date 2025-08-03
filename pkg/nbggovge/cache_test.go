@@ -148,17 +148,17 @@ func TestCachedClient_GenerateCacheKey(t *testing.T) {
 		{
 			name:           "empty currencies",
 			currencyCodes:  []string{},
-			expectedLength: 32, // MD5 hash length
+			expectedLength: 8, // MD5 hash length
 		},
 		{
 			name:           "single currency",
 			currencyCodes:  []string{"USD"},
-			expectedLength: 32,
+			expectedLength: 8,
 		},
 		{
 			name:           "multiple currencies",
 			currencyCodes:  []string{"USD", "EUR", "GBP"},
-			expectedLength: 32,
+			expectedLength: 8,
 		},
 	}
 

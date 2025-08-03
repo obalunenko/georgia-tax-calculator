@@ -2,8 +2,8 @@ package nbggovge
 
 import (
 	"context"
-	"crypto/md5"
 	"fmt"
+	"hash/crc32"
 	"sort"
 	"strings"
 	"sync"
