@@ -180,15 +180,7 @@ func mutateCurrencyList(currencies []currencyInfo) []currencyInfo {
 	}
 
 	slices.SortFunc(newV, func(a, b currencyInfo) int {
-		if a.Code == b.Code {
-			return 0
-		}
-
-		if a.Code < b.Code {
-			return -1
-		}
-
-		return 1
+		return strings.Compare(a.Code, b.Code)
 	})
 
 	return newV
