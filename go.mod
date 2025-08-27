@@ -10,7 +10,7 @@ require (
 	github.com/obalunenko/version v1.3.1
 	github.com/savioxavier/termlink v1.4.3
 	github.com/shopspring/decimal v1.4.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/urfave/cli/v3 v3.4.1
 	golang.org/x/tools v0.36.0
 )
