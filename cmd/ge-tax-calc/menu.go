@@ -324,7 +324,7 @@ func makeCurrencyMenu(msg string) survey.Prompt {
 
 	sort.Strings(currs)
 
-	return makeSurveySelect(msg, currs, currencies.EUR)
+	return makeSurveySelect(msg, currs, currencies.USD)
 }
 
 func makeYearsMenu() survey.Prompt {
