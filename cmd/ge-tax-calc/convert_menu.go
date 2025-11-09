@@ -190,7 +190,7 @@ func renderConvertSummary(req service.ConvertRequest) string {
 		b.WriteByte('\n')
 	}
 
-	if req.CurrencyFrom != "" {
+	if req.CurrencyFrom != "" && strings.TrimSpace(req.Amount) == "" {
 		b.WriteString(fmt.Sprintf("Currency from: %s\n", req.CurrencyFrom))
 	}
 
