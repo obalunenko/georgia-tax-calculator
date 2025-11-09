@@ -308,6 +308,10 @@ func (m *incomeModel) setPrompt(p *promptModel) tea.Cmd {
 	return m.prompt.Init()
 }
 
+func formatIncomeDate(income service.Income) string {
+	return fmt.Sprintf("%s-%s-%s", income.Year, income.Month, income.Day)
+}
+
 func renderIncomeList(incomes []service.Income) string {
 	var b strings.Builder
 
@@ -319,7 +323,7 @@ func renderIncomeList(incomes []service.Income) string {
 	}
 
 	for i := range incomes {
-		date := fmt.Sprintf("%s-%s-%s", incomes[i].Year, incomes[i].Month, incomes[i].Day)
+		date := formatIncomeDate(incomes[i])
 		b.WriteString(fmt.Sprintf("  %d) %s — %s %s\n", i+1, date, incomes[i].Amount, incomes[i].Currency))
 	}
 
@@ -337,7 +341,7 @@ func renderIncomeDetails(incomes []service.Income) string {
 
 	for i := range incomes {
 		b.WriteString(fmt.Sprintf("%d)\n", i+1))
-		b.WriteString(fmt.Sprintf("   Date: %s-%s-%s\n", incomes[i].Year, incomes[i].Month, incomes[i].Day))
+		b.WriteString(fmt.Sprintf("   Date: %s\n", formatIncomeDate(incomes[i])))
 		b.WriteString(fmt.Sprintf("   Amount: %s %s\n", incomes[i].Amount, incomes[i].Currency))
 		b.WriteByte('\n')
 	}
