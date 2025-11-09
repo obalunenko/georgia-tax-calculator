@@ -20,8 +20,9 @@ const _TaxType_name = "taxTypeUnknownIndividual EntrepreneurSmall BusinessEmploy
 var _TaxType_index = [...]uint8{0, 14, 37, 51, 61, 76}
 
 func (i TaxType) String() string {
-	if i >= TaxType(len(_TaxType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_TaxType_index)-1 {
 		return "TaxType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _TaxType_name[_TaxType_index[i]:_TaxType_index[i+1]]
+	return _TaxType_name[_TaxType_index[idx]:_TaxType_index[idx+1]]
 }
