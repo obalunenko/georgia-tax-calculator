@@ -23,6 +23,7 @@ jobs:
         dockerfile:
           [
             "./build/docker/go-tools/Dockerfile",
+            "./build/docker/bot/Dockerfile",
           ]
     runs-on: "ubuntu-24.04"
     name: Lint ${{ matrix.dockerfile }}
@@ -38,3 +39,23 @@ jobs:
           dockerfile: ${{ matrix.dockerfile }}
           annotate: true
           error_level: 2
+
+  build-bot-image:
+    runs-on: "ubuntu-24.04"
+    name: Build bot Docker image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/docker/bot/Dockerfile
+          push: false
+          tags: ge-bot:ci
