@@ -50,10 +50,10 @@ type session struct {
 	flow flowType
 
 	// tax calculation state
-	calcStep    calcStep
-	calcReq     service.CalculateRequest
-	currentInc  service.Income
-	incomes     []service.Income
+	calcStep   calcStep
+	calcReq    service.CalculateRequest
+	currentInc service.Income
+	incomes    []service.Income
 
 	// convert state
 	convertStep convertStep

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/mymmrac/telego"
-
 	log "github.com/obalunenko/logger"
 )
 

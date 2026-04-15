@@ -8,9 +8,9 @@ import (
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
+	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
-	log "github.com/obalunenko/logger"
 )
 
 const shutdownBroadcastTimeout = 30 * time.Second
