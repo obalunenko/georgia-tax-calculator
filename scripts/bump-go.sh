@@ -1,71 +1,137 @@
 #!/usr/bin/env bash
 
-readonly CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly ROOT_DIR="$(dirname "$CURRENT_DIR")"
+set -euo pipefail
+
+readonly CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly ROOT_DIR="$(dirname "${CURRENT_DIR}")"
 readonly GO_MOD_FILE="${ROOT_DIR}/go.mod"
 
-function main() {
-  echo "Updating Go version:"
+function usage() {
+  cat <<EOF
+Usage: $(basename "$0") <go-version>
 
-  local currentGoVersion="$(extractCurrentVersion)"
-  echo " - Current: ${currentGoVersion}"
-  local escapedCurrentGoVersion="$(echo "${currentGoVersion}" | sed 's/\./\\./g')"
+Examples:
+  $(basename "$0") 1.26
+  $(basename "$0") 1.26.2
+EOF
+}
+
+function validateGoVersion() {
+  local goVersion="${1}"
+  if [[ ! "${goVersion}" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+    echo "error: invalid Go version '${goVersion}'. Expected <major>.<minor> or <major>.<minor>.<patch>." >&2
+    usage
+    exit 1
+  fi
+}
+
+function toCIVersion() {
+  local goVersion="${1}"
+  if [[ "${goVersion}" =~ ^([0-9]+\.[0-9]+)(\.[0-9]+)?$ ]]; then
+    echo "${BASH_REMATCH[1]}.x"
+    return 0
+  fi
+
+  echo "error: unable to derive CI version from '${goVersion}'." >&2
+  exit 1
+}
+
+function rewriteFile() {
+  local file="${1}"
+  shift
+
+  local tmpFile="${file}.tmp"
+  sed -E "$@" "${file}" > "${tmpFile}"
+
+  if cmp -s "${file}" "${tmpFile}"; then
+    rm -f "${tmpFile}"
+    return 0
+  fi
+
+  local mode=""
+  if mode="$(stat -f '%Lp' "${file}" 2>/dev/null)"; then
+    chmod "${mode}" "${tmpFile}"
+  elif mode="$(stat -c '%a' "${file}" 2>/dev/null)"; then
+    chmod "${mode}" "${tmpFile}"
+  fi
+
+  mv "${tmpFile}" "${file}"
+}
+
+# Replace go/toolchain version directives in all go.mod files.
+function bumpModFiles() {
+  local goVersion="${1}"
+
+  while IFS= read -r -d '' modFile; do
+    rewriteFile "${modFile}" \
+      -e "s/^go [0-9]+\.[0-9]+(\.[0-9]+)?$/go ${goVersion}/g" \
+      -e "s/^toolchain go[0-9]+\.[0-9]+(\.[0-9]+)?$/toolchain go${goVersion}/g"
+  done < <(find "${ROOT_DIR}" -name "go.mod" -not -path "${ROOT_DIR}/vendor/*" -not -path "${ROOT_DIR}/.git/*" -print0)
+}
+
+# Replace Go version in Makefiles.
+function bumpMakeFiles() {
+  local goVersion="${1}"
+
+  while IFS= read -r -d '' makeFile; do
+    rewriteFile "${makeFile}" \
+      -e "s/^(GOVERSION[[:space:]]*[:?]?=[[:space:]]*)[0-9]+\.[0-9]+(\.[0-9]+)?/\1${goVersion}/g"
+  done < <(find "${ROOT_DIR}" -type f \( -name "Makefile" -o -name "*.mk" \) -not -path "${ROOT_DIR}/vendor/*" -not -path "${ROOT_DIR}/.git/*" -print0)
+}
+
+# Replace matrix go-version in GitHub Actions workflows.
+function bumpCIMatrix() {
+  local ciGoVersion="${1}"
+
+  local workflowsDir="${ROOT_DIR}/.github/workflows"
+  if [[ ! -d "${workflowsDir}" ]]; then
+    return 0
+  fi
+
+  while IFS= read -r -d '' workflowFile; do
+    rewriteFile "${workflowFile}" \
+      -e "s/(go-version:[[:space:]]*\\[)[^]]+(\\])/\\1${ciGoVersion}\\2/g" \
+      -e "s/^([[:space:]]*go-version:[[:space:]]*)[0-9]+\.[0-9]+(\.[0-9]+)?(\.x)?$/\\1${ciGoVersion}/g"
+  done < <(find "${workflowsDir}" -type f \( -name "*.yml" -o -name "*.yaml" \) -print0)
+}
+
+# Replace golang image tags, e.g. golang:1.25 or golang:1.25.3.
+function bumpGolangDockerImages() {
+  local goVersion="${1}"
+
+  while IFS= read -r -d '' file; do
+    rewriteFile "${file}" \
+      -e "s/(golang:)[0-9]+\.[0-9]+(\.[0-9]+)?/\\1${goVersion}/g"
+  done < <(find "${ROOT_DIR}" -type f \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "Dockerfile*" \) -not -path "${ROOT_DIR}/vendor/*" -not -path "${ROOT_DIR}/.git/*" -print0)
+}
+
+function extractCurrentVersion() {
+  grep -E '^go [0-9]+\.[0-9]+(\.[0-9]+)?$' "${GO_MOD_FILE}" | awk '{print $2}' | head -n 1
+}
+
+function main() {
+  if [[ $# -ne 1 ]]; then
+    usage
+    exit 1
+  fi
 
   local goVersion="${1}"
-  local escapedGoVersion="$(echo "${goVersion}" | sed 's/\./\\./g')"
-  echo " - New: ${goVersion}"
+  validateGoVersion "${goVersion}"
 
-  # bump mod files in all the modules
-  for modFile in $(find "${ROOT_DIR}" -name "go.mod" -not -path "${ROOT_DIR}/vendor/*" -not -path "${ROOT_DIR}/.git/*"); do
-    bumpModFile "${modFile}" "${escapedCurrentGoVersion}" "${escapedGoVersion}"
-  done
+  local currentGoVersion
+  currentGoVersion="$(extractCurrentVersion)"
+  local ciGoVersion
+  ciGoVersion="$(toCIVersion "${goVersion}")"
 
-  # bump markdown files
-  for f in $(find "${ROOT_DIR}" -name "*.md"); do
-    bumpGolangDockerImages "${f}" "${escapedCurrentGoVersion}" "${escapedGoVersion}"
-  done
+  echo "Updating Go version:"
+  echo " - Current: ${currentGoVersion}"
+  echo " - New (go.mod/Makefile/images): ${goVersion}"
+  echo " - New (GitHub Actions matrix): ${ciGoVersion}"
 
-  # bump github action workflows
-  for f in $(find "${ROOT_DIR}/.github/workflows" -name "*.yml"); do
-    bumpCIMatrix "${f}" "${escapedCurrentGoVersion}" "${escapedGoVersion}"
-  done
-}
-
-# it will replace the 'go-version: [${oldGoVersion}, 1.x]' with 'go-version: [${newGoVersion}, 1.x]' in the given file
-function bumpCIMatrix() {
-  local file="${1}"
-  local oldGoVersion="${2}"
-  local newGoVersion="${3}"
-
-    sed "s/go-version: \[${oldGoVersion}/go-version: \[${newGoVersion}/g" ${file} > ${file}.tmp
-    mv ${file}.tmp ${file}
-}
-
-# it will replace the 'golang:${oldGoVersion}' with 'golang:${newGoVersion}' in the given file
-function bumpGolangDockerImages() {
-  local file="${1}"
-  local oldGoVersion="${2}"
-  local newGoVersion="${3}"
-
-    sed "s/golang:${oldGoVersion}/golang:${newGoVersion}/g" ${file} > ${file}.tmp
-    mv ${file}.tmp ${file}
-
-}
-
-# it will replace the 'go ${oldGoVersion}' with 'go ${newGoVersion}' in the given go.mod file
-function bumpModFile() {
-  local goModFile="${1}"
-  local oldGoVersion="${2}"
-  local newGoVersion="${3}"
-
-    sed "s/^go ${oldGoVersion}/go ${newGoVersion}/g" ${goModFile} > ${goModFile}.tmp
-    mv ${goModFile}.tmp ${goModFile}
-
-}
-
-# This function reads the reaper.go file and extracts the current version.
-function extractCurrentVersion() {
-  cat "${GO_MOD_FILE}" | grep '^go .*' | sed 's/^go //g' | head -n 1
+  bumpModFiles "${goVersion}"
+  bumpMakeFiles "${goVersion}"
+  bumpGolangDockerImages "${goVersion}"
+  bumpCIMatrix "${ciGoVersion}"
 }
 
 main "$@"
