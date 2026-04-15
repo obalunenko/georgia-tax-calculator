@@ -23,6 +23,7 @@ Calculates income taxes in Georgia.
 - **Currency Conversion**: Convert between currencies using NBG official rates  
 - **Smart Caching**: Automatic caching of currency rates to minimize API calls
 - **Interactive CLI**: User-friendly command-line interface
+- **Telegram Bot**: Interactive Telegram bot interface for tax calculations
 - **Multi-tax Categories**: Support for different Georgian tax categories
 
 ## Usage
@@ -69,6 +70,68 @@ GLOBAL OPTIONS:
 #### Cuurency conversion
 
 [![asciicast](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5.svg)](https://asciinema.org/a/DhjfE2pOQa2PteSqKgOIYMBA5)
+
+## Telegram Bot
+
+The `ge-bot` binary provides a Telegram bot interface with the same functionality as the CLI.
+
+### Running the Bot
+
+#### Option 1 — Binary
+
+1. Create a bot via [@BotFather](https://t.me/BotFather) and get your bot token.
+
+2. Set the `TELEGRAM_BOT_TOKEN` environment variable:
+
+   ```sh
+   export TELEGRAM_BOT_TOKEN=your_bot_token_here
+   ```
+
+   Optional logging level:
+
+   ```sh
+   export TELEGRAM_BOT_LOG_LEVEL=debug # debug|info|warn|error|fatal
+   ```
+
+3. Run the bot:
+
+   ```sh
+   ge-bot
+   ```
+
+#### Option 2 — Docker Compose (local deployment)
+
+1. Create a bot via [@BotFather](https://t.me/BotFather) and get your bot token.
+
+2. Copy the example env file and fill in your token:
+
+   ```sh
+   cp deployments/docker-compose/.env.example deployments/docker-compose/.env
+   # edit .env and set TELEGRAM_BOT_TOKEN=<your token>
+   # optional: TELEGRAM_BOT_LOG_LEVEL=debug
+   ```
+
+3. Start the bot:
+
+   ```sh
+   make bot-up
+   ```
+
+4. Other useful commands:
+
+   | Command | Description |
+   |---------|-------------|
+   | `make bot-up` | Build the image and start the bot in the background |
+   | `make bot-down` | Stop and remove the bot container |
+   | `make bot-logs` | Follow the bot's log output |
+
+### Bot Commands
+
+- `/start` — Welcome message and command overview
+- `/calculate` — Start the tax calculation flow (guided step-by-step)
+- `/convert` — Start the currency conversion flow (guided step-by-step)
+- `/cancel` — Cancel the current operation
+- `/help` — Show available commands
 
 ## For Developers
 

@@ -14,6 +14,10 @@ COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
 COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --build --remove-orphans --exit-code-from
 COMPOSE_TOOLS_CMD_PULL=$(COMPOSE_TOOLS_CMD_BASE) build
 
+COMPOSE_BOT_FILE=deployments/docker-compose/bot-docker-compose.yml
+COMPOSE_BOT_CMD_BASE=docker compose -f $(COMPOSE_BOT_FILE)
+BOT_ENV_FILE?=deployments/docker-compose/.env
+
 GOVERSION:=1.26.2
 
 TARGET_MAX_CHAR_NUM=20
@@ -156,6 +160,21 @@ new-version: vet test-regression build
 bump-go-version:
 	./scripts/bump-go.sh $(GOVERSION)
 .PHONY: bump-go-version
+
+## Build and start the Telegram bot locally via docker compose.
+bot-up:
+	$(COMPOSE_BOT_CMD_BASE) --env-file $(BOT_ENV_FILE) up --build -d
+.PHONY: bot-up
+
+## Stop the Telegram bot docker compose deployment.
+bot-down:
+	$(COMPOSE_BOT_CMD_BASE) down
+.PHONY: bot-down
+
+## Follow logs of the Telegram bot container.
+bot-logs:
+	$(COMPOSE_BOT_CMD_BASE) logs -f bot
+.PHONY: bot-logs
 
 .DEFAULT_GOAL := help
 

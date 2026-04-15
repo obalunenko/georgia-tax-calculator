@@ -45,6 +45,22 @@ builds:
     flags:
       - -trimpath
 
+  - id: bot
+    binary: ge-tax
+    goos:
+      - 'linux'
+      - 'darwin'
+    goarch:
+      - 'amd64'
+      - 'arm64'
+
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/bot
+    flags:
+      - -trimpath
+
 universal_binaries:
   - # ID of the source build
     #
@@ -75,6 +91,16 @@ archives:
       - goos: windows
         formats: 
           - zip
+    name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    files:
+      - LICENSE
+      - README.md
+  - id: bot
+    ids:
+      - bot
+    formats:
+      - tar.gz
+    wrap_in_directory: true
     name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     files:
       - LICENSE

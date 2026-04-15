@@ -25,3 +25,5 @@ coverage/
 .DS_Store
 tests-report.json
 report.xml
+
+deployments/docker-compose/.env
