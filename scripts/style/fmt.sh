@@ -11,17 +11,11 @@ source "${SCRIPTS_DIR}/helpers-source.sh"
 
 echo "${SCRIPT_NAME} is running... "
 
-checkInstalled 'gofmt'
+checkInstalled 'go'
 
-echo "Making filelist"
-GO_FILES=($(find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./tools/vendor/*" -not -path "./.git/*"))
+cd "${REPO_ROOT}"
 
-LOCAL_PFX=$(go list -m)
-echo "Local packages prefix: ${LOCAL_PFX}"
-
-for f in "${GO_FILES[@]}"; do
-  echo "Fixing fmt at ${f}"
-  gofumpt -l -w "$f"
-done
+echo "Running go fmt for all local packages"
+go fmt ./...
 
 echo "${SCRIPT_NAME} done."

@@ -18,7 +18,7 @@ COMPOSE_BOT_FILE=deployments/docker-compose/bot-docker-compose.yml
 COMPOSE_BOT_CMD_BASE=docker compose -f $(COMPOSE_BOT_FILE)
 BOT_ENV_FILE?=deployments/docker-compose/.env
 
-GOVERSION:=1.25
+GOVERSION:=1.26.2
 
 TARGET_MAX_CHAR_NUM=20
 
