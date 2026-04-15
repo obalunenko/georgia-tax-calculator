@@ -66,16 +66,18 @@ func (s *userStore) save() {
 }
 
 // Track records a chat ID and persists the store when a new ID is seen.
-func (s *userStore) Track(chatID int64) {
+func (s *userStore) Track(chatID int64) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if _, ok := s.chatIDs[chatID]; ok {
-		return
+		return false
 	}
 
 	s.chatIDs[chatID] = struct{}{}
 	s.save()
+
+	return true
 }
 
 // All returns a snapshot of all known chat IDs.
@@ -94,7 +96,7 @@ func (s *userStore) All() []int64 {
 // broadcast sends text to every chatID. Per-user errors are logged but do not abort the loop.
 func broadcast(ctx context.Context, bot *telego.Bot, chatIDs []int64, text string) {
 	for _, chatID := range chatIDs {
-		_, err := bot.SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, bot, &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   text,
 		})

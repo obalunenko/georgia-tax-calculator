@@ -11,11 +11,18 @@ source "${SCRIPTS_DIR}/helpers-source.sh"
 
 echo "${SCRIPT_NAME} is running... "
 
-checkInstalled 'go'
+checkInstalled 'gofmt'
 
 cd "${REPO_ROOT}"
 
 echo "Running go fmt for all local packages"
-go fmt ./...
+echo "Making filelist"
+FILES=($(find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./tools/vendor/*" -not -path "./.git/*"))
+
+
+for f in "${FILES[@]}"; do
+  echo "Fixing formatting at ${f}"
+  gofmt -s -w "$f"
+done
 
 echo "${SCRIPT_NAME} done."

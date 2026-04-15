@@ -88,7 +88,19 @@ func run(ctx context.Context, token string) error {
 // trackUserMsg wraps a MessageHandler to record the chat ID in the user store.
 func trackUserMsg(users *userStore, h telegohandler.MessageHandler) telegohandler.MessageHandler {
 	return func(ctx *telegohandler.Context, msg telego.Message) error {
-		users.Track(msg.Chat.ID)
+		ctxLog := log.WithField(ctx.Context(), "chat_id", msg.Chat.ID).
+			WithField("text", msg.Text)
+
+		if msg.From != nil {
+			ctxLog = ctxLog.WithField("user_id", msg.From.ID).
+				WithField("username", msg.From.Username)
+		}
+
+		ctxLog.Debug("bot: user input")
+
+		if users.Track(msg.Chat.ID) {
+			ctxLog.Info("bot: new user registered")
+		}
 
 		return h(ctx, msg)
 	}
@@ -97,8 +109,19 @@ func trackUserMsg(users *userStore, h telegohandler.MessageHandler) telegohandle
 // trackUserCallback wraps a CallbackQueryHandler to record the chat ID in the user store.
 func trackUserCallback(users *userStore, h telegohandler.CallbackQueryHandler) telegohandler.CallbackQueryHandler {
 	return func(ctx *telegohandler.Context, query telego.CallbackQuery) error {
+		ctxLog := log.WithField(ctx.Context(), "user_id", query.From.ID).
+			WithField("username", query.From.Username).
+			WithField("callback_data", query.Data)
+
+		ctxLog.Debug("bot: user input")
+
 		if query.Message != nil {
-			users.Track(query.Message.GetChat().ID)
+			chatID := query.Message.GetChat().ID
+			ctxLog = ctxLog.WithField("chat_id", chatID)
+
+			if users.Track(chatID) {
+				ctxLog.Info("bot: new user registered")
+			}
 		}
 
 		return h(ctx, query)

@@ -32,7 +32,7 @@ func handleStart(store *sessionStore) telegohandler.MessageHandler {
 			"• /cancel — Cancel current operation\n" +
 			"• /help — Show this help message"
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: msg.Chat.ID},
 			Text:   text,
 		})
@@ -55,7 +55,7 @@ func handleHelp(store *sessionStore) telegohandler.MessageHandler {
 			"• /cancel — Cancel current operation and reset\n\n" +
 			"• /help — Show this help message"
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: msg.Chat.ID},
 			Text:   text,
 		})
@@ -69,7 +69,7 @@ func handleCancel(store *sessionStore) telegohandler.MessageHandler {
 	return func(ctx *telegohandler.Context, msg telego.Message) error {
 		store.reset(msg.From.ID)
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: msg.Chat.ID},
 			Text:   "✅ Operation cancelled. Use /calculate or /convert to start again.",
 		})
@@ -93,7 +93,7 @@ func handleCalculate(store *sessionStore) telegohandler.MessageHandler {
 			return fmt.Errorf("build tax type keyboard: %w", err)
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: msg.Chat.ID},
 			Text:        "💼 Select your tax type:",
 			ReplyMarkup: &kb,
@@ -113,7 +113,7 @@ func handleConvert(store *sessionStore) telegohandler.MessageHandler {
 
 		kb := yearKeyboard()
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: msg.Chat.ID},
 			Text:        "📅 Select the year of conversion:",
 			ReplyMarkup: &kb,
@@ -134,7 +134,7 @@ func handleTextInput(store *sessionStore) telegohandler.MessageHandler {
 		case flowConvert:
 			return handleConvertTextInput(ctx, msg, sess)
 		default:
-			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: msg.Chat.ID},
 				Text:   "Please use /calculate or /convert to start.",
 			})
@@ -153,7 +153,7 @@ func handleCalcTextInput(
 	case calcStepYearIncome:
 		text := strings.TrimSpace(msg.Text)
 		if err := validateMoney(text); err != nil {
-			_, sendErr := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, sendErr := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: msg.Chat.ID},
 				Text:   fmt.Sprintf("❌ Invalid amount: %v\n\nPlease enter a valid number (e.g. 1500.00):", err),
 			})
@@ -166,7 +166,7 @@ func handleCalcTextInput(
 
 		kb := yearKeyboard()
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: msg.Chat.ID},
 			Text:        fmt.Sprintf("✅ Year income set to: %s GEL\n\n📅 Select the year of income:", text),
 			ReplyMarkup: &kb,
@@ -176,7 +176,7 @@ func handleCalcTextInput(
 	case calcStepAmount:
 		text := strings.TrimSpace(msg.Text)
 		if err := validateMoney(text); err != nil {
-			_, sendErr := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, sendErr := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: msg.Chat.ID},
 				Text:   fmt.Sprintf("❌ Invalid amount: %v\n\nPlease enter a valid number (e.g. 1500.00):", err),
 			})
@@ -189,7 +189,7 @@ func handleCalcTextInput(
 
 		kb := currencyKeyboard()
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: msg.Chat.ID},
 			Text:        fmt.Sprintf("✅ Amount set to: %s\n\n💱 Select the currency of income:", text),
 			ReplyMarkup: &kb,
@@ -212,7 +212,7 @@ func handleConvertTextInput(
 
 	text := strings.TrimSpace(msg.Text)
 	if err := validateMoney(text); err != nil {
-		_, sendErr := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, sendErr := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: msg.Chat.ID},
 			Text:   fmt.Sprintf("❌ Invalid amount: %v\n\nPlease enter a valid number (e.g. 1500.00):", err),
 		})
@@ -225,7 +225,7 @@ func handleConvertTextInput(
 
 	kb := currencyKeyboard()
 
-	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+	_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 		ChatID:      telego.ChatID{ID: msg.Chat.ID},
 		Text:        fmt.Sprintf("✅ Amount set to: %s\n\n💱 Select the source currency:", text),
 		ReplyMarkup: &kb,
@@ -264,7 +264,7 @@ func handleCallback(store *sessionStore, svc service.Service) telegohandler.Call
 		case flowConvert:
 			return handleConvertCallback(ctx, chatID, data, sess, svc)
 		default:
-			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: chatID},
 				Text:   "Please use /calculate or /convert to start.",
 			})
@@ -287,7 +287,7 @@ func handleCalcCallback(
 		sess.calcReq.TaxType = taxType
 		sess.calcStep = calcStepYearIncome
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text: fmt.Sprintf(
 				"✅ Tax type: %s\n\n💰 Enter your income from the beginning of the calendar year in GEL:\n(e.g. 0.00 if this is your first income)",
@@ -306,7 +306,7 @@ func handleCalcCallback(
 			return fmt.Errorf("build month keyboard: %w", err)
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Year: %s\n\n📅 Select the month of income:", data),
 			ReplyMarkup: &kb,
@@ -323,7 +323,7 @@ func handleCalcCallback(
 			return fmt.Errorf("build day keyboard: %w", err)
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Month: %s\n\n📅 Select the day of income:", data),
 			ReplyMarkup: &kb,
@@ -335,7 +335,7 @@ func handleCalcCallback(
 		sess.currentInc.Day = data
 		sess.calcStep = calcStepAmount
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text: fmt.Sprintf(
 				"✅ Date: %s-%s-%s\n\n💵 Enter the income amount:\n(e.g. 1500.00)",
@@ -353,7 +353,7 @@ func handleCalcCallback(
 
 		incomeList := formatIncomeList(sess.incomes)
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Currency: %s\n\n%s\n➕ Add another income entry?", data, incomeList),
 			ReplyMarkup: buildConfirmKeyboardPtr(),
@@ -367,7 +367,7 @@ func handleCalcCallback(
 
 			kb := yearKeyboard()
 
-			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID:      telego.ChatID{ID: chatID},
 				Text:        "📅 Select the year of income:",
 				ReplyMarkup: &kb,
@@ -381,7 +381,7 @@ func handleCalcCallback(
 
 		summary := formatCalcSummary(sess)
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("📋 Review your inputs:\n\n%s\n\nAre your answers correct?", summary),
 			ReplyMarkup: buildConfirmKeyboardPtr(),
@@ -402,7 +402,7 @@ func handleCalcCallback(
 				return fmt.Errorf("build tax type keyboard: %w", err)
 			}
 
-			_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID:      telego.ChatID{ID: chatID},
 				Text:        "🔄 Restarting...\n\n💼 Select your tax type:",
 				ReplyMarkup: &kb,
@@ -416,7 +416,7 @@ func handleCalcCallback(
 		sess.calcStep = calcStepDone
 		sess.flow = flowNone
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   "⏳ Calculating taxes...",
 		})
@@ -426,7 +426,7 @@ func handleCalcCallback(
 
 		resp, err := svc.Calculate(ctx.Context(), sess.calcReq)
 		if err != nil {
-			_, sendErr := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, sendErr := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: chatID},
 				Text:   fmt.Sprintf("❌ Calculation error: %v\n\nPlease try again with /calculate", err),
 			})
@@ -434,7 +434,7 @@ func handleCalcCallback(
 			return sendErr
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   formatCalcResult(resp),
 		})
@@ -463,7 +463,7 @@ func handleConvertCallback(
 			return fmt.Errorf("build month keyboard: %w", err)
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Year: %s\n\n📅 Select the month:", data),
 			ReplyMarkup: &kb,
@@ -480,7 +480,7 @@ func handleConvertCallback(
 			return fmt.Errorf("build day keyboard: %w", err)
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Month: %s\n\n📅 Select the day:", data),
 			ReplyMarkup: &kb,
@@ -492,7 +492,7 @@ func handleConvertCallback(
 		sess.convertReq.Day = data
 		sess.convertStep = convertStepAmount
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text: fmt.Sprintf(
 				"✅ Date: %s-%s-%s\n\n💵 Enter the amount to convert:\n(e.g. 1500.00)",
@@ -508,7 +508,7 @@ func handleConvertCallback(
 
 		kb := currencyKeyboard()
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("✅ Source currency: %s\n\n💱 Select the target currency:", data),
 			ReplyMarkup: &kb,
@@ -522,7 +522,7 @@ func handleConvertCallback(
 
 		summary := formatConvertSummary(sess.convertReq)
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID:      telego.ChatID{ID: chatID},
 			Text:        fmt.Sprintf("📋 Review your inputs:\n\n%s\n\nAre your answers correct?", summary),
 			ReplyMarkup: buildConfirmKeyboardPtr(),
@@ -537,7 +537,7 @@ func handleConvertCallback(
 
 			kb := yearKeyboard()
 
-			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID:      telego.ChatID{ID: chatID},
 				Text:        "🔄 Restarting...\n\n📅 Select the year of conversion:",
 				ReplyMarkup: &kb,
@@ -550,7 +550,7 @@ func handleConvertCallback(
 		sess.convertStep = convertStepDone
 		sess.flow = flowNone
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   "⏳ Converting...",
 		})
@@ -560,7 +560,7 @@ func handleConvertCallback(
 
 		resp, err := svc.Convert(ctx.Context(), sess.convertReq)
 		if err != nil {
-			_, sendErr := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+			_, sendErr := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 				ChatID: telego.ChatID{ID: chatID},
 				Text:   fmt.Sprintf("❌ Conversion error: %v\n\nPlease try again with /convert", err),
 			})
@@ -568,7 +568,7 @@ func handleConvertCallback(
 			return sendErr
 		}
 
-		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   formatConvertResult(resp),
 		})
@@ -581,7 +581,7 @@ func handleConvertCallback(
 }
 
 func sendUnexpectedInput(ctx *telegohandler.Context, chatID int64) error {
-	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+	_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 		ChatID: telego.ChatID{ID: chatID},
 		Text:   "⚠️ Unexpected input. Please follow the flow or use /cancel to start over.",
 	})

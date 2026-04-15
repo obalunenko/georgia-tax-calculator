@@ -87,6 +87,12 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    export TELEGRAM_BOT_TOKEN=your_bot_token_here
    ```
 
+   Optional logging level:
+
+   ```sh
+   export TELEGRAM_BOT_LOG_LEVEL=debug # debug|info|warn|error|fatal
+   ```
+
 3. Run the bot:
 
    ```sh
@@ -102,6 +108,7 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    ```sh
    cp deployments/docker-compose/.env.example deployments/docker-compose/.env
    # edit .env and set TELEGRAM_BOT_TOKEN=<your token>
+   # optional: TELEGRAM_BOT_LOG_LEVEL=debug
    ```
 
 3. Start the bot:

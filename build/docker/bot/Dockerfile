@@ -18,7 +18,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/ge-bot ./cmd/bot
 
 # ---- Runtime stage ----
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS final
+FROM alpine:${ALPINE_VERSION} AS final
 
 COPY --from=builder /out/ge-bot /ge-bot
 
