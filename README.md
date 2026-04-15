@@ -77,6 +77,8 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 
 ### Running the Bot
 
+#### Option 1 — Binary
+
 1. Create a bot via [@BotFather](https://t.me/BotFather) and get your bot token.
 
 2. Set the `TELEGRAM_BOT_TOKEN` environment variable:
@@ -90,6 +92,31 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    ```sh
    ge-bot
    ```
+
+#### Option 2 — Docker Compose (local deployment)
+
+1. Create a bot via [@BotFather](https://t.me/BotFather) and get your bot token.
+
+2. Copy the example env file and fill in your token:
+
+   ```sh
+   cp deployments/docker-compose/.env.example deployments/docker-compose/.env
+   # edit .env and set TELEGRAM_BOT_TOKEN=<your token>
+   ```
+
+3. Start the bot:
+
+   ```sh
+   make bot-up
+   ```
+
+4. Other useful commands:
+
+   | Command | Description |
+   |---------|-------------|
+   | `make bot-up` | Build the image and start the bot in the background |
+   | `make bot-down` | Stop and remove the bot container |
+   | `make bot-logs` | Follow the bot's log output |
 
 ### Bot Commands
 

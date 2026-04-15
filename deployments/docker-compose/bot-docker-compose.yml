@@ -1,0 +1,9 @@
+services:
+  bot:
+    build:
+      context: ../../
+      dockerfile: build/docker/bot/Dockerfile
+    image: ge-bot:local
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}
