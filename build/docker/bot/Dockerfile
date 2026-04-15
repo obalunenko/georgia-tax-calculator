@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
-# ---- Build stage ----
-FROM golang:1.25 AS builder
+ARG GO_VERSION=1.26.2
+ARG ALPINE_VERSION=3.22
+
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 WORKDIR /src
 
@@ -16,7 +18,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/ge-bot ./cmd/bot
 
 # ---- Runtime stage ----
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS final
 
 COPY --from=builder /out/ge-bot /ge-bot
 
