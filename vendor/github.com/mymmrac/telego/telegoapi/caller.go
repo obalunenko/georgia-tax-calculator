@@ -221,7 +221,7 @@ func (r *RetryCaller) handleError(err error) (time.Duration, bool) {
 
 	switch apiErr.ErrorCode {
 	case http.StatusTooManyRequests:
-		switch r.RateLimit { //nolint:revive
+		switch r.RateLimit { //revive:disable:identical-switch-branches
 		case RetryRateLimitSkip:
 			return 0, true // Skip handling
 		case RetryRateLimitAbort:

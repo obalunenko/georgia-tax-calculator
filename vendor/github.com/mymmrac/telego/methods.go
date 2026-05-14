@@ -45,6 +45,7 @@ const (
 	BusinessMessageUpdates         = "business_message"
 	EditedBusinessMessageUpdates   = "edited_business_message"
 	DeletedBusinessMessagesUpdates = "deleted_business_messages"
+	GuestMessageUpdates            = "guest_message"
 	MessageReactionUpdates         = "message_reaction"
 	MessageReactionCountUpdates    = "message_reaction_count"
 	InlineQueryUpdates             = "inline_query"
@@ -60,6 +61,7 @@ const (
 	ChatJoinRequestUpdates         = "chat_join_request"
 	ChatBoostUpdates               = "chat_boost"
 	RemovedChatBoostUpdates        = "removed_chat_boost"
+	ManagedBot                     = "managed_bot"
 )
 
 // GetUpdates - Use this method to receive incoming updates using long polling (wiki
@@ -76,7 +78,7 @@ func (b *Bot) GetUpdates(ctx context.Context, params *GetUpdatesParams) ([]Updat
 
 // SetWebhookParams - Represents parameters of setWebhook method.
 type SetWebhookParams struct {
-	// URL - HTTPS URL to send updates to. Use an empty string to remove webhook integration
+	// URL - HTTPS URL to send updates to. Use an empty string to remove webhook integration.
 	URL string `json:"url"`
 
 	// Certificate - Optional. Upload your public key certificate so that the root certificate in use can be
@@ -207,8 +209,8 @@ type SendMessageParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -242,7 +244,7 @@ type SendMessageParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -260,7 +262,7 @@ type SendMessageParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -284,8 +286,8 @@ func (b *Bot) SendMessage(ctx context.Context, params *SendMessageParams) (*Mess
 
 // ForwardMessageParams - Represents parameters of forwardMessage method.
 type ForwardMessageParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -296,8 +298,8 @@ type ForwardMessageParams struct {
 	// forwarded; required if the message is forwarded to a direct messages chat
 	DirectMessagesTopicID int64 `json:"direct_messages_topic_id,omitempty"`
 
-	// FromChatID - Unique identifier for the chat where the original message was sent (or channel username in
-	// the format @channel_username)
+	// FromChatID - Unique identifier for the chat where the original message was sent (or username of the
+	// target bot, supergroup or channel in the format @username)
 	FromChatID ChatID `json:"from_chat_id"`
 
 	// VideoStartTimestamp - Optional. New start timestamp for the forwarded video in the message
@@ -336,8 +338,8 @@ func (b *Bot) ForwardMessage(ctx context.Context, params *ForwardMessageParams) 
 
 // ForwardMessagesParams - Represents parameters of forwardMessages method.
 type ForwardMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -348,8 +350,8 @@ type ForwardMessagesParams struct {
 	// forwarded; required if the messages are forwarded to a direct messages chat
 	DirectMessagesTopicID int64 `json:"direct_messages_topic_id,omitempty"`
 
-	// FromChatID - Unique identifier for the chat where the original messages were sent (or channel username in
-	// the format @channel_username)
+	// FromChatID - Unique identifier for the chat where the original messages were sent (or username of the
+	// target bot, supergroup or channel in the format @username)
 	FromChatID ChatID `json:"from_chat_id"`
 
 	// MessageIDs - A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to forward.
@@ -379,8 +381,8 @@ func (b *Bot) ForwardMessages(ctx context.Context, params *ForwardMessagesParams
 
 // CopyMessageParams - Represents parameters of copyMessage method.
 type CopyMessageParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -391,8 +393,8 @@ type CopyMessageParams struct {
 	// sent; required if the message is sent to a direct messages chat
 	DirectMessagesTopicID int64 `json:"direct_messages_topic_id,omitempty"`
 
-	// FromChatID - Unique identifier for the chat where the original message was sent (or channel username in
-	// the format @channel_username)
+	// FromChatID - Unique identifier for the chat where the original message was sent (or username of the
+	// target bot, supergroup or channel in the format @username)
 	FromChatID ChatID `json:"from_chat_id"`
 
 	// MessageID - Message identifier in the chat specified in from_chat_id
@@ -402,7 +404,7 @@ type CopyMessageParams struct {
 	VideoStartTimestamp int `json:"video_start_timestamp,omitempty"`
 
 	// Caption - Optional. New caption for media, 0-1024 characters after entities parsing. If not specified,
-	// the original caption is kept
+	// the original caption is kept.
 	Caption string `json:"caption,omitempty"`
 
 	// ParseMode - Optional. Mode for parsing entities in the new caption. See formatting options
@@ -426,7 +428,7 @@ type CopyMessageParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; only
@@ -444,7 +446,7 @@ type CopyMessageParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -466,8 +468,8 @@ func (b *Bot) CopyMessage(ctx context.Context, params *CopyMessageParams) (*Mess
 
 // CopyMessagesParams - Represents parameters of copyMessages method.
 type CopyMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -478,8 +480,8 @@ type CopyMessagesParams struct {
 	// sent; required if the messages are sent to a direct messages chat
 	DirectMessagesTopicID int64 `json:"direct_messages_topic_id,omitempty"`
 
-	// FromChatID - Unique identifier for the chat where the original messages were sent (or channel username in
-	// the format @channel_username)
+	// FromChatID - Unique identifier for the chat where the original messages were sent (or username of the
+	// target bot, supergroup or channel in the format @username)
 	FromChatID ChatID `json:"from_chat_id"`
 
 	// MessageIDs - A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to copy.
@@ -519,8 +521,8 @@ type SendPhotoParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -565,7 +567,7 @@ type SendPhotoParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -583,7 +585,7 @@ type SendPhotoParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -604,14 +606,110 @@ func (b *Bot) SendPhoto(ctx context.Context, params *SendPhotoParams) (*Message,
 	return message, nil
 }
 
-// SendAudioParams - Represents parameters of sendAudio method.
-type SendAudioParams struct {
+// SendLivePhotoParams - Represents parameters of sendLivePhoto method.
+type SendLivePhotoParams struct {
 	// BusinessConnectionID - Optional. Unique identifier of the business connection on behalf of which the
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
 	// @channel_username)
+	ChatID ChatID `json:"chat_id"`
+
+	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
+	// supergroups and private chats of bots with forum topic mode enabled only
+	MessageThreadID int `json:"message_thread_id,omitempty"`
+
+	// DirectMessagesTopicID - Optional. Identifier of the direct messages topic to which the message will be
+	// sent; required if the message is sent to a direct messages chat
+	DirectMessagesTopicID int64 `json:"direct_messages_topic_id,omitempty"`
+
+	// LivePhoto - Live photo video to send. The video must be no longer than 10 seconds and must not exceed 10
+	// MB in size. Pass a file_id as String to send a video that exists on the Telegram servers (recommended) or
+	// upload a new video using multipart/form-data. More information on Sending Files »
+	// (https://core.telegram.org/bots/api#sending-files). Sending live photos by a URL is currently unsupported.
+	LivePhoto InputFile `json:"live_photo"`
+
+	// Photo - The static photo to send. Pass a file_id as String to send a photo that exists on the Telegram
+	// servers (recommended) or upload a new video using multipart/form-data. More information on Sending Files »
+	// (https://core.telegram.org/bots/api#sending-files). Sending live photos by a URL is currently unsupported.
+	Photo InputFile `json:"photo"`
+
+	// Caption - Optional. Video caption (may also be used when resending videos by file_id), 0-1024 characters
+	// after entities parsing
+	Caption string `json:"caption,omitempty"`
+
+	// ParseMode - Optional. Mode for parsing entities in the video caption. See formatting options
+	// (https://core.telegram.org/bots/api#formatting-options) for more details.
+	ParseMode string `json:"parse_mode,omitempty"`
+
+	// CaptionEntities - Optional. A JSON-serialized list of special entities that appear in the caption, which
+	// can be specified instead of parse_mode
+	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+
+	// ShowCaptionAboveMedia - Optional. Pass True, if the caption must be shown above the message media
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
+
+	// HasSpoiler - Optional. Pass True if the video needs to be covered with a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+
+	// DisableNotification - Optional. Sends the message silently
+	// (https://telegram.org/blog/channels-2-0#silent-messages). Users will receive a notification with no sound.
+	DisableNotification bool `json:"disable_notification,omitempty"`
+
+	// ProtectContent - Optional. Protects the contents of the sent message from forwarding and saving
+	ProtectContent bool `json:"protect_content,omitempty"`
+
+	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
+	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
+	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
+
+	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
+	// private chats only
+	MessageEffectID string `json:"message_effect_id,omitempty"`
+
+	// SuggestedPostParameters - Optional. A JSON-serialized object containing the parameters of the suggested
+	// post to send; for direct messages chats only. If the message is sent as a reply to another suggested post,
+	// then that suggested post is automatically declined.
+	SuggestedPostParameters *SuggestedPostParameters `json:"suggested_post_parameters,omitempty"`
+
+	// ReplyParameters - Optional. Description of the message to reply to
+	ReplyParameters *ReplyParameters `json:"reply_parameters,omitempty"`
+
+	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
+	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
+	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
+	// reply from the user.
+	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
+}
+
+func (p *SendLivePhotoParams) fileParameters() map[string]ta.NamedReader {
+	return map[string]ta.NamedReader{
+		"live_photo": p.LivePhoto.File,
+		"photo":      p.Photo.File,
+	}
+}
+
+// SendLivePhoto - Use this method to send live photos. On success, the sent Message
+// (https://core.telegram.org/bots/api#message) is returned.
+func (b *Bot) SendLivePhoto(ctx context.Context, params *SendLivePhotoParams) (*Message, error) {
+	var message *Message
+	err := b.performRequest(ctx, "sendLivePhoto", params, &message)
+	if err != nil {
+		return nil, fmt.Errorf("telego: sendLivePhoto: %w", err)
+	}
+	return message, nil
+}
+
+// SendAudioParams - Represents parameters of sendAudio method.
+type SendAudioParams struct {
+	// BusinessConnectionID - Optional. Unique identifier of the business connection on behalf of which the
+	// message will be sent
+	BusinessConnectionID string `json:"business_connection_id,omitempty"`
+
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -665,7 +763,7 @@ type SendAudioParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -683,7 +781,7 @@ type SendAudioParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -718,8 +816,8 @@ type SendDocumentParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -769,7 +867,7 @@ type SendDocumentParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -787,7 +885,7 @@ type SendDocumentParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -820,8 +918,8 @@ type SendVideoParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -894,7 +992,7 @@ type SendVideoParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -912,7 +1010,7 @@ type SendVideoParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -949,8 +1047,8 @@ type SendAnimationParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1011,7 +1109,7 @@ type SendAnimationParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1029,7 +1127,7 @@ type SendAnimationParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1062,8 +1160,8 @@ type SendVoiceParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1103,7 +1201,7 @@ type SendVoiceParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1121,7 +1219,7 @@ type SendVoiceParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1152,8 +1250,8 @@ type SendVideoNoteParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1166,7 +1264,7 @@ type SendVideoNoteParams struct {
 
 	// VideoNote - Video note to send. Pass a file_id as String to send a video note that exists on the Telegram
 	// servers (recommended) or upload a new video using multipart/form-data. More information on Sending Files »
-	// (https://core.telegram.org/bots/api#sending-files). Sending video notes by a URL is currently unsupported
+	// (https://core.telegram.org/bots/api#sending-files). Sending video notes by a URL is currently unsupported.
 	VideoNote InputFile `json:"video_note"`
 
 	// Duration - Optional. Duration of sent video in seconds
@@ -1192,7 +1290,7 @@ type SendVideoNoteParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1210,7 +1308,7 @@ type SendVideoNoteParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1243,9 +1341,9 @@ type SendPaidMediaParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username). If the chat is a channel, all Telegram Star proceeds from this media will be credited to
-	// the chat's balance. Otherwise, they will be credited to the bot's balance.
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username. If the chat is a channel, all Telegram Star proceeds from this media will be credited
+	// to the chat's balance. Otherwise, they will be credited to the bot's balance.
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1289,7 +1387,7 @@ type SendPaidMediaParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// SuggestedPostParameters - Optional. A JSON-serialized object containing the parameters of the suggested
@@ -1303,7 +1401,7 @@ type SendPaidMediaParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1324,8 +1422,8 @@ type SendMediaGroupParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1348,7 +1446,7 @@ type SendMediaGroupParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1374,9 +1472,9 @@ func (p *SendMediaGroupParams) fileParameters() map[string]ta.NamedReader {
 	return fp
 }
 
-// SendMediaGroup - Use this method to send a group of photos, videos, documents or audios as an album.
-// Documents and audio files can be only grouped in an album with messages of the same type. On success, an
-// array of Message (https://core.telegram.org/bots/api#message) objects that were sent is returned.
+// SendMediaGroup - Use this method to send a group of photos, live photos, videos, documents or audios as an
+// album. Documents and audio files can be only grouped in an album with messages of the same type. On success,
+// an array of Message (https://core.telegram.org/bots/api#message) objects that were sent is returned.
 func (b *Bot) SendMediaGroup(ctx context.Context, params *SendMediaGroupParams) ([]Message, error) {
 	var messages []Message
 	err := b.performRequest(ctx, "sendMediaGroup", params, &messages)
@@ -1392,8 +1490,8 @@ type SendLocationParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1415,7 +1513,7 @@ type SendLocationParams struct {
 
 	// LivePeriod - Optional. Period in seconds during which the location will be updated (see Live Locations
 	// (https://telegram.org/blog/live-locations), should be between 60 and 86400, or 0x7FFFFFFF for live locations
-	// that can be edited indefinitely.
+	// that can be edited indefinitely
 	LivePeriod int `json:"live_period,omitempty"`
 
 	// Heading - Optional. For live locations, a direction in which the user is moving, in degrees. Must be
@@ -1435,7 +1533,7 @@ type SendLocationParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1453,7 +1551,7 @@ type SendLocationParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1474,8 +1572,8 @@ type SendVenueParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1521,7 +1619,7 @@ type SendVenueParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1539,7 +1637,7 @@ type SendVenueParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1560,8 +1658,8 @@ type SendContactParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1594,7 +1692,7 @@ type SendContactParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1612,7 +1710,7 @@ type SendContactParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1633,8 +1731,8 @@ type SendPollParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username). Polls can't be sent to channel direct messages chats.
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username. Polls can't be sent to channel direct messages chats.
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1646,14 +1744,14 @@ type SendPollParams struct {
 
 	// QuestionParseMode - Optional. Mode for parsing entities in the question. See formatting options
 	// (https://core.telegram.org/bots/api#formatting-options) for more details. Currently, only custom emoji
-	// entities are allowed
+	// entities are allowed.
 	QuestionParseMode string `json:"question_parse_mode,omitempty"`
 
 	// QuestionEntities - Optional. A JSON-serialized list of special entities that appear in the poll question.
-	// It can be specified instead of question_parse_mode
+	// It can be specified instead of question_parse_mode.
 	QuestionEntities []MessageEntity `json:"question_entities,omitempty"`
 
-	// Options - A JSON-serialized list of 2-12 answer options
+	// Options - A JSON-serialized list of 1-12 answer options
 	Options []InputPollOption `json:"options"`
 
 	// IsAnonymous - Optional. True, if the poll needs to be anonymous, defaults to True
@@ -1679,6 +1777,16 @@ type SendPollParams struct {
 	// HideResultsUntilCloses - Optional. Pass True, if poll results must be shown only after the poll closes
 	HideResultsUntilCloses bool `json:"hide_results_until_closes,omitempty"`
 
+	// MembersOnly - Optional. Pass True, if voting is limited to users who have been members of the chat where
+	// the poll is being sent for more than 24 hours; for channel chats only
+	MembersOnly bool `json:"members_only,omitempty"`
+
+	// CountryCodes - Optional. A JSON-serialized list of 0-12 two-letter ISO 3166-1 alpha-2
+	// (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes indicating the countries from which users
+	// can vote in the poll; for channel chats only. Use “FT” as a country code to allow users with anonymous
+	// numbers to vote. If omitted or empty, then users from any country can participate in the poll.
+	CountryCodes []string `json:"country_codes,omitempty"`
+
 	// CorrectOptionIDs - Optional. A JSON-serialized list of monotonically increasing 0-based identifiers of
 	// the correct answer options, required for polls in quiz mode
 	CorrectOptionIDs []int `json:"correct_option_ids,omitempty"`
@@ -1692,8 +1800,11 @@ type SendPollParams struct {
 	ExplanationParseMode string `json:"explanation_parse_mode,omitempty"`
 
 	// ExplanationEntities - Optional. A JSON-serialized list of special entities that appear in the poll
-	// explanation. It can be specified instead of explanation_parse_mode
+	// explanation. It can be specified instead of explanation_parse_mode.
 	ExplanationEntities []MessageEntity `json:"explanation_entities,omitempty"`
+
+	// ExplanationMedia - Optional. Media added to the quiz explanation
+	ExplanationMedia InputPollMedia `json:"explanation_media,omitempty"`
 
 	// OpenPeriod - Optional. Amount of time in seconds the poll will be active after creation, 5-2628000. Can't
 	// be used together with close_date.
@@ -1718,6 +1829,9 @@ type SendPollParams struct {
 	// description, which can be specified instead of description_parse_mode
 	DescriptionEntities []MessageEntity `json:"description_entities,omitempty"`
 
+	// Media - Optional. Media added to the poll description
+	Media InputPollMedia `json:"media,omitempty"`
+
 	// DisableNotification - Optional. Sends the message silently
 	// (https://telegram.org/blog/channels-2-0#silent-messages). Users will receive a notification with no sound.
 	DisableNotification bool `json:"disable_notification,omitempty"`
@@ -1727,7 +1841,7 @@ type SendPollParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1740,7 +1854,7 @@ type SendPollParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1761,8 +1875,8 @@ type SendChecklistParams struct {
 	// be sent
 	BusinessConnectionID string `json:"business_connection_id"`
 
-	// ChatID - Unique identifier for the target chat
-	ChatID int64 `json:"chat_id"`
+	// ChatID - Unique identifier for the target chat or username of the target bot in the format @username
+	ChatID ChatID `json:"chat_id"`
 
 	// Checklist - A JSON-serialized object for the checklist to send
 	Checklist InputChecklist `json:"checklist"`
@@ -1802,8 +1916,8 @@ type SendDiceParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -1817,7 +1931,7 @@ type SendDiceParams struct {
 	// Emoji - Optional. Emoji on which the dice throw animation is based. Currently, must be one of “🎲”,
 	// “🎯”, “🏀”, “⚽”, “🎳”, or “🎰”. Dice can have values 1-6 for “🎲”,
 	// “🎯” and “🎳”, values 1-5 for “🏀” and “⚽”, and values 1-64 for “🎰”. Defaults
-	// to “🎲”
+	// to “🎲”.
 	Emoji string `json:"emoji,omitempty"`
 
 	// DisableNotification - Optional. Sends the message silently
@@ -1829,7 +1943,7 @@ type SendDiceParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -1847,7 +1961,7 @@ type SendDiceParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -1871,11 +1985,12 @@ type SendMessageDraftParams struct {
 	MessageThreadID int `json:"message_thread_id,omitempty"`
 
 	// DraftID - Unique identifier of the message draft; must be non-zero. Changes of drafts with the same
-	// identifier are animated
+	// identifier are animated.
 	DraftID int `json:"draft_id"`
 
-	// Text - Text of the message to be sent, 1-4096 characters after entities parsing
-	Text string `json:"text"`
+	// Text - Optional. Text of the message to be sent, 0-4096 characters after entities parsing. Pass an empty
+	// text to show a “Thinking…” placeholder.
+	Text string `json:"text,omitempty"`
 
 	// ParseMode - Optional. Mode for parsing entities in the message text. See formatting options
 	// (https://core.telegram.org/bots/api#formatting-options) for more details.
@@ -1887,7 +2002,9 @@ type SendMessageDraftParams struct {
 }
 
 // SendMessageDraft - Use this method to stream a partial message to a user while the message is being
-// generated. Returns True on success.
+// generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the
+// output is finalized, you must call sendMessage (https://core.telegram.org/bots/api#sendmessage) with the
+// complete message to persist it in the user's chat. Returns True on success.
 func (b *Bot) SendMessageDraft(ctx context.Context, params *SendMessageDraftParams) error {
 	err := b.performRequest(ctx, "sendMessageDraft", params)
 	if err != nil {
@@ -1902,8 +2019,8 @@ type SendChatActionParams struct {
 	// action will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username). Channel chats and channel direct messages chats aren't supported.
+	// ChatID - Unique identifier for the target chat or username of the target bot or supergroup in the format
+	// @username. Channel chats and channel direct messages chats aren't supported.
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread or topic of a forum; for
@@ -1956,8 +2073,8 @@ func (b *Bot) SendChatAction(ctx context.Context, params *SendChatActionParams) 
 
 // SetMessageReactionParams - Represents parameters of setMessageReaction method.
 type SetMessageReactionParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Identifier of the target message. If the message belongs to a media group, the reaction is
@@ -2082,8 +2199,8 @@ func (b *Bot) GetFile(ctx context.Context, params *GetFileParams) (*File, error)
 
 // BanChatMemberParams - Represents parameters of banChatMember method.
 type BanChatMemberParams struct {
-	// ChatID - Unique identifier for the target group or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target group or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2115,8 +2232,8 @@ func (b *Bot) BanChatMember(ctx context.Context, params *BanChatMemberParams) er
 
 // UnbanChatMemberParams - Represents parameters of unbanChatMember method.
 type UnbanChatMemberParams struct {
-	// ChatID - Unique identifier for the target group or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target group or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2141,8 +2258,8 @@ func (b *Bot) UnbanChatMember(ctx context.Context, params *UnbanChatMemberParams
 
 // RestrictChatMemberParams - Represents parameters of restrictChatMember method.
 type RestrictChatMemberParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2159,7 +2276,7 @@ type RestrictChatMemberParams struct {
 
 	// UntilDate - Optional. Date when restrictions will be lifted for the user; Unix time. If user is
 	// restricted for more than 366 days or less than 30 seconds from the current time, they are considered to be
-	// restricted forever
+	// restricted forever.
 	UntilDate int64 `json:"until_date,omitempty"`
 }
 
@@ -2176,8 +2293,7 @@ func (b *Bot) RestrictChatMember(ctx context.Context, params *RestrictChatMember
 
 // PromoteChatMemberParams - Represents parameters of promoteChatMember method.
 type PromoteChatMemberParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2199,7 +2315,7 @@ type PromoteChatMemberParams struct {
 
 	// CanRestrictMembers - Optional. Pass True if the administrator can restrict, ban or unban chat members, or
 	// access supergroup statistics. For backward compatibility, defaults to True for promotions of channel
-	// administrators
+	// administrators.
 	CanRestrictMembers *bool `json:"can_restrict_members,omitempty"`
 
 	// CanPromoteMembers - Optional. Pass True if the administrator can add new administrators with a subset of
@@ -2260,8 +2376,8 @@ func (b *Bot) PromoteChatMember(ctx context.Context, params *PromoteChatMemberPa
 
 // SetChatAdministratorCustomTitleParams - Represents parameters of setChatAdministratorCustomTitle method.
 type SetChatAdministratorCustomTitleParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2283,8 +2399,8 @@ func (b *Bot) SetChatAdministratorCustomTitle(ctx context.Context, params *SetCh
 
 // SetChatMemberTagParams - Represents parameters of setChatMemberTag method.
 type SetChatMemberTagParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2307,8 +2423,7 @@ func (b *Bot) SetChatMemberTag(ctx context.Context, params *SetChatMemberTagPara
 
 // BanChatSenderChatParams - Represents parameters of banChatSenderChat method.
 type BanChatSenderChatParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// SenderChatID - Unique identifier of the target sender chat
@@ -2329,8 +2444,7 @@ func (b *Bot) BanChatSenderChat(ctx context.Context, params *BanChatSenderChatPa
 
 // UnbanChatSenderChatParams - Represents parameters of unbanChatSenderChat method.
 type UnbanChatSenderChatParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// SenderChatID - Unique identifier of the target sender chat
@@ -2350,8 +2464,8 @@ func (b *Bot) UnbanChatSenderChat(ctx context.Context, params *UnbanChatSenderCh
 
 // SetChatPermissionsParams - Represents parameters of setChatPermissions method.
 type SetChatPermissionsParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Permissions - A JSON-serialized object for new default chat permissions
@@ -2377,8 +2491,7 @@ func (b *Bot) SetChatPermissions(ctx context.Context, params *SetChatPermissions
 
 // ExportChatInviteLinkParams - Represents parameters of exportChatInviteLink method.
 type ExportChatInviteLinkParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2396,8 +2509,7 @@ func (b *Bot) ExportChatInviteLink(ctx context.Context, params *ExportChatInvite
 
 // CreateChatInviteLinkParams - Represents parameters of createChatInviteLink method.
 type CreateChatInviteLinkParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Name - Optional. Invite link name; 0-32 characters
@@ -2411,7 +2523,7 @@ type CreateChatInviteLinkParams struct {
 	MemberLimit int `json:"member_limit,omitempty"`
 
 	// CreatesJoinRequest - Optional. True, if users joining the chat via the link need to be approved by chat
-	// administrators. If True, member_limit can't be specified
+	// administrators. If True, member_limit can't be specified.
 	CreatesJoinRequest bool `json:"creates_join_request,omitempty"`
 }
 
@@ -2430,8 +2542,7 @@ func (b *Bot) CreateChatInviteLink(ctx context.Context, params *CreateChatInvite
 
 // EditChatInviteLinkParams - Represents parameters of editChatInviteLink method.
 type EditChatInviteLinkParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// InviteLink - The invite link to edit
@@ -2448,7 +2559,7 @@ type EditChatInviteLinkParams struct {
 	MemberLimit int `json:"member_limit,omitempty"`
 
 	// CreatesJoinRequest - Optional. True, if users joining the chat via the link need to be approved by chat
-	// administrators. If True, member_limit can't be specified
+	// administrators. If True, member_limit can't be specified.
 	CreatesJoinRequest bool `json:"creates_join_request,omitempty"`
 }
 
@@ -2466,8 +2577,8 @@ func (b *Bot) EditChatInviteLink(ctx context.Context, params *EditChatInviteLink
 
 // CreateChatSubscriptionInviteLinkParams - Represents parameters of createChatSubscriptionInviteLink method.
 type CreateChatSubscriptionInviteLinkParams struct {
-	// ChatID - Unique identifier for the target channel chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target channel chat or username of the target channel in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Name - Optional. Invite link name; 0-32 characters
@@ -2499,8 +2610,7 @@ func (b *Bot) CreateChatSubscriptionInviteLink(ctx context.Context, params *Crea
 
 // EditChatSubscriptionInviteLinkParams - Represents parameters of editChatSubscriptionInviteLink method.
 type EditChatSubscriptionInviteLinkParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// InviteLink - The invite link to edit
@@ -2524,8 +2634,7 @@ func (b *Bot) EditChatSubscriptionInviteLink(ctx context.Context, params *EditCh
 
 // RevokeChatInviteLinkParams - Represents parameters of revokeChatInviteLink method.
 type RevokeChatInviteLinkParams struct {
-	// ChatID - Unique identifier of the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier of the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// InviteLink - The invite link to revoke
@@ -2547,8 +2656,7 @@ func (b *Bot) RevokeChatInviteLink(ctx context.Context, params *RevokeChatInvite
 
 // ApproveChatJoinRequestParams - Represents parameters of approveChatJoinRequest method.
 type ApproveChatJoinRequestParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2567,8 +2675,7 @@ func (b *Bot) ApproveChatJoinRequest(ctx context.Context, params *ApproveChatJoi
 
 // DeclineChatJoinRequestParams - Represents parameters of declineChatJoinRequest method.
 type DeclineChatJoinRequestParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2587,8 +2694,7 @@ func (b *Bot) DeclineChatJoinRequest(ctx context.Context, params *DeclineChatJoi
 
 // SetChatPhotoParams - Represents parameters of setChatPhoto method.
 type SetChatPhotoParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Photo - New chat photo, uploaded using multipart/form-data
@@ -2614,8 +2720,7 @@ func (b *Bot) SetChatPhoto(ctx context.Context, params *SetChatPhotoParams) erro
 
 // DeleteChatPhotoParams - Represents parameters of deleteChatPhoto method.
 type DeleteChatPhotoParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2632,8 +2737,7 @@ func (b *Bot) DeleteChatPhoto(ctx context.Context, params *DeleteChatPhotoParams
 
 // SetChatTitleParams - Represents parameters of setChatTitle method.
 type SetChatTitleParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Title - New chat title, 1-128 characters
@@ -2653,8 +2757,7 @@ func (b *Bot) SetChatTitle(ctx context.Context, params *SetChatTitleParams) erro
 
 // SetChatDescriptionParams - Represents parameters of setChatDescription method.
 type SetChatDescriptionParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Description - Optional. New chat description, 0-255 characters
@@ -2678,8 +2781,7 @@ type PinChatMessageParams struct {
 	// message will be pinned
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Identifier of a message to pin
@@ -2708,8 +2810,7 @@ type UnpinChatMessageParams struct {
 	// message will be unpinned
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Optional. Identifier of the message to unpin. Required if business_connection_id is
@@ -2731,8 +2832,7 @@ func (b *Bot) UnpinChatMessage(ctx context.Context, params *UnpinChatMessagePara
 
 // UnpinAllChatMessagesParams - Represents parameters of unpinAllChatMessages method.
 type UnpinAllChatMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2750,9 +2850,8 @@ func (b *Bot) UnpinAllChatMessages(ctx context.Context, params *UnpinAllChatMess
 
 // LeaveChatParams - Represents parameters of leaveChat method.
 type LeaveChatParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel (in the
-	// format @channel_username). Channel direct messages chats aren't supported; leave the corresponding channel
-	// instead.
+	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel in the
+	// format @username. Channel direct messages chats aren't supported; leave the corresponding channel instead.
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2767,8 +2866,8 @@ func (b *Bot) LeaveChat(ctx context.Context, params *LeaveChatParams) error {
 
 // GetChatParams - Represents parameters of getChat method.
 type GetChatParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2785,13 +2884,17 @@ func (b *Bot) GetChat(ctx context.Context, params *GetChatParams) (*ChatFullInfo
 
 // GetChatAdministratorsParams - Represents parameters of getChatAdministrators method.
 type GetChatAdministratorsParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
+
+	// ReturnBots - Optional. Pass True to additionally receive all bots that are administrators of the chat. By
+	// default, bots other than the current bot are omitted.
+	ReturnBots bool `json:"return_bots,omitempty"`
 }
 
-// GetChatAdministrators - Use this method to get a list of administrators in a chat, which aren't bots.
-// Returns an Array of ChatMember (https://core.telegram.org/bots/api#chatmember) objects.
+// GetChatAdministrators - Use this method to get a list of administrators in a chat. Returns an Array of
+// ChatMember (https://core.telegram.org/bots/api#chatmember) objects.
 func (b *Bot) GetChatAdministrators(ctx context.Context, params *GetChatAdministratorsParams) ([]ChatMember, error) {
 	var chatMembersData []chatMemberData
 	err := b.performRequest(ctx, "getChatAdministrators", params, &chatMembersData)
@@ -2807,8 +2910,8 @@ func (b *Bot) GetChatAdministrators(ctx context.Context, params *GetChatAdminist
 
 // GetChatMemberCountParams - Represents parameters of getChatMemberCount method.
 type GetChatMemberCountParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2824,8 +2927,8 @@ func (b *Bot) GetChatMemberCount(ctx context.Context, params *GetChatMemberCount
 
 // GetChatMemberParams - Represents parameters of getChatMember method.
 type GetChatMemberParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel (in the
-	// format @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup or channel in the
+	// format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -2844,10 +2947,31 @@ func (b *Bot) GetChatMember(ctx context.Context, params *GetChatMemberParams) (C
 	return memberData.Data, nil
 }
 
+// GetUserPersonalChatMessagesParams - Represents parameters of getUserPersonalChatMessages method.
+type GetUserPersonalChatMessagesParams struct {
+	// UserID - Unique identifier for the target user
+	UserID int64 `json:"user_id"`
+
+	// Limit - The maximum number of messages to return; 1-20
+	Limit int `json:"limit"`
+}
+
+// GetUserPersonalChatMessages - Use this method to get the last messages from the personal chat (i.e., the
+// chat currently added to their profile) of a given user. On success, an array of Message
+// (https://core.telegram.org/bots/api#message) objects is returned.
+func (b *Bot) GetUserPersonalChatMessages(ctx context.Context, params *GetUserPersonalChatMessagesParams) ([]Message, error) {
+	var messages []Message
+	err := b.performRequest(ctx, "getUserPersonalChatMessages", params, &messages)
+	if err != nil {
+		return nil, fmt.Errorf("telego: getUserPersonalChatMessages: %w", err)
+	}
+	return messages, nil
+}
+
 // SetChatStickerSetParams - Represents parameters of setChatStickerSet method.
 type SetChatStickerSetParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// StickerSetName - Name of the sticker set to be set as the group sticker set
@@ -2868,8 +2992,8 @@ func (b *Bot) SetChatStickerSet(ctx context.Context, params *SetChatStickerSetPa
 
 // DeleteChatStickerSetParams - Represents parameters of deleteChatStickerSet method.
 type DeleteChatStickerSetParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -2899,8 +3023,8 @@ func (b *Bot) GetForumTopicIconStickers(ctx context.Context) ([]Sticker, error) 
 
 // CreateForumTopicParams - Represents parameters of createForumTopic method.
 type CreateForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Name - Topic name, 1-128 characters
@@ -2908,7 +3032,7 @@ type CreateForumTopicParams struct {
 
 	// IconColor - Optional. Color of the topic icon in RGB format. Currently, must be one of 7322096
 	// (0x6FB9F0), 16766590 (0xFFD67E), 13338331 (0xCB86DB), 9367192 (0x8EEE98), 16749490 (0xFF93B2), or 16478047
-	// (0xFB6F5F)
+	// (0xFB6F5F).
 	IconColor int `json:"icon_color,omitempty"`
 
 	// IconCustomEmojiID - Optional. Unique identifier of the custom emoji shown as the topic icon. Use
@@ -2932,21 +3056,21 @@ func (b *Bot) CreateForumTopic(ctx context.Context, params *CreateForumTopicPara
 
 // EditForumTopicParams - Represents parameters of editForumTopic method.
 type EditForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Unique identifier for the target message thread of the forum topic
 	MessageThreadID int `json:"message_thread_id"`
 
 	// Name - Optional. New topic name, 0-128 characters. If not specified or empty, the current name of the
-	// topic will be kept
+	// topic will be kept.
 	Name string `json:"name,omitempty"`
 
 	// IconCustomEmojiID - Optional. New unique identifier of the custom emoji shown as the topic icon. Use
 	// getForumTopicIconStickers (https://core.telegram.org/bots/api#getforumtopiciconstickers) to get all allowed
 	// custom emoji identifiers. Pass an empty string to remove the icon. If not specified, the current icon will be
-	// kept
+	// kept.
 	IconCustomEmojiID *string `json:"icon_custom_emoji_id,omitempty"`
 }
 
@@ -2964,8 +3088,8 @@ func (b *Bot) EditForumTopic(ctx context.Context, params *EditForumTopicParams) 
 
 // CloseForumTopicParams - Represents parameters of closeForumTopic method.
 type CloseForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Unique identifier for the target message thread of the forum topic
@@ -2985,8 +3109,8 @@ func (b *Bot) CloseForumTopic(ctx context.Context, params *CloseForumTopicParams
 
 // ReopenForumTopicParams - Represents parameters of reopenForumTopic method.
 type ReopenForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Unique identifier for the target message thread of the forum topic
@@ -3006,8 +3130,8 @@ func (b *Bot) ReopenForumTopic(ctx context.Context, params *ReopenForumTopicPara
 
 // DeleteForumTopicParams - Represents parameters of deleteForumTopic method.
 type DeleteForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Unique identifier for the target message thread of the forum topic
@@ -3028,8 +3152,8 @@ func (b *Bot) DeleteForumTopic(ctx context.Context, params *DeleteForumTopicPara
 
 // UnpinAllForumTopicMessagesParams - Represents parameters of unpinAllForumTopicMessages method.
 type UnpinAllForumTopicMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Unique identifier for the target message thread of the forum topic
@@ -3050,8 +3174,8 @@ func (b *Bot) UnpinAllForumTopicMessages(ctx context.Context, params *UnpinAllFo
 
 // EditGeneralForumTopicParams - Represents parameters of editGeneralForumTopic method.
 type EditGeneralForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 
 	// Name - New topic name, 1-128 characters
@@ -3071,8 +3195,8 @@ func (b *Bot) EditGeneralForumTopic(ctx context.Context, params *EditGeneralForu
 
 // CloseGeneralForumTopicParams - Represents parameters of closeGeneralForumTopic method.
 type CloseGeneralForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3089,8 +3213,8 @@ func (b *Bot) CloseGeneralForumTopic(ctx context.Context, params *CloseGeneralFo
 
 // ReopenGeneralForumTopicParams - Represents parameters of reopenGeneralForumTopic method.
 type ReopenGeneralForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3107,8 +3231,8 @@ func (b *Bot) ReopenGeneralForumTopic(ctx context.Context, params *ReopenGeneral
 
 // HideGeneralForumTopicParams - Represents parameters of hideGeneralForumTopic method.
 type HideGeneralForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3125,8 +3249,8 @@ func (b *Bot) HideGeneralForumTopic(ctx context.Context, params *HideGeneralForu
 
 // UnhideGeneralForumTopicParams - Represents parameters of unhideGeneralForumTopic method.
 type UnhideGeneralForumTopicParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3144,8 +3268,8 @@ func (b *Bot) UnhideGeneralForumTopic(ctx context.Context, params *UnhideGeneral
 // UnpinAllGeneralForumTopicMessagesParams - Represents parameters of unpinAllGeneralForumTopicMessages
 // method.
 type UnpinAllGeneralForumTopicMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target supergroup (in the format
-	// @supergroup_username)
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3166,7 +3290,7 @@ type AnswerCallbackQueryParams struct {
 	CallbackQueryID string `json:"callback_query_id"`
 
 	// Text - Optional. Text of the notification. If not specified, nothing will be shown to the user, 0-200
-	// characters
+	// characters.
 	Text string `json:"text,omitempty"`
 
 	// ShowAlert - Optional. If True, an alert will be shown by the client instead of a notification at the top
@@ -3199,9 +3323,29 @@ func (b *Bot) AnswerCallbackQuery(ctx context.Context, params *AnswerCallbackQue
 	return nil
 }
 
+// AnswerGuestQueryParams - Represents parameters of answerGuestQuery method.
+type AnswerGuestQueryParams struct {
+	// GuestQueryID - Unique identifier for the query to be answered
+	GuestQueryID string `json:"guest_query_id"`
+
+	// Result - A JSON-serialized object describing the message to be sent
+	Result InlineQueryResult `json:"result"`
+}
+
+// AnswerGuestQuery - Use this method to reply to a received guest message. On success, a SentGuestMessage
+// (https://core.telegram.org/bots/api#sentguestmessage) object is returned.
+func (b *Bot) AnswerGuestQuery(ctx context.Context, params *AnswerGuestQueryParams) (*SentGuestMessage, error) {
+	var sentGuestMessage *SentGuestMessage
+	err := b.performRequest(ctx, "answerGuestQuery", params, &sentGuestMessage)
+	if err != nil {
+		return nil, fmt.Errorf("telego: answerGuestQuery: %w", err)
+	}
+	return sentGuestMessage, nil
+}
+
 // GetUserChatBoostsParams - Represents parameters of getUserChatBoosts method.
 type GetUserChatBoostsParams struct {
-	// ChatID - Unique identifier for the chat or username of the channel (in the format @channel_username)
+	// ChatID - Unique identifier for the chat or username of the channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// UserID - Unique identifier of the target user
@@ -3272,6 +3416,47 @@ func (b *Bot) ReplaceManagedBotToken(ctx context.Context, params *ReplaceManaged
 	return token, nil
 }
 
+// GetManagedBotAccessSettingsParams - Represents parameters of getManagedBotAccessSettings method.
+type GetManagedBotAccessSettingsParams struct {
+	// UserID - User identifier of the managed bot whose access settings will be returned
+	UserID int64 `json:"user_id"`
+}
+
+// GetManagedBotAccessSettings - Use this method to get the access settings of a managed bot. Returns a
+// BotAccessSettings (https://core.telegram.org/bots/api#botaccesssettings) object on success.
+func (b *Bot) GetManagedBotAccessSettings(ctx context.Context, params *GetManagedBotAccessSettingsParams) (*BotAccessSettings, error) {
+	var botAccessSettings *BotAccessSettings
+	err := b.performRequest(ctx, "getManagedBotAccessSettings", params, &botAccessSettings)
+	if err != nil {
+		return nil, fmt.Errorf("telego: getManagedBotAccessSettings: %w", err)
+	}
+	return botAccessSettings, nil
+}
+
+// SetManagedBotAccessSettingsParams - Represents parameters of setManagedBotAccessSettings method.
+type SetManagedBotAccessSettingsParams struct {
+	// UserID - User identifier of the managed bot whose access settings will be changed
+	UserID int64 `json:"user_id"`
+
+	// IsAccessRestricted - Pass True, if only selected users can access the bot. The bot's owner can always
+	// access it.
+	IsAccessRestricted bool `json:"is_access_restricted"`
+
+	// AddedUserIDs - Optional. A JSON-serialized list of up to 10 identifiers of users who will have access to
+	// the bot in addition to its owner. Ignored if is_access_restricted is false.
+	AddedUserIDs []int64 `json:"added_user_ids,omitempty"`
+}
+
+// SetManagedBotAccessSettings - Use this method to change the access settings of a managed bot. Returns True
+// on success.
+func (b *Bot) SetManagedBotAccessSettings(ctx context.Context, params *SetManagedBotAccessSettingsParams) error {
+	err := b.performRequest(ctx, "setManagedBotAccessSettings", params)
+	if err != nil {
+		return fmt.Errorf("telego: setManagedBotAccessSettings: %w", err)
+	}
+	return nil
+}
+
 // SetMyCommandsParams - Represents parameters of setMyCommands method.
 type SetMyCommandsParams struct {
 	// Commands - A JSON-serialized list of bot commands to be set as the list of the bot's commands. At most
@@ -3283,7 +3468,7 @@ type SetMyCommandsParams struct {
 	Scope BotCommandScope `json:"scope,omitempty"`
 
 	// LanguageCode - Optional. A two-letter ISO 639-1 language code. If empty, commands will be applied to all
-	// users from the given scope, for whose language there are no dedicated commands
+	// users from the given scope, for whose language there are no dedicated commands.
 	LanguageCode string `json:"language_code,omitempty"`
 }
 
@@ -3305,7 +3490,7 @@ type DeleteMyCommandsParams struct {
 	Scope BotCommandScope `json:"scope,omitempty"`
 
 	// LanguageCode - Optional. A two-letter ISO 639-1 language code. If empty, commands will be applied to all
-	// users from the given scope, for whose language there are no dedicated commands
+	// users from the given scope, for whose language there are no dedicated commands.
 	LanguageCode string `json:"language_code,omitempty"`
 }
 
@@ -3484,11 +3669,11 @@ func (b *Bot) RemoveMyProfilePhoto(ctx context.Context) error {
 // SetChatMenuButtonParams - Represents parameters of setChatMenuButton method.
 type SetChatMenuButtonParams struct {
 	// ChatID - Optional. Unique identifier for the target private chat. If not specified, default bot's menu
-	// button will be changed
+	// button will be changed.
 	ChatID int64 `json:"chat_id,omitempty"`
 
 	// MenuButton - Optional. A JSON-serialized object for the bot's new menu button. Defaults to
-	// MenuButtonDefault (https://core.telegram.org/bots/api#menubuttondefault)
+	// MenuButtonDefault (https://core.telegram.org/bots/api#menubuttondefault).
 	MenuButton MenuButton `json:"menu_button,omitempty"`
 }
 
@@ -3505,7 +3690,7 @@ func (b *Bot) SetChatMenuButton(ctx context.Context, params *SetChatMenuButtonPa
 // GetChatMenuButtonParams - Represents parameters of getChatMenuButton method.
 type GetChatMenuButtonParams struct {
 	// ChatID - Optional. Unique identifier for the target private chat. If not specified, default bot's menu
-	// button will be returned
+	// button will be returned.
 	ChatID int64 `json:"chat_id,omitempty"`
 }
 
@@ -3578,7 +3763,7 @@ type SendGiftParams struct {
 	UserID int64 `json:"user_id,omitempty"`
 
 	// ChatID - Optional. Required if user_id is not specified. Unique identifier for the chat or username of
-	// the channel (in the format @channel_username) that will receive the gift.
+	// the channel (in the format @username) that will receive the gift.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
 	// GiftID - Identifier of the gift; limited gifts can't be sent to channel chats
@@ -3675,8 +3860,8 @@ func (b *Bot) VerifyUser(ctx context.Context, params *VerifyUserParams) error {
 
 // VerifyChatParams - Represents parameters of verifyChat method.
 type VerifyChatParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username). Channel direct messages chats can't be verified.
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username. Channel direct messages chats can't be verified.
 	ChatID ChatID `json:"chat_id"`
 
 	// CustomDescription - Optional. Custom description for the verification; 0-70 characters. Must be empty if
@@ -3714,8 +3899,8 @@ func (b *Bot) RemoveUserVerification(ctx context.Context, params *RemoveUserVeri
 
 // RemoveChatVerificationParams - Represents parameters of removeChatVerification method.
 type RemoveChatVerificationParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot or channel in the format
+	// @username
 	ChatID ChatID `json:"chat_id"`
 }
 
@@ -3762,7 +3947,7 @@ type DeleteBusinessMessagesParams struct {
 
 	// MessageIDs - A JSON-serialized list of 1-100 identifiers of messages to delete. All messages must be from
 	// the same chat. See deleteMessage (https://core.telegram.org/bots/api#deletemessage) for limitations on which
-	// messages can be deleted
+	// messages can be deleted.
 	MessageIDs []int `json:"message_ids"`
 }
 
@@ -3980,7 +4165,7 @@ type GetBusinessAccountGiftsParams struct {
 	// string to get the first chunk of results
 	Offset string `json:"offset,omitempty"`
 
-	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100
+	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100.
 	Limit int `json:"limit,omitempty"`
 }
 
@@ -4028,7 +4213,7 @@ type GetUserGiftsParams struct {
 	// empty string to get the first chunk of results
 	Offset string `json:"offset,omitempty"`
 
-	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100
+	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100.
 	Limit int `json:"limit,omitempty"`
 }
 
@@ -4045,8 +4230,7 @@ func (b *Bot) GetUserGifts(ctx context.Context, params *GetUserGiftsParams) (*Ow
 
 // GetChatGiftsParams - Represents parameters of getChatGifts method.
 type GetChatGiftsParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target channel in the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// ExcludeUnsaved - Optional. Pass True to exclude gifts that aren't saved to the chat's profile page.
@@ -4084,7 +4268,7 @@ type GetChatGiftsParams struct {
 	// empty string to get the first chunk of results
 	Offset string `json:"offset,omitempty"`
 
-	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100
+	// Limit - Optional. The maximum number of gifts to be returned; 1-100. Defaults to 100.
 	Limit int `json:"limit,omitempty"`
 }
 
@@ -4373,7 +4557,7 @@ type SavePreparedKeyboardButtonParams struct {
 	UserID int64 `json:"user_id"`
 
 	// Button - A JSON-serialized object describing the button to be saved. The button must be of the type
-	// request_users, request_chat, or request_managed_bot
+	// request_users, request_chat, or request_managed_bot.
 	Button KeyboardButton `json:"button"`
 }
 
@@ -4395,14 +4579,14 @@ type EditMessageTextParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// Text - New text of the message, 1-4096 characters after entities parsing
@@ -4420,7 +4604,7 @@ type EditMessageTextParams struct {
 	LinkPreviewOptions *LinkPreviewOptions `json:"link_preview_options,omitempty"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for an inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4446,14 +4630,14 @@ type EditMessageCaptionParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// Caption - Optional. New caption of the message, 0-1024 characters after entities parsing
@@ -4472,7 +4656,7 @@ type EditMessageCaptionParams struct {
 	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for an inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4497,21 +4681,21 @@ type EditMessageMediaParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// Media - A JSON-serialized object for a new media content of the message
 	Media InputMedia `json:"media"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for a new inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4528,14 +4712,14 @@ func (p *EditMessageMediaParams) fileParameters() map[string]ta.NamedReader {
 	return fp
 }
 
-// EditMessageMedia - Use this method to edit animation, audio, document, photo, or video messages, or to add
-// media to text messages. If a message is part of a message album, then it can be edited only to an audio for
-// audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline
-// message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a
-// URL. On success, if the edited message is not an inline message, the edited Message
-// (https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that business
-// messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48
-// hours from the time they were sent.
+// EditMessageMedia - Use this method to edit animation, audio, document, live photo, photo, or video
+// messages, or to add media to text messages. If a message is part of a message album, then it can be edited
+// only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a
+// video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded
+// file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited
+// Message (https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that
+// business messages that were not sent by the bot and do not contain an inline keyboard can only be edited
+// within 48 hours from the time they were sent.
 func (b *Bot) EditMessageMedia(ctx context.Context, params *EditMessageMediaParams) (*Message, error) {
 	var message *Message
 	var success *bool
@@ -4553,14 +4737,14 @@ type EditMessageLiveLocationParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// Latitude - Latitude of new location
@@ -4572,7 +4756,7 @@ type EditMessageLiveLocationParams struct {
 	// LivePeriod - Optional. New period in seconds during which the location can be updated, starting from the
 	// message send date. If 0x7FFFFFFF is specified, then the location can be updated forever. Otherwise, the new
 	// value must not exceed the current live_period by more than a day, and the live location expiration date must
-	// remain within the next 90 days. If not specified, then live_period remains unchanged
+	// remain within the next 90 days. If not specified, then live_period remains unchanged.
 	LivePeriod int `json:"live_period,omitempty"`
 
 	// HorizontalAccuracy - Optional. The radius of uncertainty for the location, measured in meters; 0-1500
@@ -4587,7 +4771,7 @@ type EditMessageLiveLocationParams struct {
 	ProximityAlertRadius int `json:"proximity_alert_radius,omitempty"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for a new inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4613,19 +4797,19 @@ type StopMessageLiveLocationParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
 	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message with live
-	// location to stop
+	// location to stop.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for a new inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4648,8 +4832,8 @@ type EditMessageChecklistParams struct {
 	// be sent
 	BusinessConnectionID string `json:"business_connection_id"`
 
-	// ChatID - Unique identifier for the target chat
-	ChatID int64 `json:"chat_id"`
+	// ChatID - Unique identifier for the target chat or username of the target bot in the format @username
+	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Unique identifier for the target message
 	MessageID int `json:"message_id"`
@@ -4680,18 +4864,18 @@ type EditMessageReplyMarkupParams struct {
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
 	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
-	// or username of the target channel (in the format @channel_username)
+	// or username of the target bot, supergroup or channel in the format @username.
 	ChatID ChatID `json:"chat_id,omitzero"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the message to edit.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for an inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4715,15 +4899,15 @@ type StopPollParams struct {
 	// message to be edited was sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Identifier of the original message with the poll
 	MessageID int `json:"message_id"`
 
 	// ReplyMarkup - Optional. A JSON-serialized object for a new message inline keyboard
-	// (https://core.telegram.org/bots/features#inline-keyboards).
+	// (https://core.telegram.org/bots/features#inline-keyboards)
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -4748,7 +4932,7 @@ type ApproveSuggestedPostParams struct {
 
 	// SendDate - Optional. Point in time (Unix timestamp) when the post is expected to be published; omit if
 	// the date has already been specified when the suggested post was created. If specified, then the date must be
-	// not more than 2678400 seconds (30 days) in the future
+	// not more than 2678400 seconds (30 days) in the future.
 	SendDate int64 `json:"send_date,omitempty"`
 }
 
@@ -4787,8 +4971,8 @@ func (b *Bot) DeclineSuggestedPost(ctx context.Context, params *DeclineSuggested
 
 // DeleteMessageParams - Represents parameters of deleteMessage method.
 type DeleteMessageParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageID - Identifier of the message to delete
@@ -4819,12 +5003,12 @@ func (b *Bot) DeleteMessage(ctx context.Context, params *DeleteMessageParams) er
 
 // DeleteMessagesParams - Represents parameters of deleteMessages method.
 type DeleteMessagesParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageIDs - A JSON-serialized list of 1-100 identifiers of messages to delete. See deleteMessage
-	// (https://core.telegram.org/bots/api#deletemessage) for limitations on which messages can be deleted
+	// (https://core.telegram.org/bots/api#deletemessage) for limitations on which messages can be deleted.
 	MessageIDs []int `json:"message_ids"`
 }
 
@@ -4838,14 +5022,68 @@ func (b *Bot) DeleteMessages(ctx context.Context, params *DeleteMessagesParams) 
 	return nil
 }
 
+// DeleteMessageReactionParams - Represents parameters of deleteMessageReaction method.
+type DeleteMessageReactionParams struct {
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
+	ChatID ChatID `json:"chat_id"`
+
+	// MessageID - Identifier of the target message
+	MessageID int `json:"message_id"`
+
+	// UserID - Optional. Identifier of the user whose reaction will be removed, if the reaction was added by a
+	// user
+	UserID int64 `json:"user_id,omitempty"`
+
+	// ActorChatID - Optional. Identifier of the chat whose reaction will be removed, if the reaction was added
+	// by a chat
+	ActorChatID int64 `json:"actor_chat_id,omitempty"`
+}
+
+// DeleteMessageReaction - Use this method to remove a reaction from a message in a group or a supergroup
+// chat. The bot must have the 'can_delete_messages' administrator right in the chat. Returns True on success.
+func (b *Bot) DeleteMessageReaction(ctx context.Context, params *DeleteMessageReactionParams) error {
+	err := b.performRequest(ctx, "deleteMessageReaction", params)
+	if err != nil {
+		return fmt.Errorf("telego: deleteMessageReaction: %w", err)
+	}
+	return nil
+}
+
+// DeleteAllMessageReactionsParams - Represents parameters of deleteAllMessageReactions method.
+type DeleteAllMessageReactionsParams struct {
+	// ChatID - Unique identifier for the target chat or username of the target supergroup in the format
+	// @username
+	ChatID ChatID `json:"chat_id"`
+
+	// UserID - Optional. Identifier of the user whose reactions will be removed, if the reactions were added by
+	// a user
+	UserID int64 `json:"user_id,omitempty"`
+
+	// ActorChatID - Optional. Identifier of the chat whose reactions will be removed, if the reactions were
+	// added by a chat
+	ActorChatID int64 `json:"actor_chat_id,omitempty"`
+}
+
+// DeleteAllMessageReactions - Use this method to remove up to 10000 recent reactions in a group or a
+// supergroup chat added by a given user or chat. The bot must have the 'can_delete_messages' administrator
+// right in the chat. Returns True on success.
+func (b *Bot) DeleteAllMessageReactions(ctx context.Context, params *DeleteAllMessageReactionsParams) error {
+	err := b.performRequest(ctx, "deleteAllMessageReactions", params)
+	if err != nil {
+		return fmt.Errorf("telego: deleteAllMessageReactions: %w", err)
+	}
+	return nil
+}
+
 // SendStickerParams - Represents parameters of sendSticker method.
 type SendStickerParams struct {
 	// BusinessConnectionID - Optional. Unique identifier of the business connection on behalf of which the
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -4875,7 +5113,7 @@ type SendStickerParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -4893,7 +5131,7 @@ type SendStickerParams struct {
 	// ReplyMarkup - Optional. Additional interface options. A JSON-serialized object for an inline keyboard
 	// (https://core.telegram.org/bots/features#inline-keyboards), custom reply keyboard
 	// (https://core.telegram.org/bots/features#keyboards), instructions to remove a reply keyboard or to force a
-	// reply from the user
+	// reply from the user.
 	ReplyMarkup ReplyMarkup `json:"reply_markup,omitempty"`
 }
 
@@ -5287,7 +5525,7 @@ type SetCustomEmojiStickerSetThumbnailParams struct {
 	Name string `json:"name"`
 
 	// CustomEmojiID - Optional. Custom emoji identifier of a sticker from the sticker set; pass an empty string
-	// to drop the thumbnail and use the first sticker as the thumbnail.
+	// to drop the thumbnail and use the first sticker as the thumbnail
 	CustomEmojiID string `json:"custom_emoji_id,omitempty"`
 }
 
@@ -5354,8 +5592,8 @@ func (b *Bot) AnswerInlineQuery(ctx context.Context, params *AnswerInlineQueryPa
 
 // SendInvoiceParams - Represents parameters of sendInvoice method.
 type SendInvoiceParams struct {
-	// ChatID - Unique identifier for the target chat or username of the target channel (in the format
-	// @channel_username)
+	// ChatID - Unique identifier for the target chat or username of the target bot, supergroup or channel in
+	// the format @username
 	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
@@ -5406,7 +5644,7 @@ type SendInvoiceParams struct {
 	// StartParameter - Optional. Unique deep-linking parameter. If left empty, forwarded copies of the sent
 	// message will have a Pay button, allowing multiple users to pay directly from the forwarded message, using the
 	// same invoice. If non-empty, forwarded copies of the sent message will have a URL button with a deep link to
-	// the bot (instead of a Pay button), with the value used as the start parameter
+	// the bot (instead of a Pay button), with the value used as the start parameter.
 	StartParameter string `json:"start_parameter,omitempty"`
 
 	// ProviderData - Optional. JSON-serialized data about the invoice, which will be shared with the payment
@@ -5463,7 +5701,7 @@ type SendInvoiceParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -5765,9 +6003,9 @@ type SendGameParams struct {
 	// message will be sent
 	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 
-	// ChatID - Unique identifier for the target chat. Games can't be sent to channel direct messages chats and
-	// channel chats.
-	ChatID int64 `json:"chat_id"`
+	// ChatID - Unique identifier for the target chat or username of the target bot in the format @username.
+	// Games can't be sent to channel direct messages chats and channel chats.
+	ChatID ChatID `json:"chat_id"`
 
 	// MessageThreadID - Optional. Unique identifier for the target message thread (topic) of a forum; for forum
 	// supergroups and private chats of bots with forum topic mode enabled only
@@ -5786,7 +6024,7 @@ type SendGameParams struct {
 
 	// AllowPaidBroadcast - Optional. Pass True to allow up to 1000 messages per second, ignoring broadcasting
 	// limits (https://core.telegram.org/bots/faq#how-can-i-message-all-of-my-bot-39s-subscribers-at-once) for a fee
-	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+	// of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance.
 	AllowPaidBroadcast bool `json:"allow_paid_broadcast,omitempty"`
 
 	// MessageEffectID - Optional. Unique identifier of the message effect to be added to the message; for
@@ -5822,21 +6060,21 @@ type SetGameScoreParams struct {
 	Score int `json:"score"`
 
 	// Force - Optional. Pass True if the high score is allowed to decrease. This can be useful when fixing
-	// mistakes or banning cheaters
+	// mistakes or banning cheaters.
 	Force bool `json:"force,omitempty"`
 
 	// DisableEditMessage - Optional. Pass True if the game message should not be automatically edited to
 	// include the current scoreboard
 	DisableEditMessage bool `json:"disable_edit_message,omitempty"`
 
-	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
+	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat.
 	ChatID int64 `json:"chat_id,omitempty"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the sent message
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the sent message.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 }
 
@@ -5859,14 +6097,14 @@ type GetGameHighScoresParams struct {
 	// UserID - Target user ID
 	UserID int64 `json:"user_id"`
 
-	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat
+	// ChatID - Optional. Required if inline_message_id is not specified. Unique identifier for the target chat.
 	ChatID int64 `json:"chat_id,omitempty"`
 
-	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the sent message
+	// MessageID - Optional. Required if inline_message_id is not specified. Identifier of the sent message.
 	MessageID int `json:"message_id,omitempty"`
 
 	// InlineMessageID - Optional. Required if chat_id and message_id are not specified. Identifier of the
-	// inline message
+	// inline message.
 	InlineMessageID string `json:"inline_message_id,omitempty"`
 }
 
