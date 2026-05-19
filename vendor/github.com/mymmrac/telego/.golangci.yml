@@ -13,6 +13,7 @@ linters:
     - funcorder
     - gochecknoglobals
     - godot
+    - gomodguard
     - intrange
     - ireturn
     - nlreturn
@@ -26,6 +27,9 @@ linters:
     - wrapcheck
     - wsl
     - wsl_v5
+
+    # Temporary disabled because go:fix not supported as of golangci-lint v2.12.2
+    - gocheckcompilerdirectives
   settings:
     errcheck:
       check-type-assertions: true
@@ -107,12 +111,15 @@ linters:
           - revive
           - gocognit
           - gocyclo
+          - goconst
         path: _test\.go$
       - linters:
           - funlen
+          - goconst
         path: types.go
       - linters:
           - lll
+          - goconst
         path: methods.go
     paths:
       - mock
