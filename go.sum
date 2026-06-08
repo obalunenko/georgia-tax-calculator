@@ -71,8 +71,8 @@ github.com/muesli/termenv v0.16.0 h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc
 github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
 github.com/mymmrac/telego v1.9.0 h1:ZUJxZaPx/1IgRvVb5lXnUB8FgW5rNYfRe6Q2EJ4OJ+Y=
 github.com/mymmrac/telego v1.9.0/go.mod h1:tVEB7OqiOPx8elRk9+ETkwiDQrUhWSB2XmAKIY9KmWY=
-github.com/obalunenko/getenv v1.14.2 h1:TDYbrAOscHaL6Qw5iG3QYE1Lhigk0TSv2GHe370XkxM=
-github.com/obalunenko/getenv v1.14.2/go.mod h1:kXJjGqFmvucspwNk4/hrHi2bG3cEfSEQJPYmWzUK/KQ=
+github.com/obalunenko/getenv v1.15.0 h1:TX+GytSOk0xTK0L8VOIo+L6N77BKQ5iMvnsPRzz/bec=
+github.com/obalunenko/getenv v1.15.0/go.mod h1:kXJjGqFmvucspwNk4/hrHi2bG3cEfSEQJPYmWzUK/KQ=
 github.com/obalunenko/logger v1.2.0 h1:MwsqJWtaxaHFQK7Cjkqk1NnlNPHH+tR1ergdnpST7Kg=
 github.com/obalunenko/logger v1.2.0/go.mod h1:XaU3GhUJWda3ow3hhRjlItpIVgQRKa2KDsEeprSzBvg=
 github.com/obalunenko/version v1.3.1 h1:NN+YSOrti8mEyJSnu+7//YSvGrOhLivh60hJXhIrNTI=
