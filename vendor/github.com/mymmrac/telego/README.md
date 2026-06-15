@@ -19,6 +19,8 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=mymmrac_telego&metric=code_smells)](https://sonarcloud.io/dashboard?id=mymmrac_telego)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=mymmrac_telego&metric=ncloc)](https://sonarcloud.io/dashboard?id=mymmrac_telego)
 
+[![Made in Ukraine](https://img.shields.io/badge/Made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
+
 <p align="center">
   <img src="docs/logo/telego-long.png" alt="Telego logo" width="512px" style="border-radius: 12px;">
 </p>
@@ -633,7 +635,7 @@ Contribution guidelines listed [here](docs/CONTRIBUTING.md).
 
 ## :star: Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/mymmrac/telego.svg)](https://starchart.cc/mymmrac/telego)
+[![Stargazers over time](https://starchart.cc/mymmrac/telego.svg?variant=adaptive)](https://starchart.cc/mymmrac/telego)
 
 > Powered by [caarlos0/starcharts](https://github.com/caarlos0/starcharts)
 
@@ -643,6 +645,6 @@ Telego is distributed under [MIT licence](LICENSE).
 
 [TelegramBotAPI]: https://core.telegram.org/bots/api
 
-[TelegramVersionBadge]: https://img.shields.io/static/v1?label=Supported%20Telegram%20Bot%20API&color=29a1d4&logo=telegram&message=v10.0
+[TelegramVersionBadge]: https://img.shields.io/static/v1?label=Supported%20Telegram%20Bot%20API&color=29a1d4&logo=telegram&message=v10.1
 
-[TelegramLastVersion]: https://core.telegram.org/bots/api#may-8-2026
+[TelegramLastVersion]: https://core.telegram.org/bots/api#june-11-2026
