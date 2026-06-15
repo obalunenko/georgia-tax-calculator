@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/valyala/fastjson"
+
 	"github.com/mymmrac/telego/internal/json"
 	"github.com/mymmrac/telego/telegoapi"
 )
@@ -275,6 +277,10 @@ type User struct {
 	// CanManageBots - Optional. True, if other bots can be created to be controlled by the bot. Returned only
 	// in getMe (https://core.telegram.org/bots/api#getme).
 	CanManageBots bool `json:"can_manage_bots,omitempty"`
+
+	// SupportsJoinRequestQueries - Optional. True, if the bot supports join request queries and can be assigned
+	// to process them. Returned only in getMe (https://core.telegram.org/bots/api#getme).
+	SupportsJoinRequestQueries bool `json:"supports_join_request_queries,omitempty"`
 }
 
 // Chat - This object represents a chat.
@@ -507,9 +513,13 @@ type ChatFullInfo struct {
 	// name, message replies and link previews
 	UniqueGiftColors *UniqueGiftColors `json:"unique_gift_colors,omitempty"`
 
-	// PaidMessageStarCount - Optional. The number of Telegram Stars a general user have to pay to send a
-	// message to the chat
+	// PaidMessageStarCount - Optional. The number of Telegram Stars a general user has to pay to send a message
+	// to the chat
 	PaidMessageStarCount int `json:"paid_message_star_count,omitempty"`
+
+	// GuardBot - Optional. The bot that processes join request queries in the chat. The field is only available
+	// to chat administrators.
+	GuardBot *User `json:"guard_bot,omitempty"`
 }
 
 // unknownReactionTypeErr is an error for unknown reaction type
@@ -697,6 +707,9 @@ type Message struct {
 
 	// EffectID - Optional. Unique identifier of the message effect added to the message
 	EffectID string `json:"effect_id,omitempty"`
+
+	// RichMessage - Optional. Message is a rich formatted message
+	RichMessage *RichMessage `json:"rich_message,omitempty"`
 
 	// Animation - Optional. Message is an animation, information about the animation. For backward
 	// compatibility, when this field is set, the document field will also be set.
@@ -1964,6 +1977,12 @@ const (
 	EmojiSlotMachine = "🎰"
 )
 
+// Link - Represents an HTTP link.
+type Link struct {
+	// URL - URL of the link
+	URL string `json:"url"`
+}
+
 // PollMedia - At most one of the optional fields can be present in any given object.
 type PollMedia struct {
 	// Animation - Optional. Media is an animation, information about the animation
@@ -1976,6 +1995,9 @@ type PollMedia struct {
 	// Document - Optional. Media is a general file, information about the file; currently, can't be received in
 	// a poll option
 	Document *Document `json:"document,omitempty"`
+
+	// Link - Optional. The HTTP link attached to the poll option
+	Link *Link `json:"link,omitempty"`
 
 	// LivePhoto - Optional. Media is a live photo, information about the live photo
 	LivePhoto *LivePhoto `json:"live_photo,omitempty"`
@@ -2016,6 +2038,7 @@ type InputPollMedia interface {
 
 // InputPollOptionMedia - This object represents the content of a poll option to be sent. It should be one of
 // InputMediaAnimation (https://core.telegram.org/bots/api#inputmediaanimation)
+// InputMediaLink (https://core.telegram.org/bots/api#inputmedialink)
 // InputMediaLivePhoto (https://core.telegram.org/bots/api#inputmedialivephoto)
 // InputMediaLocation (https://core.telegram.org/bots/api#inputmedialocation)
 // InputMediaPhoto (https://core.telegram.org/bots/api#inputmediaphoto)
@@ -4103,8 +4126,8 @@ type ChatMemberRestricted struct {
 	// IsMember - True, if the user is a member of the chat at the moment of the request
 	IsMember bool `json:"is_member"`
 
-	// CanSendMessages - True, if the user is allowed to send text messages, contacts, giveaways, giveaway
-	// winners, invoices, locations and venues
+	// CanSendMessages - True, if the user is allowed to send text messages, rich messages, contacts, giveaways,
+	// giveaway winners, invoices, locations and venues
 	CanSendMessages bool `json:"can_send_messages"`
 
 	// CanSendAudios - True, if the user is allowed to send audios
@@ -4256,12 +4279,17 @@ type ChatJoinRequest struct {
 
 	// InviteLink - Optional. Chat invite link that was used by the user to send the join request
 	InviteLink *ChatInviteLink `json:"invite_link,omitempty"`
+
+	// QueryID - Optional. Identifier of the join request query. If present, then the bot must call
+	// sendChatJoinRequestWebApp (https://core.telegram.org/bots/api#sendchatjoinrequestwebapp) or directly call
+	// answerChatJoinRequestQuery (https://core.telegram.org/bots/api#answerchatjoinrequestquery) within 10 seconds.
+	QueryID string `json:"query_id,omitempty"`
 }
 
 // ChatPermissions - Describes actions that a non-administrator user is allowed to take in a chat.
 type ChatPermissions struct {
-	// CanSendMessages - Optional. True, if the user is allowed to send text messages, contacts, giveaways,
-	// giveaway winners, invoices, locations and venues
+	// CanSendMessages - Optional. True, if the user is allowed to send text messages, rich messages, contacts,
+	// giveaways, giveaway winners, invoices, locations and venues
 	CanSendMessages *bool `json:"can_send_messages,omitempty"`
 
 	// CanSendAudios - Optional. True, if the user is allowed to send audios
@@ -5969,6 +5997,7 @@ const (
 	MediaTypeAnimation = "animation"
 	MediaTypeAudio     = "audio"
 	MediaTypeDocument  = "document"
+	MediaTypeLink      = "link"
 	MediaTypeLivePhoto = "live_photo"
 	MediaTypeLocation  = "location"
 	MediaTypePhoto     = "photo"
@@ -5980,7 +6009,7 @@ const (
 // InputMediaAnimation - Represents an animation file (GIF or H.264/MPEG-4 AVC video without sound) to be
 // sent.
 type InputMediaAnimation struct {
-	// Type - Type of the result, must be animation
+	// Type - Type of the media, must be animation
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6048,7 +6077,7 @@ func (i *InputMediaAnimation) fileParameters() map[string]telegoapi.NamedReader 
 
 // InputMediaAudio - Represents an audio file to be treated as music to be sent.
 type InputMediaAudio struct {
-	// Type - Type of the result, must be audio
+	// Type - Type of the media, must be audio
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6109,7 +6138,7 @@ func (i *InputMediaAudio) fileParameters() map[string]telegoapi.NamedReader {
 
 // InputMediaDocument - Represents a general file to be sent.
 type InputMediaDocument struct {
-	// Type - Type of the result, must be document
+	// Type - Type of the media, must be document
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6163,9 +6192,29 @@ func (i *InputMediaDocument) fileParameters() map[string]telegoapi.NamedReader {
 	return fp
 }
 
+// InputMediaLink - Represents an HTTP link to be sent.
+type InputMediaLink struct {
+	// Type - Type of the media, must be link
+	Type string `json:"type"`
+
+	// URL - HTTP URL of the link
+	URL string `json:"url"`
+}
+
+// MediaType return InputMedia type
+func (i *InputMediaLink) MediaType() string {
+	return MediaTypeLink
+}
+
+func (i *InputMediaLink) iInputPollOptionMedia() {}
+
+func (i *InputMediaLink) fileParameters() map[string]telegoapi.NamedReader {
+	return nil
+}
+
 // InputMediaLivePhoto - Represents a live photo to be sent.
 type InputMediaLivePhoto struct {
-	// Type - Type of the result, must be live_photo
+	// Type - Type of the media, must be live_photo
 	Type string `json:"type"`
 
 	// Media - Video of the live photo to send. Pass a file_id to send a file that exists on the Telegram
@@ -6220,7 +6269,7 @@ func (i *InputMediaLivePhoto) fileParameters() map[string]telegoapi.NamedReader 
 
 // InputMediaLocation - Represents a location to be sent.
 type InputMediaLocation struct {
-	// Type - Type of the result, must be location
+	// Type - Type of the media, must be location
 	Type string `json:"type"`
 
 	// Latitude - Latitude of the location
@@ -6247,7 +6296,7 @@ func (i *InputMediaLocation) fileParameters() map[string]telegoapi.NamedReader {
 
 // InputMediaPhoto - Represents a photo to be sent.
 type InputMediaPhoto struct {
-	// Type - Type of the result, must be photo
+	// Type - Type of the media, must be photo
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6292,7 +6341,7 @@ func (i *InputMediaPhoto) fileParameters() map[string]telegoapi.NamedReader {
 
 // InputMediaSticker - Represents a sticker file to be sent.
 type InputMediaSticker struct {
-	// Type - Type of the result, must be sticker
+	// Type - Type of the media, must be sticker
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6322,7 +6371,7 @@ func (i *InputMediaSticker) fileParameters() map[string]telegoapi.NamedReader {
 
 // InputMediaVenue - Represents a venue to be sent.
 type InputMediaVenue struct {
-	// Type - Type of the result, must be venue
+	// Type - Type of the media, must be venue
 	Type string `json:"type"`
 
 	// Latitude - Latitude of the location
@@ -6366,7 +6415,7 @@ func (i *InputMediaVenue) fileParameters() map[string]telegoapi.NamedReader {
 
 // InputMediaVideo - Represents a video to be sent.
 type InputMediaVideo struct {
-	// Type - Type of the result, must be video
+	// Type - Type of the media, must be video
 	Type string `json:"type"`
 
 	// Media - File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended),
@@ -6910,6 +6959,2223 @@ const (
 	StickerAnimated = "animated"
 	StickerVideo    = "video"
 )
+
+// RichMessage - Rich formatted message.
+type RichMessage struct {
+	// Blocks - Content of the message
+	Blocks []RichBlock `json:"blocks"`
+
+	// IsRtl - Optional. True, if the rich message must be shown right-to-left
+	IsRtl bool `json:"is_rtl,omitempty"`
+}
+
+// UnmarshalJSON converts JSON to RichMessage
+func (i *RichMessage) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichMessage RichMessage
+	var ui uRichMessage
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichMessage(ui)
+
+	return nil
+}
+
+// InputRichMessage - Describes a rich message to be sent. Exactly one of the fields html or markdown must be
+// used.
+type InputRichMessage struct {
+	// HTML - Optional. Content of the rich message to send described using HTML formatting. See rich message
+	// formatting options (https://core.telegram.org/bots/api#rich-message-formatting-options) for more details.
+	HTML string `json:"html,omitempty"`
+
+	// Markdown - Optional. Content of the rich message to send described using Markdown formatting. See rich
+	// message formatting options (https://core.telegram.org/bots/api#rich-message-formatting-options) for more
+	// details.
+	Markdown string `json:"markdown,omitempty"`
+
+	// IsRtl - Optional. Pass True if the rich message must be shown right-to-left
+	IsRtl bool `json:"is_rtl,omitempty"`
+
+	// SkipEntityDetection - Optional. Pass True to skip automatic detection of entities (e.g., URLs, email
+	// addresses, username mentions, hashtags, cashtags, bot commands, or phone numbers) in the text
+	SkipEntityDetection bool `json:"skip_entity_detection,omitempty"`
+}
+
+// RichText - This object represents a rich formatted text. Currently, it can be either a String for plain
+// text, an Array of RichText (https://core.telegram.org/bots/api#richtext), or any of the following types:
+// RichTextBold (https://core.telegram.org/bots/api#richtextbold)
+// RichTextItalic (https://core.telegram.org/bots/api#richtextitalic)
+// RichTextUnderline (https://core.telegram.org/bots/api#richtextunderline)
+// RichTextStrikethrough (https://core.telegram.org/bots/api#richtextstrikethrough)
+// RichTextSpoiler (https://core.telegram.org/bots/api#richtextspoiler)
+// RichTextDateTime (https://core.telegram.org/bots/api#richtextdatetime)
+// RichTextTextMention (https://core.telegram.org/bots/api#richtexttextmention)
+// RichTextSubscript (https://core.telegram.org/bots/api#richtextsubscript)
+// RichTextSuperscript (https://core.telegram.org/bots/api#richtextsuperscript)
+// RichTextMarked (https://core.telegram.org/bots/api#richtextmarked)
+// RichTextCode (https://core.telegram.org/bots/api#richtextcode)
+// RichTextCustomEmoji (https://core.telegram.org/bots/api#richtextcustomemoji)
+// RichTextMathematicalExpression (https://core.telegram.org/bots/api#richtextmathematicalexpression)
+// RichTextURL (https://core.telegram.org/bots/api#richtexturl)
+// RichTextEmailAddress (https://core.telegram.org/bots/api#richtextemailaddress)
+// RichTextPhoneNumber (https://core.telegram.org/bots/api#richtextphonenumber)
+// RichTextBankCardNumber (https://core.telegram.org/bots/api#richtextbankcardnumber)
+// RichTextMention (https://core.telegram.org/bots/api#richtextmention)
+// RichTextHashtag (https://core.telegram.org/bots/api#richtexthashtag)
+// RichTextCashtag (https://core.telegram.org/bots/api#richtextcashtag)
+// RichTextBotCommand (https://core.telegram.org/bots/api#richtextbotcommand)
+// RichTextAnchor (https://core.telegram.org/bots/api#richtextanchor)
+// RichTextAnchorLink (https://core.telegram.org/bots/api#richtextanchorlink)
+// RichTextReference (https://core.telegram.org/bots/api#richtextreference)
+// RichTextReferenceLink (https://core.telegram.org/bots/api#richtextreferencelink)
+type RichText interface {
+	// TextType return RichText type
+	TextType() string
+	// Disallow external implementations
+	iRichText()
+}
+
+// Rick text types.
+const (
+	TextTypePlain = "Plain"
+	TextTypeList  = "List"
+
+	TextTypeBold                   = "bold"
+	TextTypeItalic                 = "italic"
+	TextTypeUnderline              = "underline"
+	TextTypeStrikethrough          = "strikethrough"
+	TextTypeSpoiler                = "spoiler"
+	TextTypeDateTime               = "date_time"
+	TextTypeTextMention            = "text_mention"
+	TextTypeSubscript              = "subscript"
+	TextTypeSuperscript            = "superscript"
+	TextTypeMarked                 = "marked"
+	TextTypeCode                   = "code"
+	TextTypeCustomEmoji            = "custom_emoji"
+	TextTypeMathematicalExpression = "mathematical_expression"
+	TextTypeURL                    = "url"
+	TextTypeEmailAddress           = "email_address"
+	TextTypePhoneNumber            = "phone_number"
+	TextTypeBankCardNumber         = "bank_card_number"
+	TextTypeMention                = "mention"
+	TextTypeHashtag                = "hashtag"
+	TextTypeCashtag                = "cashtag"
+	TextTypeBotCommand             = "bot_command"
+	TextTypeAnchor                 = "anchor"
+	TextTypeAnchorLink             = "anchor_link"
+	TextTypeReference              = "reference"
+	TextTypeReferenceLink          = "reference_link"
+)
+
+func unmarshalRichText(value *fastjson.Value) (RichText, error) { //nolint:gocyclo
+	if value == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	richTextType := value.Type()
+	switch richTextType {
+	case fastjson.TypeString:
+		return ToPtr(RichTextPlain("")), nil
+	case fastjson.TypeArray:
+		var err error
+		values := value.GetArray()
+		list := make(RichTextList, len(values))
+		for i, v := range values {
+			list[i], err = unmarshalRichText(v)
+			if err != nil {
+				return nil, fmt.Errorf("array item %d: %w", i, err)
+			}
+		}
+		return &list, nil
+	case fastjson.TypeObject:
+		textType := string(value.GetStringBytes("type"))
+		switch textType {
+		case TextTypeBold:
+			return &RichTextBold{}, nil
+		case TextTypeItalic:
+			return &RichTextItalic{}, nil
+		case TextTypeUnderline:
+			return &RichTextUnderline{}, nil
+		case TextTypeStrikethrough:
+			return &RichTextStrikethrough{}, nil
+		case TextTypeSpoiler:
+			return &RichTextSpoiler{}, nil
+		case TextTypeDateTime:
+			return &RichTextDateTime{}, nil
+		case TextTypeTextMention:
+			return &RichTextTextMention{}, nil
+		case TextTypeSubscript:
+			return &RichTextSubscript{}, nil
+		case TextTypeSuperscript:
+			return &RichTextSuperscript{}, nil
+		case TextTypeMarked:
+			return &RichTextMarked{}, nil
+		case TextTypeCode:
+			return &RichTextCode{}, nil
+		case TextTypeCustomEmoji:
+			return &RichTextCustomEmoji{}, nil
+		case TextTypeMathematicalExpression:
+			return &RichTextMathematicalExpression{}, nil
+		case TextTypeURL:
+			return &RichTextURL{}, nil
+		case TextTypeEmailAddress:
+			return &RichTextEmailAddress{}, nil
+		case TextTypePhoneNumber:
+			return &RichTextPhoneNumber{}, nil
+		case TextTypeBankCardNumber:
+			return &RichTextBankCardNumber{}, nil
+		case TextTypeMention:
+			return &RichTextMention{}, nil
+		case TextTypeHashtag:
+			return &RichTextHashtag{}, nil
+		case TextTypeCashtag:
+			return &RichTextCashtag{}, nil
+		case TextTypeBotCommand:
+			return &RichTextBotCommand{}, nil
+		case TextTypeAnchor:
+			return &RichTextAnchor{}, nil
+		case TextTypeAnchorLink:
+			return &RichTextAnchorLink{}, nil
+		case TextTypeReference:
+			return &RichTextReference{}, nil
+		case TextTypeReferenceLink:
+			return &RichTextReferenceLink{}, nil
+		default:
+			return nil, fmt.Errorf("unknown rich text type: %q", textType)
+		}
+	default:
+		return nil, fmt.Errorf("unknown rich text value type: %q", richTextType)
+	}
+}
+
+// RichTextPlain - A plain text.
+type RichTextPlain string
+
+// TextType return RichText type
+func (i *RichTextPlain) TextType() string {
+	return TextTypePlain
+}
+
+func (i *RichTextPlain) iRichText() {}
+
+// RichTextList - A array of rich texts.
+type RichTextList []RichText
+
+// TextType return RichText type
+func (i *RichTextList) TextType() string {
+	return TextTypeList
+}
+
+func (i *RichTextList) iRichText() {}
+
+// RichTextBold - A bold text.
+type RichTextBold struct {
+	// Type - Type of the rich text, always “bold”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextBold) TextType() string {
+	return TextTypeBold
+}
+
+func (i *RichTextBold) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextBold
+func (i *RichTextBold) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextBold RichTextBold
+	var ui uRichTextBold
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextBold(ui)
+
+	return nil
+}
+
+// RichTextItalic - An italicized text.
+type RichTextItalic struct {
+	// Type - Type of the rich text, always “italic”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextItalic) TextType() string {
+	return TextTypeItalic
+}
+
+func (i *RichTextItalic) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextItalic
+func (i *RichTextItalic) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextItalic RichTextBold
+	var ui uRichTextItalic
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextItalic(ui)
+
+	return nil
+}
+
+// RichTextUnderline - An underlined text.
+type RichTextUnderline struct {
+	// Type - Type of the rich text, always “underline”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextUnderline) TextType() string {
+	return TextTypeUnderline
+}
+
+func (i *RichTextUnderline) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextUnderline
+func (i *RichTextUnderline) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextUnderline RichTextUnderline
+	var ui uRichTextUnderline
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextUnderline(ui)
+
+	return nil
+}
+
+// RichTextStrikethrough - A strikethrough text.
+type RichTextStrikethrough struct {
+	// Type - Type of the rich text, always “strikethrough”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextStrikethrough) TextType() string {
+	return TextTypeStrikethrough
+}
+
+func (i *RichTextStrikethrough) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextStrikethrough
+func (i *RichTextStrikethrough) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextStrikethrough RichTextStrikethrough
+	var ui uRichTextStrikethrough
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextStrikethrough(ui)
+
+	return nil
+}
+
+// RichTextSpoiler - A text covered by a spoiler.
+type RichTextSpoiler struct {
+	// Type - Type of the rich text, always “spoiler”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextSpoiler) TextType() string {
+	return TextTypeSpoiler
+}
+
+func (i *RichTextSpoiler) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextSpoiler
+func (i *RichTextSpoiler) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextSpoiler RichTextSpoiler
+	var ui uRichTextSpoiler
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextSpoiler(ui)
+
+	return nil
+}
+
+// RichTextDateTime - Formatted date and time.
+type RichTextDateTime struct {
+	// Type - Type of the rich text, always “date_time”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// UnixTime - The Unix time associated with the entity
+	UnixTime int64 `json:"unix_time"`
+
+	// DateTimeFormat - The string that defines the formatting of the date and time. See date-time entity
+	// formatting (https://core.telegram.org/bots/api#date-time-entity-formatting) for more details.
+	DateTimeFormat string `json:"date_time_format"`
+}
+
+// TextType return RichText type
+func (i *RichTextDateTime) TextType() string {
+	return TextTypeDateTime
+}
+
+func (i *RichTextDateTime) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextDateTime
+func (i *RichTextDateTime) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextDateTime RichTextDateTime
+	var ui uRichTextDateTime
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextDateTime(ui)
+
+	return nil
+}
+
+// RichTextTextMention - A mention of a Telegram user by their identifier.
+type RichTextTextMention struct {
+	// Type - Type of the rich text, always “text_mention”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// User - The mentioned user
+	User User `json:"user"`
+}
+
+// TextType return RichText type
+func (i *RichTextTextMention) TextType() string {
+	return TextTypeTextMention
+}
+
+func (i *RichTextTextMention) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextTextMention
+func (i *RichTextTextMention) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextTextMention RichTextTextMention
+	var ui uRichTextTextMention
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextTextMention(ui)
+
+	return nil
+}
+
+// RichTextSubscript - A subscript text.
+type RichTextSubscript struct {
+	// Type - Type of the rich text, always “subscript”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextSubscript) TextType() string {
+	return TextTypeSubscript
+}
+
+func (i *RichTextSubscript) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextSubscript
+func (i *RichTextSubscript) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextSubscript RichTextSubscript
+	var ui uRichTextSubscript
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextSubscript(ui)
+
+	return nil
+}
+
+// RichTextSuperscript - A superscript text.
+type RichTextSuperscript struct {
+	// Type - Type of the rich text, always “superscript”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextSuperscript) TextType() string {
+	return TextTypeSuperscript
+}
+
+func (i *RichTextSuperscript) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextSuperscript
+func (i *RichTextSuperscript) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextSuperscript RichTextSuperscript
+	var ui uRichTextSuperscript
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextSuperscript(ui)
+
+	return nil
+}
+
+// RichTextMarked - A marked text.
+type RichTextMarked struct {
+	// Type - Type of the rich text, always “marked”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextMarked) TextType() string {
+	return TextTypeMarked
+}
+
+func (i *RichTextMarked) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextMarked
+func (i *RichTextMarked) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextMarked RichTextMarked
+	var ui uRichTextMarked
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextMarked(ui)
+
+	return nil
+}
+
+// RichTextCode - A monowidth text.
+type RichTextCode struct {
+	// Type - Type of the rich text, always “code”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+}
+
+// TextType return RichText type
+func (i *RichTextCode) TextType() string {
+	return TextTypeCode
+}
+
+func (i *RichTextCode) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextCode
+func (i *RichTextCode) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextCode RichTextCode
+	var ui uRichTextCode
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextCode(ui)
+
+	return nil
+}
+
+// RichTextCustomEmoji - A custom emoji.
+type RichTextCustomEmoji struct {
+	// Type - Type of the rich text, always “custom_emoji”
+	Type string `json:"type"`
+
+	// CustomEmojiID - Unique identifier of the custom emoji. Use getCustomEmojiStickers
+	// (https://core.telegram.org/bots/api#getcustomemojistickers) to get full information about the sticker.
+	CustomEmojiID string `json:"custom_emoji_id"`
+
+	// AlternativeText - Alternative emoji for the custom emoji
+	AlternativeText string `json:"alternative_text"`
+}
+
+// TextType return RichText type
+func (i *RichTextCustomEmoji) TextType() string {
+	return TextTypeCustomEmoji
+}
+
+func (i *RichTextCustomEmoji) iRichText() {}
+
+// RichTextMathematicalExpression - A mathematical expression.
+type RichTextMathematicalExpression struct {
+	// Type - Type of the rich text, always “mathematical_expression”
+	Type string `json:"type"`
+
+	// Expression - The expression in LaTeX format
+	Expression string `json:"expression"`
+}
+
+// TextType return RichText type
+func (i *RichTextMathematicalExpression) TextType() string {
+	return TextTypeMathematicalExpression
+}
+
+func (i *RichTextMathematicalExpression) iRichText() {}
+
+// RichTextURL - A text with a link.
+type RichTextURL struct {
+	// Type - Type of the rich text, always “url”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// URL - URL of the link
+	URL string `json:"url"`
+}
+
+// TextType return RichText type
+func (i *RichTextURL) TextType() string {
+	return TextTypeURL
+}
+
+func (i *RichTextURL) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextURL
+func (i *RichTextURL) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextURL RichTextURL
+	var ui uRichTextURL
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextURL(ui)
+
+	return nil
+}
+
+// RichTextEmailAddress - A text with an email address.
+type RichTextEmailAddress struct {
+	// Type - Type of the rich text, always “email_address”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// EmailAddress - The email address
+	EmailAddress string `json:"email_address"`
+}
+
+// TextType return RichText type
+func (i *RichTextEmailAddress) TextType() string {
+	return TextTypeEmailAddress
+}
+
+func (i *RichTextEmailAddress) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextEmailAddress
+func (i *RichTextEmailAddress) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextEmailAddress RichTextEmailAddress
+	var ui uRichTextEmailAddress
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextEmailAddress(ui)
+
+	return nil
+}
+
+// RichTextPhoneNumber - A text with a phone number.
+type RichTextPhoneNumber struct {
+	// Type - Type of the rich text, always “phone_number”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// PhoneNumber - The phone number
+	PhoneNumber string `json:"phone_number"`
+}
+
+// TextType return RichText type
+func (i *RichTextPhoneNumber) TextType() string {
+	return TextTypePhoneNumber
+}
+
+func (i *RichTextPhoneNumber) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextPhoneNumber
+func (i *RichTextPhoneNumber) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextPhoneNumber RichTextPhoneNumber
+	var ui uRichTextPhoneNumber
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextPhoneNumber(ui)
+
+	return nil
+}
+
+// RichTextBankCardNumber - A text with a bank card number.
+type RichTextBankCardNumber struct {
+	// Type - Type of the rich text, always “bank_card_number”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// BankCardNumber - The bank card number
+	BankCardNumber string `json:"bank_card_number"`
+}
+
+// TextType return RichText type
+func (i *RichTextBankCardNumber) TextType() string {
+	return TextTypeBankCardNumber
+}
+
+func (i *RichTextBankCardNumber) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextBankCardNumber
+func (i *RichTextBankCardNumber) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextBankCardNumber RichTextBankCardNumber
+	var ui uRichTextBankCardNumber
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextBankCardNumber(ui)
+
+	return nil
+}
+
+// RichTextMention - A mention by a username.
+type RichTextMention struct {
+	// Type - Type of the rich text, always “mention”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// Username - The username
+	Username string `json:"username"`
+}
+
+// TextType return RichText type
+func (i *RichTextMention) TextType() string {
+	return TextTypeMention
+}
+
+func (i *RichTextMention) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextMention
+func (i *RichTextMention) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextMention RichTextMention
+	var ui uRichTextMention
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextMention(ui)
+
+	return nil
+}
+
+// RichTextHashtag - A hashtag.
+type RichTextHashtag struct {
+	// Type - Type of the rich text, always “hashtag”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// Hashtag - The hashtag
+	Hashtag string `json:"hashtag"`
+}
+
+// TextType return RichText type
+func (i *RichTextHashtag) TextType() string {
+	return TextTypeHashtag
+}
+
+func (i *RichTextHashtag) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextHashtag
+func (i *RichTextHashtag) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextHashtag RichTextHashtag
+	var ui uRichTextHashtag
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextHashtag(ui)
+
+	return nil
+}
+
+// RichTextCashtag - A cashtag.
+type RichTextCashtag struct {
+	// Type - Type of the rich text, always “cashtag”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// Cashtag - The cashtag
+	Cashtag string `json:"cashtag"`
+}
+
+// TextType return RichText type
+func (i *RichTextCashtag) TextType() string {
+	return TextTypeCashtag
+}
+
+func (i *RichTextCashtag) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextCashtag
+func (i *RichTextCashtag) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextCashtag RichTextCashtag
+	var ui uRichTextCashtag
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextCashtag(ui)
+
+	return nil
+}
+
+// RichTextBotCommand - A bot command.
+type RichTextBotCommand struct {
+	// Type - Type of the rich text, always “bot_command”
+	Type string `json:"type"`
+
+	// Text - The text
+	Text RichText `json:"text"`
+
+	// BotCommand - The bot command
+	BotCommand string `json:"bot_command"`
+}
+
+// TextType return RichText type
+func (i *RichTextBotCommand) TextType() string {
+	return TextTypeBotCommand
+}
+
+func (i *RichTextBotCommand) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextBotCommand
+func (i *RichTextBotCommand) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextBotCommand RichTextBotCommand
+	var ui uRichTextBotCommand
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextBotCommand(ui)
+
+	return nil
+}
+
+// RichTextAnchor - An anchor.
+type RichTextAnchor struct {
+	// Type - Type of the rich text, always “anchor”
+	Type string `json:"type"`
+
+	// Name - The name of the anchor
+	Name string `json:"name"`
+}
+
+// TextType return RichText type
+func (i *RichTextAnchor) TextType() string {
+	return TextTypeAnchor
+}
+
+func (i *RichTextAnchor) iRichText() {}
+
+// RichTextAnchorLink - A link to an anchor.
+type RichTextAnchorLink struct {
+	// Type - Type of the rich text, always “anchor_link”
+	Type string `json:"type"`
+
+	// Text - The link text
+	Text RichText `json:"text"`
+
+	// AnchorName - The name of the anchor. If the name is empty, then the link brings back to the top of the
+	// message.
+	AnchorName string `json:"anchor_name"`
+}
+
+// TextType return RichText type
+func (i *RichTextAnchorLink) TextType() string {
+	return TextTypeAnchorLink
+}
+
+func (i *RichTextAnchorLink) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextAnchorLink
+func (i *RichTextAnchorLink) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextAnchorLink RichTextAnchorLink
+	var ui uRichTextAnchorLink
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextAnchorLink(ui)
+
+	return nil
+}
+
+// RichTextReference - A reference.
+type RichTextReference struct {
+	// Type - Type of the rich text, always “reference”
+	Type string `json:"type"`
+
+	// Text - Text of the reference
+	Text RichText `json:"text"`
+
+	// Name - The name of the reference
+	Name string `json:"name"`
+}
+
+// TextType return RichText type
+func (i *RichTextReference) TextType() string {
+	return TextTypeReference
+}
+
+func (i *RichTextReference) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextReference
+func (i *RichTextReference) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextReference RichTextReference
+	var ui uRichTextReference
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextReference(ui)
+
+	return nil
+}
+
+// RichTextReferenceLink - A link to a reference.
+type RichTextReferenceLink struct {
+	// Type - Type of the rich text, always “reference_link”
+	Type string `json:"type"`
+
+	// Text - The link text
+	Text RichText `json:"text"`
+
+	// ReferenceName - The name of the reference
+	ReferenceName string `json:"reference_name"`
+}
+
+// TextType return RichText type
+func (i *RichTextReferenceLink) TextType() string {
+	return TextTypeReferenceLink
+}
+
+func (i *RichTextReferenceLink) iRichText() {}
+
+// UnmarshalJSON converts JSON to RichTextReferenceLink
+func (i *RichTextReferenceLink) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichTextReferenceLink RichTextReferenceLink
+	var ui uRichTextReferenceLink
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichTextReferenceLink(ui)
+
+	return nil
+}
+
+// RichBlockCaption - Caption of a rich formatted block.
+type RichBlockCaption struct {
+	// Text - Block caption
+	Text RichText `json:"text"`
+
+	// Credit - Optional. Block credit which corresponds to the HTML tag <cite>
+	Credit RichText `json:"credit,omitempty"`
+}
+
+// UnmarshalJSON converts JSON to RichBlockCaption
+func (i *RichBlockCaption) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockCaption RichBlockCaption
+	var ui uRichBlockCaption
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	ui.Credit, err = unmarshalRichText(value.Get("credit"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockCaption(ui)
+
+	return nil
+}
+
+// RichBlockTableCell - Cell in a table.
+type RichBlockTableCell struct {
+	// Text - Optional. Text in the cell. If omitted, then the cell is invisible.
+	Text RichText `json:"text,omitempty"`
+
+	// IsHeader - Optional. True, if the cell is a header cell
+	IsHeader bool `json:"is_header,omitempty"`
+
+	// Colspan - Optional. The number of columns the cell spans if it is bigger than 1
+	Colspan int `json:"colspan,omitempty"`
+
+	// Rowspan - Optional. The number of rows the cell spans if it is bigger than 1
+	Rowspan int `json:"rowspan,omitempty"`
+
+	// Align - Horizontal cell content alignment. Currently, must be one of “left”, “center”, or
+	// “right”.
+	Align string `json:"align"`
+
+	// Valign - Vertical cell content alignment. Currently, must be one of “top”, “middle”, or
+	// “bottom”.
+	Valign string `json:"valign"`
+}
+
+// UnmarshalJSON converts JSON to RichBlockTableCell
+func (i *RichBlockTableCell) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockTableCell RichBlockTableCell
+	var ui uRichBlockTableCell
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockTableCell(ui)
+
+	return nil
+}
+
+// RichBlockListItem - An item of a list.
+type RichBlockListItem struct {
+	// Label - Label of the item
+	Label string `json:"label"`
+
+	// Blocks - The content of the item
+	Blocks []RichBlock `json:"blocks"`
+
+	// HasCheckbox - Optional. True, if the item has a checkbox
+	HasCheckbox bool `json:"has_checkbox,omitempty"`
+
+	// IsChecked - Optional. True, if the item has a checked checkbox
+	IsChecked bool `json:"is_checked,omitempty"`
+
+	// Value - Optional. For ordered lists, the numeric value of the item label
+	Value int `json:"value,omitempty"`
+
+	// Type - Optional. For ordered lists, the type of the item label; must be one of “a” for lowercase
+	// letters, “A” for uppercase letters, “i” for lowercase Roman numerals, “I” for uppercase Roman
+	// numerals, or “1” for decimal numbers
+	Type string `json:"type,omitempty"`
+}
+
+// UnmarshalJSON converts JSON to RichBlockListItem
+func (i *RichBlockListItem) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockListItem RichBlockListItem
+	var ui uRichBlockListItem
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockListItem(ui)
+
+	return nil
+}
+
+// RichBlock - This object represents a block in a rich formatted message. Currently, it can be any of the
+// following types:
+// RichBlockParagraph (https://core.telegram.org/bots/api#richblockparagraph)
+// RichBlockSectionHeading (https://core.telegram.org/bots/api#richblocksectionheading)
+// RichBlockPreformatted (https://core.telegram.org/bots/api#richblockpreformatted)
+// RichBlockFooter (https://core.telegram.org/bots/api#richblockfooter)
+// RichBlockDivider (https://core.telegram.org/bots/api#richblockdivider)
+// RichBlockMathematicalExpression (https://core.telegram.org/bots/api#richblockmathematicalexpression)
+// RichBlockAnchor (https://core.telegram.org/bots/api#richblockanchor)
+// RichBlockList (https://core.telegram.org/bots/api#richblocklist)
+// RichBlockBlockQuotation (https://core.telegram.org/bots/api#richblockblockquotation)
+// RichBlockPullQuotation (https://core.telegram.org/bots/api#richblockpullquotation)
+// RichBlockCollage (https://core.telegram.org/bots/api#richblockcollage)
+// RichBlockSlideshow (https://core.telegram.org/bots/api#richblockslideshow)
+// RichBlockTable (https://core.telegram.org/bots/api#richblocktable)
+// RichBlockDetails (https://core.telegram.org/bots/api#richblockdetails)
+// RichBlockMap (https://core.telegram.org/bots/api#richblockmap)
+// RichBlockAnimation (https://core.telegram.org/bots/api#richblockanimation)
+// RichBlockAudio (https://core.telegram.org/bots/api#richblockaudio)
+// RichBlockPhoto (https://core.telegram.org/bots/api#richblockphoto)
+// RichBlockVideo (https://core.telegram.org/bots/api#richblockvideo)
+// RichBlockVoiceNote (https://core.telegram.org/bots/api#richblockvoicenote)
+// RichBlockThinking (https://core.telegram.org/bots/api#richblockthinking)
+type RichBlock interface {
+	// BlockType return RichBlock type
+	BlockType() string
+	// Disallow external implementations
+	iRichBlock()
+}
+
+// Rich block types.
+const (
+	BlockTypeParagraph              = "paragraph"
+	BlockTypeSectionHeading         = "heading"
+	BlockTypePreformatted           = "pre"
+	BlockTypeFooter                 = "footer"
+	BlockTypeDivider                = "divider"
+	BlockTypeMathematicalExpression = "mathematical_expression"
+	BlockTypeAnchor                 = "anchor"
+	BlockTypeList                   = "list"
+	BlockTypeBlockQuotation         = "blockquote"
+	BlockTypePullQuotation          = "pullquote"
+	BlockTypeCollage                = "collage"
+	BlockTypeSlideshow              = "slideshow"
+	BlockTypeTable                  = "table"
+	BlockTypeDetails                = "details"
+	BlockTypeMap                    = "map"
+	BlockTypeAnimation              = "animation"
+	BlockTypeAudio                  = "audio"
+	BlockTypePhoto                  = "photo"
+	BlockTypeVideo                  = "video"
+	BlockTypeVoiceNote              = "voice_note"
+	BlockTypeThinking               = "thinking"
+)
+
+func unmarshalRichBlock(value *fastjson.Value) (RichBlock, error) { //nolint:gocyclo
+	if value == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	blockType := string(value.GetStringBytes("type"))
+	switch blockType {
+	case BlockTypeParagraph:
+		return &RichBlockParagraph{}, nil
+	case BlockTypeSectionHeading:
+		return &RichBlockSectionHeading{}, nil
+	case BlockTypePreformatted:
+		return &RichBlockPreformatted{}, nil
+	case BlockTypeFooter:
+		return &RichBlockFooter{}, nil
+	case BlockTypeDivider:
+		return &RichBlockDivider{}, nil
+	case BlockTypeMathematicalExpression:
+		return &RichBlockMathematicalExpression{}, nil
+	case BlockTypeAnchor:
+		return &RichBlockAnchor{}, nil
+	case BlockTypeList:
+		return &RichBlockList{}, nil
+	case BlockTypeBlockQuotation:
+		return &RichBlockBlockQuotation{}, nil
+	case BlockTypePullQuotation:
+		return &RichBlockPullQuotation{}, nil
+	case BlockTypeCollage:
+		return &RichBlockCollage{}, nil
+	case BlockTypeSlideshow:
+		return &RichBlockSlideshow{}, nil
+	case BlockTypeTable:
+		return &RichBlockTable{}, nil
+	case BlockTypeDetails:
+		return &RichBlockDetails{}, nil
+	case BlockTypeMap:
+		return &RichBlockMap{}, nil
+	case BlockTypeAnimation:
+		return &RichBlockAnimation{}, nil
+	case BlockTypeAudio:
+		return &RichBlockAudio{}, nil
+	case BlockTypePhoto:
+		return &RichBlockPhoto{}, nil
+	case BlockTypeVideo:
+		return &RichBlockVideo{}, nil
+	case BlockTypeVoiceNote:
+		return &RichBlockVoiceNote{}, nil
+	case BlockTypeThinking:
+		return &RichBlockThinking{}, nil
+	default:
+		return nil, fmt.Errorf("unknown rich block type: %q", blockType)
+	}
+}
+
+func unmarshalRichBlocks(value *fastjson.Value) ([]RichBlock, error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	var err error
+	values := value.GetArray()
+	list := make([]RichBlock, len(values))
+	for i, v := range values {
+		list[i], err = unmarshalRichBlock(v)
+		if err != nil {
+			return nil, fmt.Errorf("array item %d: %w", i, err)
+		}
+	}
+	return list, nil
+}
+
+// RichBlockParagraph - A text paragraph, corresponding to the HTML tag <p>.
+type RichBlockParagraph struct {
+	// Type - Type of the block, always “paragraph”
+	Type string `json:"type"`
+
+	// Text - Text of the block
+	Text RichText `json:"text"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockParagraph) BlockType() string {
+	return BlockTypeParagraph
+}
+
+func (i *RichBlockParagraph) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockParagraph
+func (i *RichBlockParagraph) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockParagraph RichBlockParagraph
+	var ui uRichBlockParagraph
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockParagraph(ui)
+
+	return nil
+}
+
+// RichBlockSectionHeading - A section heading, corresponding to the HTML tags <h1>, <h2>, <h3>, <h4>, <h5>,
+// or <h6>.
+type RichBlockSectionHeading struct {
+	// Type - Type of the block, always “heading”
+	Type string `json:"type"`
+
+	// Text - Text of the block
+	Text RichText `json:"text"`
+
+	// Size - Relative size of the text font; 1-6, 1 is the largest, 6 is the smallest
+	Size int `json:"size"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockSectionHeading) BlockType() string {
+	return BlockTypeSectionHeading
+}
+
+func (i *RichBlockSectionHeading) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockSectionHeading
+func (i *RichBlockSectionHeading) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockSectionHeading RichBlockSectionHeading
+	var ui uRichBlockSectionHeading
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockSectionHeading(ui)
+
+	return nil
+}
+
+// RichBlockPreformatted - A preformatted text block, corresponding to the nested HTML tags <pre> and <code>.
+type RichBlockPreformatted struct {
+	// Type - Type of the block, always “pre”
+	Type string `json:"type"`
+
+	// Text - Text of the block
+	Text RichText `json:"text"`
+
+	// Language - Optional. The programming language of the text
+	Language string `json:"language,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockPreformatted) BlockType() string {
+	return BlockTypePreformatted
+}
+
+func (i *RichBlockPreformatted) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockPreformatted
+func (i *RichBlockPreformatted) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockPreformatted RichBlockPreformatted
+	var ui uRichBlockPreformatted
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockPreformatted(ui)
+
+	return nil
+}
+
+// RichBlockFooter - A footer, corresponding to the HTML tag <footer>.
+type RichBlockFooter struct {
+	// Type - Type of the block, always “footer”
+	Type string `json:"type"`
+
+	// Text - Text of the block
+	Text RichText `json:"text"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockFooter) BlockType() string {
+	return BlockTypeFooter
+}
+
+func (i *RichBlockFooter) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockFooter
+func (i *RichBlockFooter) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockFooter RichBlockFooter
+	var ui uRichBlockFooter
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockFooter(ui)
+
+	return nil
+}
+
+// RichBlockDivider - A divider, corresponding to the HTML tag <hr/>.
+type RichBlockDivider struct {
+	// Type - Type of the block, always “divider”
+	Type string `json:"type"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockDivider) BlockType() string {
+	return BlockTypeDivider
+}
+
+func (i *RichBlockDivider) iRichBlock() {}
+
+// RichBlockMathematicalExpression - A block with a mathematical expression in LaTeX format, corresponding to
+// the custom HTML tag <tg-math-block>.
+type RichBlockMathematicalExpression struct {
+	// Type - Type of the block, always “mathematical_expression”
+	Type string `json:"type"`
+
+	// Expression - The mathematical expression in LaTeX format
+	Expression string `json:"expression"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockMathematicalExpression) BlockType() string {
+	return BlockTypeMathematicalExpression
+}
+
+func (i *RichBlockMathematicalExpression) iRichBlock() {}
+
+// RichBlockAnchor - A block with an anchor, corresponding to the HTML tag <a> with the attribute name.
+type RichBlockAnchor struct {
+	// Type - Type of the block, always “anchor”
+	Type string `json:"type"`
+
+	// Name - The name of the anchor
+	Name string `json:"name"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockAnchor) BlockType() string {
+	return BlockTypeAnchor
+}
+
+func (i *RichBlockAnchor) iRichBlock() {}
+
+// RichBlockList - A list of blocks, corresponding to the HTML tag <ul> or <ol> with multiple nested tags
+// <li>.
+type RichBlockList struct {
+	// Type - Type of the block, always “list”
+	Type string `json:"type"`
+
+	// Items - Items of the list
+	Items []RichBlockListItem `json:"items"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockList) BlockType() string {
+	return BlockTypeList
+}
+
+func (i *RichBlockList) iRichBlock() {}
+
+// RichBlockBlockQuotation - A block quotation, corresponding to the HTML tag <blockquote>.
+type RichBlockBlockQuotation struct {
+	// Type - Type of the block, always “blockquote”
+	Type string `json:"type"`
+
+	// Blocks - Content of the block
+	Blocks []RichBlock `json:"blocks"`
+
+	// Credit - Optional. Credit of the block
+	Credit RichText `json:"credit,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockBlockQuotation) BlockType() string {
+	return BlockTypeBlockQuotation
+}
+
+func (i *RichBlockBlockQuotation) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockTableCell
+func (i *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockBlockQuotation RichBlockBlockQuotation
+	var ui uRichBlockBlockQuotation
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	ui.Credit, err = unmarshalRichText(value.Get("credit"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockBlockQuotation(ui)
+
+	return nil
+}
+
+// RichBlockPullQuotation - A quotation with centered text, loosely corresponding to the HTML tag <aside>.
+type RichBlockPullQuotation struct {
+	// Type - Type of the block, always “pullquote”
+	Type string `json:"type"`
+
+	// Text - Text of the block
+	Text RichText `json:"text"`
+
+	// Credit - Optional. Credit of the block
+	Credit RichText `json:"credit,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockPullQuotation) BlockType() string {
+	return BlockTypePullQuotation
+}
+
+func (i *RichBlockPullQuotation) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockPullQuotation
+func (i *RichBlockPullQuotation) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockPullQuotation RichBlockPullQuotation
+	var ui uRichBlockPullQuotation
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	ui.Credit, err = unmarshalRichText(value.Get("credit"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockPullQuotation(ui)
+
+	return nil
+}
+
+// RichBlockCollage - A collage, corresponding to the custom HTML tag <tg-collage>.
+type RichBlockCollage struct {
+	// Type - Type of the block, always “collage”
+	Type string `json:"type"`
+
+	// Blocks - Elements of the collage
+	Blocks []RichBlock `json:"blocks"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockCollage) BlockType() string {
+	return BlockTypeCollage
+}
+
+func (i *RichBlockCollage) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockCollage
+func (i *RichBlockCollage) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockCollage RichBlockCollage
+	var ui uRichBlockCollage
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockCollage(ui)
+
+	return nil
+}
+
+// RichBlockSlideshow - A slideshow, corresponding to the custom HTML tag <tg-slideshow>.
+type RichBlockSlideshow struct {
+	// Type - Type of the block, always “slideshow”
+	Type string `json:"type"`
+
+	// Blocks - Elements of the slideshow
+	Blocks []RichBlock `json:"blocks"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockSlideshow) BlockType() string {
+	return BlockTypeSlideshow
+}
+
+func (i *RichBlockSlideshow) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockSlideshow
+func (i *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockSlideshow RichBlockSlideshow
+	var ui uRichBlockSlideshow
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockSlideshow(ui)
+
+	return nil
+}
+
+// RichBlockTable - A table, corresponding to the HTML tag <table>.
+type RichBlockTable struct {
+	// Type - Type of the block, always “table”
+	Type string `json:"type"`
+
+	// Cells - Cells of the table
+	Cells [][]RichBlockTableCell `json:"cells"`
+
+	// IsBordered - Optional. True, if the table has borders
+	IsBordered bool `json:"is_bordered,omitempty"`
+
+	// IsStriped - Optional. True, if the table is striped
+	IsStriped bool `json:"is_striped,omitempty"`
+
+	// Caption - Optional. Caption of the table
+	Caption RichText `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockTable) BlockType() string {
+	return BlockTypeTable
+}
+
+func (i *RichBlockTable) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockTable
+func (i *RichBlockTable) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockTable RichBlockTable
+	var ui uRichBlockTable
+
+	ui.Caption, err = unmarshalRichText(value.Get("caption"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockTable(ui)
+
+	return nil
+}
+
+// RichBlockDetails - An expandable block for details disclosure, corresponding to the HTML tag <details>.
+type RichBlockDetails struct {
+	// Type - Type of the block, always “details”
+	Type string `json:"type"`
+
+	// Summary - Always shown summary of the block
+	Summary RichText `json:"summary"`
+
+	// Blocks - Content of the block
+	Blocks []RichBlock `json:"blocks"`
+
+	// IsOpen - Optional. True, if the content of the block is visible by default
+	IsOpen bool `json:"is_open,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockDetails) BlockType() string {
+	return BlockTypeDetails
+}
+
+func (i *RichBlockDetails) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockDetails
+func (i *RichBlockDetails) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockDetails RichBlockDetails
+	var ui uRichBlockDetails
+
+	ui.Summary, err = unmarshalRichText(value.Get("summary"))
+	if err != nil {
+		return err
+	}
+
+	ui.Blocks, err = unmarshalRichBlocks(value.Get("blocks"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockDetails(ui)
+
+	return nil
+}
+
+// RichBlockMap - A block with a map, corresponding to the custom HTML tag <tg-map>.
+type RichBlockMap struct {
+	// Type - Type of the block, always “map”
+	Type string `json:"type"`
+
+	// Location - Location of the center of the map
+	Location Location `json:"location"`
+
+	// Zoom - Map zoom level; 13-20
+	Zoom int `json:"zoom"`
+
+	// Width - Expected width of the map
+	Width int `json:"width"`
+
+	// Height - Expected height of the map
+	Height int `json:"height"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockMap) BlockType() string {
+	return BlockTypeMap
+}
+
+func (i *RichBlockMap) iRichBlock() {}
+
+// RichBlockAnimation - A block with an animation, corresponding to the HTML tag <video>.
+type RichBlockAnimation struct {
+	// Type - Type of the block, always “animation”
+	Type string `json:"type"`
+
+	// Animation - The animation
+	Animation Animation `json:"animation"`
+
+	// HasSpoiler - Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockAnimation) BlockType() string {
+	return BlockTypeAnimation
+}
+
+func (i *RichBlockAnimation) iRichBlock() {}
+
+// RichBlockAudio - A block with a music file, corresponding to the HTML tag <audio>.
+type RichBlockAudio struct {
+	// Type - Type of the block, always “audio”
+	Type string `json:"type"`
+
+	// Audio - The audio
+	Audio Audio `json:"audio"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockAudio) BlockType() string {
+	return BlockTypeAudio
+}
+
+func (i *RichBlockAudio) iRichBlock() {}
+
+// RichBlockPhoto - A block with a photo, corresponding to the HTML tag <photo>.
+type RichBlockPhoto struct {
+	// Type - Type of the block, always “photo”
+	Type string `json:"type"`
+
+	// Photo - Available sizes of the photo
+	Photo []PhotoSize `json:"photo"`
+
+	// HasSpoiler - Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockPhoto) BlockType() string {
+	return BlockTypePhoto
+}
+
+func (i *RichBlockPhoto) iRichBlock() {}
+
+// RichBlockVideo - A block with a video, corresponding to the HTML tag <video>.
+type RichBlockVideo struct {
+	// Type - Type of the block, always “video”
+	Type string `json:"type"`
+
+	// Video - The video
+	Video Video `json:"video"`
+
+	// HasSpoiler - Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockVideo) BlockType() string {
+	return BlockTypeVideo
+}
+
+func (i *RichBlockVideo) iRichBlock() {}
+
+// RichBlockVoiceNote - A block with a voice note, corresponding to the HTML tag <audio>.
+type RichBlockVoiceNote struct {
+	// Type - Type of the block, always “voice_note”
+	Type string `json:"type"`
+
+	// VoiceNote - The voice note
+	VoiceNote Voice `json:"voice_note"`
+
+	// Caption - Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockVoiceNote) BlockType() string {
+	return BlockTypeVoiceNote
+}
+
+func (i *RichBlockVoiceNote) iRichBlock() {}
+
+// RichBlockThinking - A block with a “Thinking…” placeholder, corresponding to the custom HTML tag
+// <tg-thinking>. The block may be used only in sendRichMessageDraft
+// (https://core.telegram.org/bots/api#sendrichmessagedraft), therefore it can't be received in messages. See
+// https://t.me/addemoji/AIActions (https://t.me/addemoji/AIActions) for examples of custom emoji, which are
+// recommended for usage in the block.
+type RichBlockThinking struct {
+	// Type - Type of the block, always “thinking”
+	Type string `json:"type"`
+
+	// Text - Text of the block. See https://t.me/addemoji/AIActions (https://t.me/addemoji/AIActions) for
+	// examples of custom emoji, which are recommended for usage in the block.
+	Text RichText `json:"text"`
+}
+
+// BlockType return RichBlock type
+func (i *RichBlockThinking) BlockType() string {
+	return BlockTypeThinking
+}
+
+func (i *RichBlockThinking) iRichBlock() {}
+
+// UnmarshalJSON converts JSON to RichBlockThinking
+func (i *RichBlockThinking) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uRichBlockThinking RichBlockThinking
+	var ui uRichBlockThinking
+
+	ui.Text, err = unmarshalRichText(value.Get("text"))
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &ui); err != nil {
+		return err
+	}
+	*i = RichBlockThinking(ui)
+
+	return nil
+}
 
 // InlineQuery - This object represents an incoming inline query. When the user sends an empty query, your
 // bot could return some default or trending results.
@@ -7984,8 +10250,9 @@ func (i *InlineQueryResultCachedAudio) ResultType() string {
 func (i *InlineQueryResultCachedAudio) iInlineQueryResult() {}
 
 // InputMessageContent - This object represents the content of a message to be sent as a result of an inline
-// query. Telegram clients currently support the following 5 types:
+// query. Telegram clients currently support the following types:
 // InputTextMessageContent (https://core.telegram.org/bots/api#inputtextmessagecontent)
+// InputRichMessageContent (https://core.telegram.org/bots/api#inputrichmessagecontent)
 // InputLocationMessageContent (https://core.telegram.org/bots/api#inputlocationmessagecontent)
 // InputVenueMessageContent (https://core.telegram.org/bots/api#inputvenuemessagecontent)
 // InputContactMessageContent (https://core.telegram.org/bots/api#inputcontactmessagecontent)
@@ -8000,6 +10267,7 @@ type InputMessageContent interface {
 // InputMessageContent types
 const (
 	ContentTypeText     = "InputTextMessage"
+	ContentTypeRich     = "InputRichMessage"
 	ContentTypeLocation = "InputLocationMessage"
 	ContentTypeVenue    = "InputVenueMessage"
 	ContentTypeContact  = "InputContactMessage"
@@ -8030,6 +10298,20 @@ func (i *InputTextMessageContent) ContentType() string {
 }
 
 func (i *InputTextMessageContent) iInputMessageContent() {}
+
+// InputRichMessageContent - Represents the content (https://core.telegram.org/bots/api#inputmessagecontent)
+// of a rich message to be sent as the result of an inline query.
+type InputRichMessageContent struct {
+	// RichMessage - The message to be sent
+	RichMessage InputRichMessage `json:"rich_message"`
+}
+
+// ContentType returns InputMessageContent type
+func (i *InputRichMessageContent) ContentType() string {
+	return ContentTypeRich
+}
+
+func (i *InputRichMessageContent) iInputMessageContent() {}
 
 // InputLocationMessageContent - Represents the content
 // (https://core.telegram.org/bots/api#inputmessagecontent) of a location message to be sent as the result of an
