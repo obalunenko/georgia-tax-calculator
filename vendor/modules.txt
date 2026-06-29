@@ -212,7 +212,7 @@ github.com/twitchyliquid64/golang-asm/objabi
 github.com/twitchyliquid64/golang-asm/src
 github.com/twitchyliquid64/golang-asm/sys
 github.com/twitchyliquid64/golang-asm/unsafeheader
-# github.com/urfave/cli/v3 v3.10.0
+# github.com/urfave/cli/v3 v3.10.1
 ## explicit; go 1.22
 github.com/urfave/cli/v3
 # github.com/valyala/bytebufferpool v1.0.0
