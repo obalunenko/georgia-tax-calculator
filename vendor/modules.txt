@@ -159,7 +159,7 @@ github.com/muesli/cancelreader
 # github.com/muesli/termenv v0.16.0
 ## explicit; go 1.17
 github.com/muesli/termenv
-# github.com/mymmrac/telego v1.11.0
+# github.com/mymmrac/telego v1.11.1
 ## explicit; go 1.25.7
 github.com/mymmrac/telego
 github.com/mymmrac/telego/internal/json

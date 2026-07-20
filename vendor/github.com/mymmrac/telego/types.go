@@ -8394,7 +8394,7 @@ func (r *RichBlockCaption) UnmarshalJSON(data []byte) error {
 }
 
 // RichBlockTableCell - Cell in a table.
-type RichBlockTableCell struct {
+type RichBlockTableCell struct { //nolint:recvcheck
 	// Text - Optional. Text in the cell. If omitted, then the cell is invisible.
 	Text RichText `json:"text,omitempty"`
 
@@ -8441,6 +8441,20 @@ func (r *RichBlockTableCell) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// Table cell horizontal aligment
+const (
+	CellAlignLeft   = "left"
+	CellAlignCenter = "center"
+	CellAlignRight  = "right"
+)
+
+// Table cell vertical aligment
+const (
+	CallValignTop    = "top"
+	CellValignMiddle = "middle"
+	CellValignBottom = "bottom"
+)
 
 // RichBlockListItem - An item of a list.
 type RichBlockListItem struct {
@@ -9329,7 +9343,7 @@ func (i *RichBlockThinking) UnmarshalJSON(data []byte) error {
 }
 
 // InputRichBlockListItem - An item of a list to be sent.
-type InputRichBlockListItem struct {
+type InputRichBlockListItem struct { //nolint:recvcheck
 	// Blocks - The content of the item
 	Blocks []InputRichBlock `json:"blocks"`
 
