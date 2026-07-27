@@ -6,7 +6,7 @@ require (
 	github.com/briandowns/spinner v1.23.2
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
-	github.com/mymmrac/telego v1.11.0
+	github.com/mymmrac/telego v1.11.1
 	github.com/obalunenko/getenv v1.15.0
 	github.com/obalunenko/logger v1.2.0
 	github.com/obalunenko/version v1.3.1
