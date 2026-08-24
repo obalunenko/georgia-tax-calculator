@@ -532,7 +532,7 @@ type ChatFullInfo struct {
 // unknownReactionTypeErr is an error for unknown reaction type
 const unknownReactionTypeErr = "unknown reaction type: %q"
 
-// UnmarshalJSON converts JSON to Chat
+// UnmarshalJSON converts JSON to ChatFullInfo
 func (c *ChatFullInfo) UnmarshalJSON(data []byte) error {
 	parser := json.ParserPoll.Get()
 	defer json.ParserPoll.Put(parser)
@@ -2456,6 +2456,35 @@ type PollOptionAdded struct {
 	OptionTextEntities []MessageEntity `json:"option_text_entities,omitempty"`
 }
 
+// UnmarshalJSON converts JSON to PollOptionAdded
+func (p *PollOptionAdded) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uPollOptionAdded PollOptionAdded
+	var up uPollOptionAdded
+
+	if value.Exists("poll_message") {
+		if value.GetInt("poll_message", "date") == 0 {
+			up.PollMessage = &InaccessibleMessage{}
+		} else {
+			up.PollMessage = &Message{}
+		}
+	}
+
+	if err = json.Unmarshal(data, &up); err != nil {
+		return err
+	}
+	*p = PollOptionAdded(up)
+
+	return nil
+}
+
 // PollOptionDeleted - Describes a service message about an option deleted from a poll.
 type PollOptionDeleted struct {
 	// PollMessage - Optional. Message containing the poll from which the option was deleted, if known. Note
@@ -2471,6 +2500,35 @@ type PollOptionDeleted struct {
 
 	// OptionTextEntities - Optional. Special entities that appear in the option_text
 	OptionTextEntities []MessageEntity `json:"option_text_entities,omitempty"`
+}
+
+// UnmarshalJSON converts JSON to PollOptionDeleted
+func (p *PollOptionDeleted) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uPollOptionAdded PollOptionAdded
+	var up uPollOptionAdded
+
+	if value.Exists("poll_message") {
+		if value.GetInt("poll_message", "date") == 0 {
+			up.PollMessage = &InaccessibleMessage{}
+		} else {
+			up.PollMessage = &Message{}
+		}
+	}
+
+	if err = json.Unmarshal(data, &up); err != nil {
+		return err
+	}
+	*p = PollOptionDeleted(up)
+
+	return nil
 }
 
 // ChatBoostAdded - This object represents a service message about a user boosting a chat.
@@ -2685,6 +2743,43 @@ func (b *BackgroundTypePattern) BackgroundType() string {
 }
 
 func (b *BackgroundTypePattern) iBackgroundType() {}
+
+// UnmarshalJSON converts JSON to BackgroundTypePattern
+func (b *BackgroundTypePattern) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	if !value.Exists("fill") {
+		return errors.New("no fill")
+	}
+
+	type uBackgroundTypePattern BackgroundTypePattern
+	var ub uBackgroundTypePattern
+
+	fillType := string(value.GetStringBytes("fill", "type"))
+	switch fillType {
+	case BackgroundFilledSolid:
+		ub.Fill = &BackgroundFillSolid{}
+	case BackgroundFilledGradient:
+		ub.Fill = &BackgroundFillGradient{}
+	case BackgroundFilledFreeformGradient:
+		ub.Fill = &BackgroundFillFreeformGradient{}
+	default:
+		return fmt.Errorf("unknown chat background patern fill type: %q", fillType)
+	}
+
+	if err = json.Unmarshal(data, &ub); err != nil {
+		return err
+	}
+	*b = BackgroundTypePattern(ub)
+
+	return nil
+}
 
 // BackgroundTypeChatTheme - The background is taken directly from a built-in chat theme.
 type BackgroundTypeChatTheme struct {
@@ -11616,7 +11711,7 @@ const (
 	PartnerTypeAffiliateProgram = "affiliate_program"
 	PartnerTypeFragment         = "fragment"
 	PartnerTypeTelegramAds      = "telegram_ads"
-	PartnerTypeTelegramApi      = "telegram_api" //nolint:revive
+	PartnerTypeTelegramApi      = "telegram_api" //revive:disable:var-naming
 	PartnerTypeOther            = "other"
 )
 
@@ -11678,7 +11773,7 @@ func (p *TransactionPartnerUser) PartnerType() string {
 
 func (p *TransactionPartnerUser) iTransactionPartner() {}
 
-// UnmarshalJSON converts JSON to PaidMediaInfo
+// UnmarshalJSON converts JSON to TransactionPartnerUser
 func (p *TransactionPartnerUser) UnmarshalJSON(data []byte) error {
 	parser := json.ParserPoll.Get()
 	defer json.ParserPoll.Put(parser)
@@ -11777,6 +11872,41 @@ func (p *TransactionPartnerFragment) PartnerType() string {
 
 func (p *TransactionPartnerFragment) iTransactionPartner() {}
 
+// UnmarshalJSON converts JSON to TransactionPartnerFragment
+func (p *TransactionPartnerFragment) UnmarshalJSON(data []byte) error {
+	parser := json.ParserPoll.Get()
+	defer json.ParserPoll.Put(parser)
+
+	value, err := parser.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+
+	type uTransactionPartnerFragment TransactionPartnerFragment
+	var up uTransactionPartnerFragment
+
+	if value.Exists("withdrawal_state") {
+		withdrawalStateType := string(value.GetStringBytes("withdrawal_state", "type"))
+		switch withdrawalStateType {
+		case WithdrawalStatePending:
+			up.WithdrawalState = &RevenueWithdrawalStatePending{}
+		case WithdrawalStateSucceeded:
+			up.WithdrawalState = &RevenueWithdrawalStateSucceeded{}
+		case WithdrawalStateFailed:
+			up.WithdrawalState = &RevenueWithdrawalStateFailed{}
+		default:
+			return fmt.Errorf("unknown withdrawal state type: %q", withdrawalStateType)
+		}
+	}
+
+	if err = json.Unmarshal(data, &up); err != nil {
+		return err
+	}
+	*p = TransactionPartnerFragment(up)
+
+	return nil
+}
+
 // TransactionPartnerTelegramAds - Describes a withdrawal transaction to the Telegram Ads platform.
 type TransactionPartnerTelegramAds struct {
 	// Type - Type of the transaction partner, always “telegram_ads”
@@ -11792,7 +11922,7 @@ func (p *TransactionPartnerTelegramAds) iTransactionPartner() {}
 
 // TransactionPartnerTelegramApi - Describes a transaction with payment for paid broadcasting
 // (https://core.telegram.org/bots/api#paid-broadcasts).
-type TransactionPartnerTelegramApi struct { //nolint:revive
+type TransactionPartnerTelegramApi struct { //revive:disable:var-naming
 	// Type - Type of the transaction partner, always “telegram_api”
 	Type string `json:"type"`
 
@@ -11848,7 +11978,7 @@ type StarTransaction struct {
 	Receiver TransactionPartner `json:"receiver,omitempty"`
 }
 
-// UnmarshalJSON converts JSON to Chat
+// UnmarshalJSON converts JSON to StarTransaction
 func (t *StarTransaction) UnmarshalJSON(data []byte) error {
 	parser := json.ParserPoll.Get()
 	defer json.ParserPoll.Put(parser)
