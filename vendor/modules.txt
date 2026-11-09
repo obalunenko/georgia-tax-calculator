@@ -1,3 +1,15 @@
+# charm.land/bubbles/v2 v2.2.1
+## explicit; go 1.25.0
+charm.land/bubbles/v2/cursor
+charm.land/bubbles/v2/internal/runeutil
+charm.land/bubbles/v2/key
+charm.land/bubbles/v2/textinput
+# charm.land/bubbletea/v2 v2.1.1
+## explicit; go 1.26.0
+charm.land/bubbletea/v2
+# charm.land/lipgloss/v2 v2.0.5
+## explicit; go 1.25.0
+charm.land/lipgloss/v2
 # github.com/andybalholm/brotli v1.2.2
 ## explicit; go 1.22
 github.com/andybalholm/brotli
@@ -6,9 +18,6 @@ github.com/andybalholm/brotli/matchfinder
 # github.com/atotto/clipboard v0.1.4
 ## explicit
 github.com/atotto/clipboard
-# github.com/aymanbagabas/go-osc52/v2 v2.0.1
-## explicit; go 1.16
-github.com/aymanbagabas/go-osc52/v2
 # github.com/briandowns/spinner v1.23.2
 ## explicit; go 1.17
 github.com/briandowns/spinner
@@ -57,38 +66,30 @@ github.com/bytedance/sonic/loader/internal/abi
 github.com/bytedance/sonic/loader/internal/iasm/expr
 github.com/bytedance/sonic/loader/internal/iasm/x86_64
 github.com/bytedance/sonic/loader/internal/rt
-# github.com/charmbracelet/bubbles v1.0.0
-## explicit; go 1.24.2
-github.com/charmbracelet/bubbles/cursor
-github.com/charmbracelet/bubbles/key
-github.com/charmbracelet/bubbles/runeutil
-github.com/charmbracelet/bubbles/textinput
-# github.com/charmbracelet/bubbletea v1.3.10
-## explicit; go 1.24.0
-github.com/charmbracelet/bubbletea
-# github.com/charmbracelet/colorprofile v0.4.1
-## explicit; go 1.24.2
+# github.com/charmbracelet/colorprofile v0.4.3
+## explicit; go 1.25.0
 github.com/charmbracelet/colorprofile
-# github.com/charmbracelet/lipgloss v1.1.0
-## explicit; go 1.18
-github.com/charmbracelet/lipgloss
-# github.com/charmbracelet/x/ansi v0.11.6
+# github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4
+## explicit; go 1.26.0
+github.com/charmbracelet/ultraviolet
+# github.com/charmbracelet/x/ansi v0.11.9
 ## explicit; go 1.24.2
 github.com/charmbracelet/x/ansi
+github.com/charmbracelet/x/ansi/kitty
 github.com/charmbracelet/x/ansi/parser
-# github.com/charmbracelet/x/cellbuf v0.0.15
-## explicit; go 1.24.2
-github.com/charmbracelet/x/cellbuf
 # github.com/charmbracelet/x/term v0.2.2
 ## explicit; go 1.24.0
 github.com/charmbracelet/x/term
-# github.com/clipperhouse/displaywidth v0.9.0
+# github.com/charmbracelet/x/termios v0.1.1
+## explicit; go 1.18
+github.com/charmbracelet/x/termios
+# github.com/charmbracelet/x/windows v0.2.2
+## explicit; go 1.23.0
+github.com/charmbracelet/x/windows
+# github.com/clipperhouse/displaywidth v0.11.0
 ## explicit; go 1.18
 github.com/clipperhouse/displaywidth
-# github.com/clipperhouse/stringish v0.1.1
-## explicit; go 1.18
-github.com/clipperhouse/stringish
-# github.com/clipperhouse/uax29/v2 v2.5.0
+# github.com/clipperhouse/uax29/v2 v2.7.0
 ## explicit; go 1.18
 github.com/clipperhouse/uax29/v2/graphemes
 # github.com/cloudwego/base64x v0.1.6
@@ -98,9 +99,6 @@ github.com/cloudwego/base64x/internal/native
 github.com/cloudwego/base64x/internal/native/avx2
 github.com/cloudwego/base64x/internal/native/sse
 github.com/cloudwego/base64x/internal/rt
-# github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f
-## explicit; go 1.16
-github.com/erikgeiser/coninput
 # github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
@@ -131,7 +129,7 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/klauspost/cpuid/v2 v2.2.9
 ## explicit; go 1.20
 github.com/klauspost/cpuid/v2
-# github.com/lucasb-eyer/go-colorful v1.3.0
+# github.com/lucasb-eyer/go-colorful v1.4.1
 ## explicit; go 1.12
 github.com/lucasb-eyer/go-colorful
 # github.com/mattn/go-colorable v0.1.13
@@ -140,22 +138,12 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/mattn/go-localereader v0.0.1
-## explicit
-github.com/mattn/go-localereader
-# github.com/mattn/go-runewidth v0.0.19
-## explicit; go 1.20
+# github.com/mattn/go-runewidth v0.0.30
+## explicit; go 1.23
 github.com/mattn/go-runewidth
-# github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
-## explicit; go 1.17
-github.com/muesli/ansi
-github.com/muesli/ansi/compressor
 # github.com/muesli/cancelreader v0.2.2
 ## explicit; go 1.17
 github.com/muesli/cancelreader
-# github.com/muesli/termenv v0.16.0
-## explicit; go 1.17
-github.com/muesli/termenv
 # github.com/mymmrac/telego v1.11.2
 ## explicit; go 1.25.7
 github.com/mymmrac/telego
@@ -223,7 +211,7 @@ github.com/valyala/fasthttp/stackless
 ## explicit; go 1.24
 github.com/valyala/fastjson
 github.com/valyala/fastjson/fastfloat
-# github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+# github.com/xo/terminfo v1.0.0
 ## explicit; go 1.19
 github.com/xo/terminfo
 # go.yaml.in/yaml/v3 v3.0.5
@@ -250,9 +238,6 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.6.0
 ## explicit; go 1.17
 golang.org/x/term
-# golang.org/x/text v0.40.0
-## explicit; go 1.25.0
-golang.org/x/text/transform
 # golang.org/x/tools v0.52.0
 ## explicit; go 1.26.0
 golang.org/x/tools/go/ast/astutil

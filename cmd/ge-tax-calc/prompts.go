@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
@@ -22,7 +22,48 @@ var errUserAborted = errors.New("input aborted")
 const (
 	confirmYes = "yes"
 	confirmNo  = "no"
+
+	keyCtrlC = "ctrl+c"
+
+	// inputWidth has to be set: with zero width textinput v2 renders only
+	// the first rune of the placeholder.
+	inputWidth = 32
 )
+
+// fitHeightModel drops the top lines of a frame that is taller than the
+// terminal. Bubble Tea v2 redraws such inline frames on every renderer tick,
+// flooding the terminal scrollback.
+type fitHeightModel struct {
+	tea.Model
+	height int
+}
+
+func newProgram(model tea.Model) *tea.Program {
+	return tea.NewProgram(&fitHeightModel{Model: model})
+}
+
+func (m *fitHeightModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if size, ok := msg.(tea.WindowSizeMsg); ok {
+		m.height = size.Height
+	}
+
+	var cmd tea.Cmd
+
+	m.Model, cmd = m.Model.Update(msg)
+
+	return m, cmd
+}
+
+func (m *fitHeightModel) View() tea.View {
+	view := m.Model.View()
+
+	lines := strings.Split(view.Content, "\n")
+	if m.height > 0 && len(lines) > m.height {
+		view.SetContent(strings.Join(lines[len(lines)-m.height:], "\n"))
+	}
+
+	return view
+}
 
 type option struct {
 	Label       string
@@ -54,6 +95,7 @@ func newInputPrompt(title, placeholder, defaultValue string, validator func(stri
 	ti := textinput.New()
 	ti.Prompt = "> "
 	ti.Placeholder = placeholder
+	ti.SetWidth(inputWidth)
 	ti.SetValue(defaultValue)
 	ti.Focus()
 
@@ -124,9 +166,8 @@ func (p *promptModel) updateInput(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEnter:
+	case tea.KeyPressMsg:
+		if msg.Code == tea.KeyEnter {
 			p.err = nil
 			val := strings.TrimSpace(p.textInput.Value())
 			if p.validator != nil {
@@ -153,7 +194,7 @@ func (p *promptModel) updateInput(msg tea.Msg) tea.Cmd {
 }
 
 func (p *promptModel) updateSelect(msg tea.Msg) {
-	key, ok := msg.(tea.KeyMsg)
+	key, ok := msg.(tea.KeyPressMsg)
 	if !ok {
 		return
 	}

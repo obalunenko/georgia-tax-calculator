@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
@@ -12,7 +12,7 @@ import (
 
 func runConvertMenu() (service.ConvertRequest, error) {
 	model := newConvertModel()
-	if _, err := tea.NewProgram(model).Run(); err != nil {
+	if _, err := newProgram(model).Run(); err != nil {
 		return service.ConvertRequest{}, err
 	}
 
@@ -64,8 +64,8 @@ func (m *convertModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	if key, ok := msg.(tea.KeyMsg); ok {
-		if key.Type == tea.KeyCtrlC {
+	if key, ok := msg.(tea.KeyPressMsg); ok {
+		if key.String() == keyCtrlC {
 			m.err = errUserAborted
 			return m, tea.Quit
 		}
@@ -79,9 +79,9 @@ func (m *convertModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *convertModel) View() string {
+func (m *convertModel) View() tea.View {
 	if m.err != nil {
-		return fmt.Sprintf("error: %v\n", m.err)
+		return tea.NewView(fmt.Sprintf("error: %v\n", m.err))
 	}
 
 	var b strings.Builder
@@ -102,7 +102,7 @@ func (m *convertModel) View() string {
 		b.WriteString(m.prompt.View())
 	}
 
-	return b.String()
+	return tea.NewView(b.String())
 }
 
 func (m *convertModel) advance() tea.Cmd {
