@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.26.2
-ARG ALPINE_VERSION=3.22
+ARG GO_VERSION=1.27.3
+ARG ALPINE_VERSION=3.24
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
@@ -23,6 +23,4 @@ FROM alpine:${ALPINE_VERSION} AS final
 COPY --from=builder /out/ge-bot /ge-bot
 
 # The bot token must be supplied at runtime via the TELEGRAM_BOT_TOKEN env var.
-ENV TELEGRAM_BOT_TOKEN=""
-
 ENTRYPOINT ["/ge-bot"]

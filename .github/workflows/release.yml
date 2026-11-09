@@ -14,7 +14,7 @@ jobs:
       max-parallel: 2
       matrix:
         os: [ 'ubuntu-24.04' ]
-        go-version: [1.26.x]
+        go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Build
     steps:
@@ -32,19 +32,6 @@ jobs:
           go version
         shell: bash
 
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-
       - name: Install tools
         run: |
           make install-tools
@@ -60,7 +47,7 @@ jobs:
       max-parallel: 2
       matrix:
         os: [ 'ubuntu-24.04' ]
-        go-version: [1.26.x]
+        go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Regression tests
     steps:
@@ -77,19 +64,6 @@ jobs:
       - run: |
           go version
         shell: bash
-
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
       - name: Install tools
         run: |
@@ -109,7 +83,7 @@ jobs:
       max-parallel: 1
       matrix:
         os: [ 'ubuntu-24.04' ]
-        go-version: [1.26.x]
+        go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Lint
     steps:
@@ -126,19 +100,6 @@ jobs:
       - run: |
           go version
         shell: bash
-
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
       - name: Install tools
         run: |
@@ -162,7 +123,7 @@ jobs:
       max-parallel: 1
       matrix:
         os: [ 'ubuntu-24.04' ]
-        go-version: [1.26.x]
+        go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Release
     steps:
