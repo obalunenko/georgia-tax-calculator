@@ -23,6 +23,4 @@ FROM alpine:${ALPINE_VERSION} AS final
 COPY --from=builder /out/ge-bot /ge-bot
 
 # The bot token must be supplied at runtime via the TELEGRAM_BOT_TOKEN env var.
-ENV TELEGRAM_BOT_TOKEN=""
-
 ENTRYPOINT ["/ge-bot"]
