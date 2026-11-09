@@ -168,6 +168,7 @@ func (m *convertModel) advance() tea.Cmd {
 }
 
 func (m *convertModel) setPrompt(p *promptModel) tea.Cmd {
+	p.inheritHeight(m.prompt)
 	m.prompt = p
 
 	return m.prompt.Init()

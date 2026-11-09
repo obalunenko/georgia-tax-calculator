@@ -140,6 +140,7 @@ func (m *taxDetailsModel) advance() tea.Cmd {
 }
 
 func (m *taxDetailsModel) setPrompt(p *promptModel) tea.Cmd {
+	p.inheritHeight(m.prompt)
 	m.prompt = p
 
 	return m.prompt.Init()
@@ -303,6 +304,7 @@ func (m *incomeModel) advance() tea.Cmd {
 }
 
 func (m *incomeModel) setPrompt(p *promptModel) tea.Cmd {
+	p.inheritHeight(m.prompt)
 	m.prompt = p
 
 	return m.prompt.Init()

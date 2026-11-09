@@ -89,6 +89,7 @@ type promptModel struct {
 	value     string
 	done      bool
 	err       error
+	height    int
 }
 
 func newInputPrompt(title, placeholder, defaultValue string, validator func(string) error) *promptModel {
@@ -152,6 +153,10 @@ func (p *promptModel) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 
+	if size, ok := msg.(tea.WindowSizeMsg); ok {
+		p.height = size.Height
+	}
+
 	switch p.mode {
 	case promptModeInput:
 		return p.updateInput(msg)
@@ -181,14 +186,15 @@ func (p *promptModel) updateInput(msg tea.Msg) tea.Cmd {
 			p.done = true
 			return cmd
 		}
+
+		p.err = nil
+	case tea.PasteMsg:
+		p.err = nil
 	case tea.WindowSizeMsg:
 		// No-op.
 	}
 
 	p.textInput, cmd = p.textInput.Update(msg)
-	if p.err != nil {
-		p.err = nil
-	}
 
 	return cmd
 }
@@ -237,7 +243,9 @@ func (p *promptModel) View() string {
 		if len(p.options) == 0 {
 			b.WriteString("No options available\n")
 		} else {
-			for i := range p.options {
+			start, end := p.visibleOptions()
+
+			for i := start; i < end; i++ {
 				cursor := " "
 				if i == p.cursor {
 					cursor = ">"
@@ -257,6 +265,18 @@ func (p *promptModel) View() string {
 		}
 	}
 
+	b.WriteString(p.notesView())
+
+	b.WriteByte('\n')
+	b.WriteString(p.instructions())
+	b.WriteByte('\n')
+
+	return b.String()
+}
+
+func (p *promptModel) notesView() string {
+	var b strings.Builder
+
 	if note := strings.TrimSpace(p.note); note != "" {
 		b.WriteByte('\n')
 		b.WriteString(note)
@@ -269,11 +289,30 @@ func (p *promptModel) View() string {
 		b.WriteByte('\n')
 	}
 
-	b.WriteByte('\n')
-	b.WriteString(p.instructions())
-	b.WriteByte('\n')
-
 	return b.String()
+}
+
+// visibleOptions returns the range of options that fits the terminal and keeps
+// the cursor in view.
+func (p *promptModel) visibleOptions() (start, end int) {
+	// Title, instructions, the blank lines after and before them and the
+	// final empty line of the frame.
+	const (
+		chromeLines = 5
+		half        = 2
+	)
+
+	total := len(p.options)
+	rows := p.height - chromeLines - strings.Count(p.title+p.notesView(), "\n")
+
+	if p.height <= 0 || rows >= total {
+		return 0, total
+	}
+
+	rows = max(rows, 1)
+	start = min(max(p.cursor-rows/half, 0), total-rows)
+
+	return start, start + rows
 }
 
 func (p *promptModel) instructions() string {
@@ -281,7 +320,13 @@ func (p *promptModel) instructions() string {
 	case promptModeInput:
 		return "Enter to confirm."
 	case promptModeSelect:
-		return "Use ↑/↓ to navigate, Enter to confirm."
+		const text = "Use ↑/↓ to navigate, Enter to confirm."
+
+		if start, end := p.visibleOptions(); end-start < len(p.options) {
+			return fmt.Sprintf("%s (%d/%d)", text, p.cursor+1, len(p.options))
+		}
+
+		return text
 	default:
 		return ""
 	}
@@ -309,6 +354,16 @@ func (p *promptModel) SetNote(note string) {
 	}
 
 	p.note = note
+}
+
+// inheritHeight carries over the terminal height: the window size message is
+// sent only on start and resize, not for every new prompt.
+func (p *promptModel) inheritHeight(prev *promptModel) {
+	if p == nil || prev == nil {
+		return
+	}
+
+	p.height = prev.height
 }
 
 func validateMoneyInput(val string) error {
