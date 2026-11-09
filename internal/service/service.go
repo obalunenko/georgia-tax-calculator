@@ -76,9 +76,9 @@ func (c CalculateResponse) String() string {
 
 			resp.WriteString(fmt.Sprintf("\t- %d:\n", i+1))
 
-			lines := strings.Split(raw, "\n")
+			lines := strings.SplitSeq(raw, "\n")
 
-			for _, line := range lines {
+			for line := range lines {
 				if strings.TrimSpace(line) != "" {
 					resp.WriteString(fmt.Sprintf("\t\t%s\n", line))
 				}

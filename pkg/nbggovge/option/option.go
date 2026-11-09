@@ -2,6 +2,7 @@
 package option
 
 import (
+	"slices"
 	"time"
 
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal"
@@ -35,12 +36,8 @@ func (w withCurrency) Apply(p *internal.RatesParams) {
 
 	var exist bool
 
-	for _, code := range p.CurrencyCodes {
-		if code == c {
-			exist = true
-
-			break
-		}
+	if slices.Contains(p.CurrencyCodes, c) {
+		exist = true
 	}
 
 	if !exist {
