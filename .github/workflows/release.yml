@@ -32,19 +32,6 @@ jobs:
           go version
         shell: bash
 
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-
       - name: Install tools
         run: |
           make install-tools
@@ -77,19 +64,6 @@ jobs:
       - run: |
           go version
         shell: bash
-
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
       - name: Install tools
         run: |
@@ -126,19 +100,6 @@ jobs:
       - run: |
           go version
         shell: bash
-
-      - name: Set up cache
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
       - name: Install tools
         run: |
