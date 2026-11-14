@@ -88,7 +88,7 @@ on a local build.
    `--version` runs, **Then** both commit fields end with `+CHANGES`.
 3. **Given** a binary built from a clean tree (`vcs.modified=false`),
    **When** `--version` runs, **Then** the commit fields have no `+CHANGES`
-   suffix (BUG-002; currently they do).
+   suffix (BUG-002; fixed by `github.com/obalunenko/version` v1.4.0).
 
 ---
 
@@ -157,7 +157,7 @@ a `v*` tag.
 - The `+CHANGES` suffix is added whenever build info has a `vcs.modified`
   key, including `vcs.modified=false`, so clean builds also show it. This is
   a defect of `github.com/obalunenko/version` v1.3.1 (BUG-002), not intended
-  behavior.
+  behavior; fixed by upgrading to v1.4.0 (T014).
 - The spinner runs inside `internal/service`, so it also runs in the bot
   process (constitution known deviation).
 - The CLI context has no signal handling; Ctrl+C inside a form is handled by
@@ -236,6 +236,6 @@ US2.3, updated Edge Cases, Assumptions, and SC-005.
   parsed.
 - `github.com/obalunenko/version` (same author) is the source of version
   data; goreleaser does not inject version through `-ldflags`. v1.3.1
-  treats `vcs.modified=false` as modified (BUG-002); a fixed version is
-  required.
+  treated `vcs.modified=false` as modified (BUG-002); v1.4.0 (requires Go
+  1.27) fixes it and is used since 2026-11-15.
 - Releases are cut from `master` as described in the constitution.

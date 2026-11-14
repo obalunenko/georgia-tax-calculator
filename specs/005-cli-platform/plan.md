@@ -25,8 +25,8 @@ same goreleaser config through Docker.
 **Language/Version**: Go 1.27.3, single module with committed `vendor/`.
 
 **Primary Dependencies**: `github.com/urfave/cli/v3` v3.14.0;
-`github.com/obalunenko/version` v1.3.1 (build info through `runtime/debug`;
-known defect: treats `vcs.modified=false` as modified, BUG-002);
+`github.com/obalunenko/version` ~~v1.3.1~~ v1.4.0 (build info through
+`runtime/debug`; v1.3.1 treated `vcs.modified=false` as modified, BUG-002);
 `github.com/obalunenko/logger`; `github.com/briandowns/spinner`;
 `github.com/savioxavier/termlink` (declarations link, 003); goreleaser v2.
 
@@ -119,7 +119,8 @@ forms; platform concerns are small and split by role (`main`, `commands`,
    `-ldflags -X`: goreleaser needs no ldflags, and `go install` builds also
    report a module version. BUG-002: the modified flag must come from the
    value of `vcs.modified`, fixed in the library (T013) and picked up by a
-   dependency bump (T014). (FR-006, SC-005)
+   dependency bump (T014). Done: obalunenko/version#37, released as
+   v1.4.0. (FR-006, SC-005)
 
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
