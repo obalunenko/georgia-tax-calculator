@@ -96,6 +96,17 @@ feature.
 
 ---
 
+## Phase B3: Bugfix BUG-003 - Store persistence in Docker and store errors
+
+- [x] T023 [US4] Create the `bot` system user (UID/GID 10001) and `/data` owned by it, set `WORKDIR /data`, `USER bot`, and `VOLUME /data` in `build/docker/bot/Dockerfile` (FR-019)
+- [x] T024 [US4] Mount the named volume `bot-data` at `/data` in `deployments/docker-compose/bot-docker-compose.yml`; document it in `.env.example` and `README.md` (FR-019)
+- [x] T025 [US3] Log store load errors (except a missing file) in `newUserStore` and return save errors from `Track`; log them in `trackUserMsg`/`trackUserCallback` (`cmd/bot/users.go`, `cmd/bot/bot.go`) (FR-020)
+- [x] T026 [P] [US3] Table-driven tests for the store (round trip, missing file, invalid JSON, unwritable path) in `cmd/bot/users_test.go`; check the image with `id` and a two-container round trip on one volume (SC-006). Checked on 2026-11-15: `uid=10001(bot)`, `/data` owned by `bot`, a file written by one container is read by the next; hadolint passes
+
+**Bugfix**: 2026-11-15 — BUG-003 Updated from bugfix patch
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
@@ -110,7 +121,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    panic in any handler terminates the process. Handlers dereference
    `msg.From` without a nil check (`cmd/bot/handlers.go:25,47,70,84,109,129`),
    unlike `trackUserMsg`.
-3. **User store lost in Docker.** Compose defines no volume and the runtime
+3. **Fixed by T023–T026 (BUG-003).** **User store lost in Docker.** Compose defines no volume and the runtime
    image sets no `WORKDIR`, so `users.json` is written to `/users.json` inside
    the container and is lost when the container is recreated (`make bot-up`
    uses `--build`). Load and save errors are ignored silently.
@@ -125,7 +136,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    chat IDs.
 7. **Sensitive data in debug logs.** At debug level, user input and outgoing
    messages (including amounts) are logged.
-8. **Container runs as root** (no `USER` in `build/docker/bot/Dockerfile`).
+8. **Fixed by T023 (BUG-003).** **Container runs as root** (no `USER` in `build/docker/bot/Dockerfile`).
    Fix together with gap 3: with a non-root `USER` and no writable
    `WORKDIR` or volume, writing `/users.json` fails, and the error is
    ignored, so chat tracking stops without any log.

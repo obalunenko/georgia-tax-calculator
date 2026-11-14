@@ -134,6 +134,10 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    | `make bot-down` | Stop and remove the bot container |
    | `make bot-logs` | Follow the bot's log output |
 
+   The container runs as a non-root user (UID 10001). Known chats are stored in
+   the `bot-data` volume mounted at `/data`, so they survive `make bot-down` and
+   image rebuilds; `docker compose down -v` removes them.
+
 ### Bot Commands
 
 - `/start` — Welcome message and command overview

@@ -40,7 +40,7 @@ func run(ctx context.Context, token string) error {
 
 	log.FromContext(ctx).WithField("username", me.Username).Info("Bot started")
 
-	users := newUserStore(userStorePath())
+	users := newUserStore(ctx, userStorePath())
 
 	updates, err := bot.UpdatesViaLongPolling(ctx, nil)
 	if err != nil {
@@ -86,6 +86,18 @@ func run(ctx context.Context, token string) error {
 	return nil
 }
 
+// trackChat records chatID in the user store and logs new chats and save errors.
+func trackChat(ctxLog log.Logger, users *userStore, chatID int64) {
+	isNew, err := users.Track(chatID)
+	if err != nil {
+		ctxLog.WithError(err).Error("bot: failed to save user store")
+	}
+
+	if isNew {
+		ctxLog.Info("bot: new user registered")
+	}
+}
+
 // trackUserMsg wraps a MessageHandler to record the chat ID in the user store.
 func trackUserMsg(users *userStore, h telegohandler.MessageHandler) telegohandler.MessageHandler {
 	return func(ctx *telegohandler.Context, msg telego.Message) error {
@@ -99,9 +111,7 @@ func trackUserMsg(users *userStore, h telegohandler.MessageHandler) telegohandle
 
 		ctxLog.Debug("bot: user input")
 
-		if users.Track(msg.Chat.ID) {
-			ctxLog.Info("bot: new user registered")
-		}
+		trackChat(ctxLog, users, msg.Chat.ID)
 
 		return h(ctx, msg)
 	}
@@ -120,9 +130,7 @@ func trackUserCallback(users *userStore, h telegohandler.CallbackQueryHandler) t
 			chatID := query.Message.GetChat().ID
 			ctxLog = ctxLog.WithField("chat_id", chatID)
 
-			if users.Track(chatID) {
-				ctxLog.Info("bot: new user registered")
-			}
+			trackChat(ctxLog, users, chatID)
 		}
 
 		return h(ctx, query)

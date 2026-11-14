@@ -119,11 +119,22 @@ test token; CI `build-bot-image` and hadolint.
    because `reset` replaces it; flows still mutate `*session` directly, but
    only under that lock.
 4. **File-backed chat store**: whole file rewritten on each new chat; errors
-   are ignored.
+   ~~are ignored~~ are logged with the path since BUG-003: `newUserStore`
+   logs load errors except a missing file, `Track` returns the save error and
+   `trackUserMsg`/`trackUserCallback` log it. (FR-020)
 5. **Graceful shutdown**: the signal context stops polling; a goroutine
    broadcasts the maintenance message with a fresh 30-second context; `run`
    waits for it before returning.
 6. **Multi-stage Docker build** with vendored dependencies and a static binary.
+   Since BUG-003 the runtime stage creates a system user `bot` (UID/GID
+   10001; numeric `USER` because hadolint DL3066 fails CI at
+   `error_level: 2`) and `/data` owned by it, sets `WORKDIR /data` and
+   `USER 10001:10001`, and declares
+   `VOLUME /data`; compose mounts the named volume `bot-data` there. A new
+   named volume copies the image's `/data` ownership, so the non-root user
+   can write to it. (FR-013, FR-019)
+
+**Bugfix**: 2026-11-15 — BUG-003 Updated from bugfix patch
 7. **Step-tagged callbacks** (BUG-001): `stepOptions` returns the buttons of
    the current step; `stepKeyboard` builds the keyboard from them with
    callback data `cb:<step>:<value>`, and `callbackValue` accepts a callback

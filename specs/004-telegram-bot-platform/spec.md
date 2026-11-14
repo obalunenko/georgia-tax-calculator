@@ -140,14 +140,22 @@ builds the image in `.github/workflows/dockerfiles.yml`.
    with "TELEGRAM_BOT_TOKEN is required".
 3. **Given** a running container, **When** `make bot-logs` or `make bot-down`
    runs, **Then** logs are followed or the container is removed.
+4. **Given** known chats stored by a running container, **When** `make
+   bot-up` recreates the container (e.g., after an image change), **Then**
+   the chats are still known and receive the welcome-back message, because
+   the store lives in the `/data` volume (FR-019).
+5. **Given** the running container, **When** its user is checked, **Then**
+   the bot runs as a non-root user that can write to `/data` (FR-019).
 
 ---
 
 ### Edge Cases
 
 - Unknown commands are handled as text input (`AnyMessageWithText`).
-- A missing or unreadable user store file is ignored at startup; write
-  failures are ignored.
+- ~~A missing or unreadable user store file is ignored at startup; write
+  failures are ignored.~~ Superseded by BUG-003: a missing file is ignored;
+  unreadable or invalid files and write failures are logged and the bot keeps
+  running (FR-020).
 - Sessions are kept in memory only; a restart loses all in-progress flows.
 - Each update is handled in its own goroutine; one user can trigger concurrent
   handlers by pressing buttons quickly. Since BUG-002, updates of one user
@@ -155,8 +163,10 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   parallel.
 - Buttons sent before the `cb:<step>:<value>` format (BUG-001) are rejected
   as unexpected input after the upgrade.
-- In Docker, the user store file lives inside the container (no volume) and
-  is lost when the container is recreated.
+- ~~In Docker, the user store file lives inside the container (no volume) and
+  is lost when the container is recreated.~~ Superseded by BUG-003: it lives
+  in the `/data` volume (FR-019); `make bot-down` keeps the volume, `docker
+  compose down -v` removes it.
 - Chats that blocked the bot stay in the store and fail on every broadcast.
 - On shutdown, `bh.Start` returns when the updates channel closes without
   waiting for running handlers; a calculation in progress is cut off when the
@@ -193,7 +203,8 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   rows of a fixed width.
 - **FR-013**: The Docker image MUST build a static (`CGO_ENABLED=0`) binary
   from vendored dependencies and run it as the entrypoint; compose MUST pass
-  the three environment variables.
+  the three environment variables. See FR-019 for the runtime user and
+  storage (BUG-003).
 - **FR-014**: Outgoing messages and user input MUST be logged at debug level
   with the chat ID.
 - **FR-015**: A callback MUST be accepted only when its step equals the
@@ -206,12 +217,22 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   queries MUST still be answered before waiting (FR-006).
 - **FR-018**: Messages without a sender (`From` empty) MUST be ignored by the
   handlers.
+- **FR-019**: The Docker image MUST run the bot as a non-root user with
+  working directory `/data`, writable by that user; compose MUST mount a
+  named volume at `/data`, so the default `USER_STORE_PATH` (`users.json`)
+  survives container recreation.
+- **FR-020**: Errors reading the user store (other than a missing file) and
+  errors writing it MUST be logged with the path; the bot MUST keep running
+  with the chats it has in memory.
 
 **Bugfix**: 2026-11-15 — BUG-001 Changed FR-012 (step-tagged callback data),
 added FR-015 and acceptance scenario US2.6, updated Edge Cases.
 
 **Bugfix**: 2026-11-15 — BUG-002 Added FR-016, FR-017, FR-018, acceptance
 scenario US2.7, SC-005, and updated Edge Cases.
+
+**Bugfix**: 2026-11-15 — BUG-003 Added FR-019, FR-020, acceptance scenarios
+US4.4 and US4.5, SC-006, and updated FR-013 and Edge Cases.
 
 ### Key Entities
 
@@ -234,6 +255,9 @@ scenario US2.7, SC-005, and updated Edge Cases.
 - **SC-005**: `go test -race ./cmd/bot/...` passes and covers callback
   validation (stale step, same-step invalid value, other flow) and concurrent
   updates of one user.
+- **SC-006**: In the bot image, `id` reports a non-root user, and a chat ID
+  written by one container is loaded by a new container on the same volume
+  (BUG-003).
 
 ## Assumptions
 

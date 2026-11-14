@@ -9,3 +9,10 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}
       TELEGRAM_BOT_LOG_LEVEL: ${TELEGRAM_BOT_LOG_LEVEL:-info}
       USER_STORE_PATH: ${USER_STORE_PATH:-users.json}
+    volumes:
+      # Keeps the user store across container recreation; `make bot-down` keeps it,
+      # `docker compose down -v` removes it.
+      - bot-data:/data
+
+volumes:
+  bot-data:

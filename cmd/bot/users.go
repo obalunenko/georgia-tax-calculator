@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"sync"
 
@@ -15,6 +18,9 @@ const (
 	msgWelcomeBack = "👋 Bot is back online! Use /start to continue."
 )
 
+// userStoreFileMode keeps the chat IDs readable only by the bot user.
+const userStoreFileMode os.FileMode = 0o600
+
 // userStore persists known user chat IDs across restarts.
 type userStore struct {
 	mu      sync.Mutex
@@ -22,36 +28,46 @@ type userStore struct {
 	chatIDs map[int64]struct{}
 }
 
-func newUserStore(path string) *userStore {
+// newUserStore loads the store from path. A missing file starts an empty store;
+// other load errors are logged and the store starts empty too.
+func newUserStore(ctx context.Context, path string) *userStore {
 	s := &userStore{
 		path:    path,
 		chatIDs: make(map[int64]struct{}),
 	}
 
-	s.load()
+	if err := s.load(); err != nil {
+		log.WithError(ctx, err).WithField("path", path).Warn("bot: failed to load user store")
+	}
 
 	return s
 }
 
-// load reads chat IDs from the JSON file. Missing file is silently ignored.
-func (s *userStore) load() {
+// load reads chat IDs from the JSON file. A missing file is not an error.
+func (s *userStore) load() error {
 	data, err := os.ReadFile(s.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+
 	if err != nil {
-		return
+		return fmt.Errorf("read: %w", err)
 	}
 
 	var ids []int64
 	if err = json.Unmarshal(data, &ids); err != nil {
-		return
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	for _, id := range ids {
 		s.chatIDs[id] = struct{}{}
 	}
+
+	return nil
 }
 
 // save writes chat IDs to the JSON file. Must be called with lock held.
-func (s *userStore) save() {
+func (s *userStore) save() error {
 	ids := make([]int64, 0, len(s.chatIDs))
 	for id := range s.chatIDs {
 		ids = append(ids, id)
@@ -59,25 +75,33 @@ func (s *userStore) save() {
 
 	data, err := json.Marshal(ids)
 	if err != nil {
-		return
+		return fmt.Errorf("encode: %w", err)
 	}
 
-	_ = os.WriteFile(s.path, data, 0o600)
+	if err = os.WriteFile(s.path, data, userStoreFileMode); err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+
+	return nil
 }
 
 // Track records a chat ID and persists the store when a new ID is seen.
-func (s *userStore) Track(chatID int64) bool {
+// It reports whether the ID is new; a save error keeps the ID in memory.
+func (s *userStore) Track(chatID int64) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if _, ok := s.chatIDs[chatID]; ok {
-		return false
+		return false, nil
 	}
 
 	s.chatIDs[chatID] = struct{}{}
-	s.save()
 
-	return true
+	if err := s.save(); err != nil {
+		return true, fmt.Errorf("save user store %s: %w", s.path, err)
+	}
+
+	return true, nil
 }
 
 // All returns a snapshot of all known chat IDs.
