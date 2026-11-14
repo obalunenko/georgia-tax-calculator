@@ -29,7 +29,7 @@ rm -rf "${BIN_OUT}"
 
 goreleaser build --skip=validate --clean --single-target --id "${BUILD_ID}" --output "${BIN_OUT}"
 
-if [ ! -f "${BIN_OUT}" ]; then
+if [[ ! -f "${BIN_OUT}" ]]; then
   echo "Binary was not created at ${BIN_OUT}"
   exit 1
 fi
