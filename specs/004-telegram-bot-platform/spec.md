@@ -193,7 +193,8 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   indicator, even if handling fails.
 - **FR-007**: Text and callbacks MUST be routed to the active flow
   (calculate or convert); without a flow the bot MUST prompt to start one.
-- **FR-008**: Sessions MUST be kept per Telegram user ID in memory.
+- **FR-008**: Sessions MUST be kept per Telegram user ID in memory, and
+  forgotten after 24 hours without updates from that user (FR-024).
 - **FR-009**: Chat IDs MUST be tracked for every message and callback and
   persisted as a JSON array at `USER_STORE_PATH` (default `users.json`,
   file mode 0600).
@@ -210,7 +211,9 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   the three environment variables. See FR-019 for the runtime user and
   storage (BUG-003).
 - **FR-014**: Outgoing messages and user input MUST be logged at debug level
-  with the chat ID.
+  with the chat ID ~~.~~, without their content: commands are logged as is,
+  other user text and outgoing text only by length (they contain amounts).
+  (Changed 2026-11-15, T030.)
 - **FR-015**: A callback MUST be accepted only when its step equals the
   session's current step and its value is one of the options that step
   offers at that moment; otherwise the bot MUST reply with the unexpected
@@ -238,6 +241,9 @@ builds the image in `.github/workflows/dockerfiles.yml`.
 - **FR-023**: On shutdown, the bot MUST wait up to 30 seconds for running
   handlers to finish, without canceling them, and only then send the
   maintenance broadcast. (Added 2026-11-15, T028.)
+- **FR-024**: The session, the per-user lock, and the last-activity time of a
+  user without updates for more than 24 hours MUST be removed; the check runs
+  at most once per hour, on a user's update. (Added 2026-11-15, T029.)
 
 **Bugfix**: 2026-11-15 — BUG-001 Changed FR-012 (step-tagged callback data),
 added FR-015 and acceptance scenario US2.6, updated Edge Cases.

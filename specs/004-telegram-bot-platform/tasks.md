@@ -111,6 +111,8 @@ feature.
 
 - [x] T027 [US3] Throttle `broadcast` to one message per `broadcastInterval` (50 ms), stop on context cancel, and remove chats that answer 403 via `userStore.Remove` in `cmd/bot/users.go`; send through a `sendFunc` so it is testable; tests in `cmd/bot/users_test.go` (gap 4; FR-021, FR-022)
 - [x] T028 [US1] Wait for running handlers before the maintenance broadcast: `inflight` (`track`, `done` middleware registered first, `wait`) and `shutdown` in `cmd/bot/bot.go`; test `TestInflightWaitsForHandledUpdates` in `cmd/bot/session_test.go` (gap 10, FR-023)
+- [x] T029 [US2] Forget users idle for more than `sessionTTL` (24 h): `sessionStore.touch` (called by `get`, `reset`, and `lock`, sweeping at most once per `sessionSweepInterval`) in `cmd/bot/session.go`; test `TestSessionStoreForgetsIdleUsers` in `cmd/bot/session_test.go` (gap 6, FR-024)
+- [x] T030 [P] [US1] Log user input by command or length (`inputLogField`) and outgoing messages by length in `cmd/bot/send_message.go` and `cmd/bot/bot.go`; test `TestInputLogField` in `cmd/bot/session_test.go` (gap 7, FR-014)
 
 ---
 
@@ -138,10 +140,10 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 5. **Partly fixed by T018 and T022.** **No tests in `cmd/bot`.** Callback
    validation, keyboards, amount validation, and serialization are tested;
    handlers that call Telegram, the user store, and formatting are not.
-6. **Unbounded sessions.** Sessions are never removed; one per user stays in
+6. **Fixed by T029.** **Unbounded sessions.** Sessions are never removed; one per user stays in
    memory until restart. Sessions are keyed by user ID while the store tracks
    chat IDs.
-7. **Sensitive data in debug logs.** At debug level, user input and outgoing
+7. **Fixed by T030.** **Sensitive data in debug logs.** At debug level, user input and outgoing
    messages (including amounts) are logged.
 8. **Fixed by T023 (BUG-003).** **Container runs as root** (no `USER` in `build/docker/bot/Dockerfile`).
    Fix together with gap 3: with a non-root `USER` and no writable

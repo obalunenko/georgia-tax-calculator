@@ -213,3 +213,62 @@ func TestSessionRestartIncomesKeepsTaxDetails(t *testing.T) {
 	require.NoError(t, err)
 	assert.Greater(t, len(opts), 1, "any year can be chosen again after the restart")
 }
+
+func TestSessionStoreForgetsIdleUsers(t *testing.T) {
+	start := time.Date(2026, time.November, 15, 10, 0, 0, 0, time.UTC)
+	clock := start
+
+	store := newSessionStore()
+	store.now = func() time.Time { return clock }
+
+	store.get(1).flow = flowCalculate
+	unlock := store.lock(1)
+	unlock()
+
+	clock = start.Add(2 * time.Hour)
+
+	store.get(2).flow = flowConvert
+
+	store.mu.Lock()
+	kept := store.sessions[1]
+	store.mu.Unlock()
+
+	require.NotNil(t, kept, "within the TTL the session is kept")
+	assert.Equal(t, flowCalculate, kept.flow)
+
+	clock = start.Add(26 * time.Hour)
+
+	store.get(2)
+
+	store.mu.Lock()
+	_, session1 := store.sessions[1]
+	_, lock1 := store.locks[1]
+	_, session2 := store.sessions[2]
+	store.mu.Unlock()
+
+	assert.False(t, session1, "user 1 was idle for more than the TTL")
+	assert.False(t, lock1)
+	assert.True(t, session2, "user 2 was active within the TTL")
+}
+
+func TestInputLogField(t *testing.T) {
+	tests := []struct {
+		text      string
+		wantKey   string
+		wantValue any
+	}{
+		{text: "/calculate", wantKey: "command", wantValue: "/calculate"},
+		{text: "/start payload", wantKey: "command", wantValue: "/start"},
+		{text: "1500.00", wantKey: "text_len", wantValue: 7},
+		{text: "ლარი", wantKey: "text_len", wantValue: 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.text, func(t *testing.T) {
+			key, value := inputLogField(tt.text)
+
+			assert.Equal(t, tt.wantKey, key)
+			assert.Equal(t, tt.wantValue, value)
+		})
+	}
+}

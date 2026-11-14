@@ -158,7 +158,7 @@ func trackChat(ctxLog log.Logger, users *userStore, chatID int64) {
 func trackUserMsg(users *userStore, h telegohandler.MessageHandler) telegohandler.MessageHandler {
 	return func(ctx *telegohandler.Context, msg telego.Message) error {
 		ctxLog := log.WithField(ctx.Context(), "chat_id", msg.Chat.ID).
-			WithField("text", msg.Text)
+			WithField(inputLogField(msg.Text))
 
 		if msg.From != nil {
 			ctxLog = ctxLog.WithField("user_id", msg.From.ID).
