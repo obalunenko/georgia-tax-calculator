@@ -57,7 +57,8 @@ calculation or currency conversion.
    banner is printed and the flow from 003 or 002 starts.
 3. **Given** an unknown command `foo`, **When** it runs, **Then** the CLI
    prints "Command [foo] not supported.\nTry --help flag to see how to use
-   it" and "Exit..." and exits with status 0.
+   it" and "Exit..." and exits with ~~status 0~~ a non-zero status
+   (BUG-001: status 0 made the error invisible to scripts; FR-013).
 4. **Given** a command returns an error, **When** the CLI finishes, **Then**
    the error is logged with "Run failed" and the process exits with a
    non-zero status (`log.Fatal`).
@@ -82,6 +83,9 @@ on a local build.
    ASCII cow.
 2. **Given** a binary built from a tree with uncommitted changes, **When**
    `--version` runs, **Then** both commit fields end with `+CHANGES`.
+3. **Given** a binary built from a clean tree (`vcs.modified=false`),
+   **When** `--version` runs, **Then** the commit fields have no `+CHANGES`
+   suffix (BUG-002; currently they do).
 
 ---
 
@@ -139,15 +143,18 @@ a `v*` tag.
 
 ### Edge Cases
 
-- An unknown command exits with status 0, so scripts cannot detect it.
+- ~~An unknown command exits with status 0, so scripts cannot detect it.~~
+  Superseded by BUG-001: it MUST exit non-zero (FR-013); the code still
+  exits 0 until T012.
 - The banner is printed before every command, including unknown commands
   and the help; "Exit..." is printed to stdout with `fmt.Println`, not to
   `cmd.Writer`, after every run.
 - A binary built without VCS information (e.g., `go install` from the module
   proxy) prints `unset` for commit and build date.
 - The `+CHANGES` suffix is added whenever build info has a `vcs.modified`
-  key, including `vcs.modified=false`, so clean builds also show it (see
-  tasks.md gaps).
+  key, including `vcs.modified=false`, so clean builds also show it. This is
+  a defect of `github.com/obalunenko/version` v1.3.1 (BUG-002), not intended
+  behavior.
 - The spinner runs inside `internal/service`, so it also runs in the bot
   process (constitution known deviation).
 - The CLI context has no signal handling; Ctrl+C inside a form is handled by
@@ -170,7 +177,8 @@ a `v*` tag.
   non-zero status.
 - **FR-006**: `--version` MUST report app name, version, short and full
   commit, build date, and Go version from the binary's build info
-  (`github.com/obalunenko/version`), marking builds from a modified tree.
+  (`github.com/obalunenko/version`), marking ~~builds from a modified tree~~
+  only builds whose build info has `vcs.modified=true` (BUG-002).
 - **FR-007**: Long operations MUST show a spinner on stderr with a start and
   a final message (`internal/spinner`).
 - **FR-008**: Releases MUST be built by goreleaser from a `v*` tag after the
@@ -184,6 +192,14 @@ a `v*` tag.
   Commit type as in US4.4.
 - **FR-012**: `make build` MUST produce a local binary in `bin/` through
   goreleaser.
+- **FR-013**: An unknown command MUST end the process with a non-zero exit
+  status, in addition to the message in FR-004. [Not implemented yet.]
+
+**Bugfix**: 2026-11-15 — BUG-001 Added FR-013 (non-zero exit for an unknown
+command), updated acceptance scenario US1.3, Edge Cases, and SC-004.
+
+**Bugfix**: 2026-11-15 — BUG-002 Updated FR-006, added acceptance scenario
+US2.3, updated Edge Cases, Assumptions, and SC-005.
 
 ### Key Entities
 
@@ -203,11 +219,16 @@ a `v*` tag.
   the tagged commit.
 - **SC-003**: Every `v*` tag produces a GitHub release with archives for all
   targets in US4.2 and a checksum file.
+- **SC-004**: `ge-tax-calc foo; echo $?` prints a non-zero value (BUG-001).
+- **SC-005**: `--version` of a binary built from a clean worktree shows no
+  `+CHANGES` (BUG-002).
 
 ## Assumptions
 
 - Users run the CLI in an interactive terminal; output is not meant to be
   parsed.
 - `github.com/obalunenko/version` (same author) is the source of version
-  data; goreleaser does not inject version through `-ldflags`.
+  data; goreleaser does not inject version through `-ldflags`. v1.3.1
+  treats `vcs.modified=false` as modified (BUG-002); a fixed version is
+  required.
 - Releases are cut from `master` as described in the constitution.

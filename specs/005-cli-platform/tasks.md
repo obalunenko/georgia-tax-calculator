@@ -67,15 +67,32 @@ feature.
 
 ---
 
+## Phase B1: Bugfix BUG-001 - Unknown command exit status
+
+- [ ] T012 [US1] End an unknown command with a non-zero exit status (see plan decision 1) in `cmd/ge-tax-calc/main.go` and `cmd/ge-tax-calc/handlers.go`; test the exit code through `cli.OsExiter` in `cmd/ge-tax-calc/main_test.go`; update README if the message changes (FR-013, SC-004)
+
+**Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
+
+---
+
+## Phase B2: Bugfix BUG-002 - Modified flag on clean builds
+
+- [ ] T013 [US2] In `github.com/obalunenko/version`: set the modified flag from `setting.Value == "true"`, add a test for `vcs.modified=false`, and release a new version (separate repository)
+- [ ] T014 [US2] Depends on T013: bump `github.com/obalunenko/version` in `go.mod`, run `make sync-vendor`, and check `--version` of a build from a clean worktree (FR-006, SC-005)
+
+**Bugfix**: 2026-11-15 — BUG-002 Updated from bugfix patch
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **Unknown command exits with status 0.** `notFound`
+1. **Tracked in BUG-001 (T012).** **Unknown command exits with status 0.** `notFound`
    (`cmd/ge-tax-calc/handlers.go`) only prints a message; `ge-tax-calc foo`
    returns 0 (checked on 2026-11-15), so scripts cannot detect the error.
-2. **`+CHANGES` on clean builds.** `github.com/obalunenko/version` sets
+2. **Tracked in BUG-002 (T013, T014).** **`+CHANGES` on clean builds.** `github.com/obalunenko/version` sets
    `modified = true` whenever build info has a `vcs.modified` key
    (`vendor/github.com/obalunenko/version/version.go`, `init`), including
    `vcs.modified=false`. A build from a clean worktree of `0bafe32` printed

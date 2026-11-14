@@ -24,8 +24,9 @@ same goreleaser config through Docker.
 
 **Language/Version**: Go 1.27.3, single module with committed `vendor/`.
 
-**Primary Dependencies**: `github.com/urfave/cli/v3`;
-`github.com/obalunenko/version` (build info through `runtime/debug`);
+**Primary Dependencies**: `github.com/urfave/cli/v3` v3.14.0;
+`github.com/obalunenko/version` v1.3.1 (build info through `runtime/debug`;
+known defect: treats `vcs.modified=false` as modified, BUG-002);
 `github.com/obalunenko/logger`; `github.com/briandowns/spinner`;
 `github.com/savioxavier/termlink` (declarations link, 003); goreleaser v2.
 
@@ -104,9 +105,20 @@ forms; platform concerns are small and split by role (`main`, `commands`,
 
 1. **urfave/cli v3 root command** with hooks instead of a custom dispatcher:
    help, version flag, and command routing come from the library.
+   BUG-001: when `CommandNotFound` is set, urfave/cli v3 calls it and returns
+   `nil` (exit 0); without it, it returns `Exit("No help topic …", 3)`.
+   FR-013 needs either removing `notFound` (and the custom message) or
+   returning a `cli.Exit` error from the root command after `notFound` ran;
+   the choice is made in T012.
 2. **Version from build info** (`runtime/debug.ReadBuildInfo`) instead of
    `-ldflags -X`: goreleaser needs no ldflags, and `go install` builds also
-   report a module version.
+   report a module version. BUG-002: the modified flag must come from the
+   value of `vcs.modified`, fixed in the library (T013) and picked up by a
+   dependency bump (T014).
+
+**Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
+
+**Bugfix**: 2026-11-15 — BUG-002 Updated from bugfix patch
 3. **Spinner on stderr** so stdout keeps only results; the service starts it
    around each conversion.
 4. **goreleaser for local and CI builds** so `make build` and releases use
