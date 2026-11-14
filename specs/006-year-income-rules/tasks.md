@@ -98,6 +98,12 @@ No dependency, fixture, or tooling changes are needed.
 - [X] T019 [P] Document the limit warning, the one-year rule, and the category names in the "Usage" section of `README.md`
 - [X] T020 Run `go vet ./...`, `go test -race ./...`, `make lint-pipeline`, full `.golangci.yml` on changed lines, and quickstart scenarios 1–5 with `go run ./cmd/ge-tax-calc run` (`specs/006-year-income-rules/quickstart.md`). Done on 2026-11-15: all automated checks pass (full lint: only `goconst` in tests); scenarios 1–3 and the mixed-year error were run through `service.New()` with the live NBG client; the interactive TUI and bot runs were not done by hand (covered by form and keyboard tests)
 
+
+---
+
+## Phase F: Follow-up after the Tax Code check (2026-11-15)
+
+- [X] T021 [US1] Extend `LimitWarning.String()` in `internal/service/year_income.go` with the Article 90(2) rule (3% from the start of the month the limit was exceeded until year-end, use Small Business (over limit)); rates and the category name come from the rate table via `ratePercent`; update `wantWarning` in `internal/service/year_income_test.go` and `contracts/calculation-output.md` (FR-001); supersedes the text quoted in T003
 ---
 
 ## Dependencies & Execution Order

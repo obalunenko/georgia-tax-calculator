@@ -25,9 +25,24 @@ type LimitWarning struct {
 func (w LimitWarning) String() string {
 	return fmt.Sprintf(
 		"Year income %s exceeds the Small Business limit of %s by %s. "+
-			"The tax above is calculated at the Small Business rate.",
+			"Under Article 90(2) of the Tax Code, income from the start of the month the limit was exceeded "+
+			"until the end of the year is taxed at %s: calculate it with %s. The tax above is calculated at %s.",
 		w.YearIncome.String(), w.Limit.String(), w.Excess.String(),
+		ratePercent(taxes.TaxTypeSmallBusinessOverLimit), taxes.TaxTypeSmallBusinessOverLimit.String(),
+		ratePercent(taxes.TaxTypeSmallBusiness),
 	)
+}
+
+// ratePercent formats the rate of tt as a percentage, e.g. "3%".
+func ratePercent(tt taxes.TaxType) string {
+	const toPercentage float64 = 100
+
+	tr, err := tt.Rate()
+	if err != nil {
+		return tt.String()
+	}
+
+	return moneyutils.ToString(moneyutils.Multiply(tr.Rate, toPercentage)) + "%"
 }
 
 // newLimitWarning returns a warning when tt is Small Business and yearIncome (GEL) is above the limit.

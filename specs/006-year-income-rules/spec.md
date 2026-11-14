@@ -188,7 +188,9 @@ the labels and rates.
 - **FR-001**: For the Small Business category, when the reported year income
   exceeds the Small Business annual turnover limit, the calculation result
   MUST include a warning that states the limit, the reported year income,
-  and the amount above the limit, in GEL.
+  and the amount above the limit, in GEL, and that by Article 90(2) income
+  from the start of the month the limit was exceeded until year-end is taxed
+  at the over-limit rate (added on 2026-11-15 after the Tax Code check).
 - **FR-002**: The warning MUST NOT change the tax: the tax is still
   calculated at the selected category's rate.
 - **FR-003**: No limit warning MUST be shown for other categories or when the

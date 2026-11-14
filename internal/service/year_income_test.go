@@ -16,7 +16,9 @@ import (
 )
 
 const wantWarning = "Year income 501000 GEL exceeds the Small Business limit of 500000 GEL by 1000 GEL. " +
-	"The tax above is calculated at the Small Business rate."
+	"Under Article 90(2) of the Tax Code, income from the start of the month the limit was exceeded " +
+	"until the end of the year is taxed at 3%: calculate it with Small Business (over limit). " +
+	"The tax above is calculated at 1%."
 
 func TestNewLimitWarning(t *testing.T) {
 	tests := []struct {
