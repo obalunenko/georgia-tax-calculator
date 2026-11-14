@@ -147,32 +147,38 @@ func sortRates(r Rates) Rates {
 	return r
 }
 
+// GEL is not published by NBG: the client adds it with rate 1, and the currencies generator adds it to the codes.
+const (
+	// GELCode is the code of the Georgian Lari.
+	GELCode = "GEL"
+	// GELName is the name of the Georgian Lari.
+	GELName = "Georgian Lari"
+)
+
 func maybeAddGELCodeToResponse(r Rates, codes []string) Rates {
 	const (
-		gelCode      = "GEL"
 		rateFormated = "1.0000"
 		diffFormated = "0.0000"
 		qty          = 1
 		rate         = 1
 		diff         = 0
-		name         = "Georgian Lari"
 	)
 	// Add GEL if no codes specified or GEL is specified.
-	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, gelCode)
+	shouldAddGEL := len(codes) == 0 || slices.Contains(codes, GELCode)
 
 	if !shouldAddGEL {
 		return r
 	}
 
 	// Add GEL if it is not in the response.
-	if _, err := r.CurrencyByCode(gelCode); err != nil {
+	if _, err := r.CurrencyByCode(GELCode); err != nil {
 		r.Currencies = append(r.Currencies, Currency{
-			Code:          gelCode,
+			Code:          GELCode,
 			Quantity:      qty,
 			RateFormated:  rateFormated,
 			DiffFormated:  diffFormated,
 			Rate:          rate,
-			Name:          name,
+			Name:          GELName,
 			Diff:          diff,
 			Date:          r.Date,
 			ValidFromDate: r.Date,
