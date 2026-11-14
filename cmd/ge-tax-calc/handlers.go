@@ -36,8 +36,10 @@ func printHeader(ctx context.Context, cmd *cli.Command) (context.Context, error)
 	return ctx, nil
 }
 
-func onExit(_ context.Context, _ *cli.Command) error {
-	fmt.Println("Exit...")
+func onExit(_ context.Context, cmd *cli.Command) error {
+	if _, err := fmt.Fprintln(cmd.Writer, "Exit..."); err != nil {
+		return fmt.Errorf("print exit: %w", err)
+	}
 
 	return nil
 }

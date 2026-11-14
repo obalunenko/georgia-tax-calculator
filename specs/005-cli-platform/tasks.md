@@ -90,6 +90,8 @@ feature.
 - [x] T016 [P] [US4] Remove the unused `AOC_SESSION` secret from `.github/workflows/release.yml` and the `GOPRIVATE=example.com/blah` placeholder from `.goreleaser.yml`; `goreleaser check` passes (gap 6)
 - [x] T017 [US4] Select the build with `--id "${BUILD_ID:-cli}"` in `scripts/build/app.sh` and fail when the binary is missing (gap 7, FR-012)
 - [x] T018 [US3] Remove `spinner.Start` from `service.Convert` (`internal/service/service.go`) and start the spinner around the service call in `menuConvert` and `menuCalcTaxes` (`cmd/ge-tax-calc/menu.go`); one spinner per `run`; constitution 1.0.4 removes the known deviation (gap 8, FR-007)
+- [x] T019 [P] [US1] Move the banner (`printHeader`) and the exit line (`onExit`, now written to `cmd.Writer`) from the root command to `run` and `convert` in `cmd/ge-tax-calc/commands.go` and `main.go`; tests in `cmd/ge-tax-calc/main_test.go` (gap 4, FR-003)
+- [x] T020 [US3] Cancel the CLI context on SIGINT/SIGTERM with `signal.NotifyContext` in `cmd/ge-tax-calc/main.go`, so a rate request returns and the spinner restores the cursor (`briandowns/spinner` prints `\033[?25h` on `Stop` and has no signal handling of its own) (gap 8). Not checked with a real Ctrl+C during a request: the request honors the context (`http.NewRequestWithContext`)
 
 ---
 
@@ -110,7 +112,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 3. **Partly fixed by T012.** **No tests for the platform.** The command list
    and the unknown command are tested; hooks, version output, and
    `internal/spinner` are not.
-4. **Output noise.** The banner is printed before every command, including
+4. **Fixed by T019.** **Output noise.** The banner is printed before every command, including
    the help and unknown commands, and "Exit..." is printed with
    `fmt.Println` to stdout instead of `cmd.Writer`, so it cannot be
    redirected or tested through the command's writer.
@@ -129,7 +131,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    2026-11-15: goreleaser ignored `--output`, built both binaries into
    `dist/`, left `bin/` empty, and the script still printed "Binary compiled
    at bin/ge-tax-calc".
-8. **Spinner and signals.** The CLI context has no signal handling; the
+8. **Fixed by T018 and T020.** **Spinner and signals.** The CLI context has no signal handling; the
    spinner hides the cursor, and whether the cursor is restored when Ctrl+C
    ends the process during a request was not verified. ~~The spinner also
    runs in the bot process (known deviation).~~ Fixed by T018: only the CLI

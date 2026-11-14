@@ -53,13 +53,14 @@ and the command list are covered by `cmd/ge-tax-calc/main_test.go`
 **Acceptance Scenarios**:
 
 1. **Given** no arguments, **When** `ge-tax-calc` runs, **Then** it prints
-   the banner, the help (name, usage, description, commands `run` and
-   `convert`, global options), and "Exit...".
+   ~~the banner,~~ the help (name, usage, description, commands `run` and
+   `convert`, global options) ~~, and "Exit..."~~. Since 2026-11-15 the
+   banner and "Exit..." belong to `run` and `convert` only (T019).
 2. **Given** `run` or `convert`, **When** the command runs, **Then** the
    banner is printed and the flow from 003 or 002 starts.
 3. **Given** an unknown command `foo`, **When** it runs, **Then** the CLI
    prints ~~"Command [foo] not supported.\nTry --help flag to see how to use
-   it" and "Exit..."~~ the banner and, on stderr, "No help topic for 'foo'",
+   it" and "Exit..."~~ ~~the banner and,~~ on stderr, "No help topic for 'foo'",
    and exits with ~~status 0~~ status 3; "Exit..." is not printed (BUG-001:
    status 0 made the error invisible to scripts; FR-013).
 4. **Given** a command returns an error, **When** the CLI finishes, **Then**
@@ -153,10 +154,10 @@ a `v*` tag.
 
 - ~~An unknown command exits with status 0, so scripts cannot detect it.~~
   Superseded by BUG-001: it exits with status 3 (FR-013, fixed by T012).
-- The banner is printed before every command, including unknown commands
+- ~~The banner is printed before every command, including unknown commands
   and the help; "Exit..." is printed to stdout with `fmt.Println`, not to
   `cmd.Writer`, after every run except an unknown command, where urfave/cli
-  exits before the `After` hook (BUG-001).
+  exits before the `After` hook (BUG-001).~~ Superseded by FR-003 (T019).
 - A binary built without VCS information (e.g., `go install` from the module
   proxy) prints `unset` for commit and build date.
 - The `+CHANGES` suffix is added whenever build info has a `vcs.modified`
@@ -166,8 +167,12 @@ a `v*` tag.
 - ~~The spinner runs inside `internal/service`, so it also runs in the bot
   process (constitution known deviation).~~ Since 2026-11-15 the CLI starts
   it around service calls; the bot has no spinner (constitution 1.0.4).
-- The CLI context has no signal handling; Ctrl+C inside a form is handled by
-  Bubble Tea (002 US2.4), Ctrl+C during a rate request ends the process.
+- ~~The CLI context has no signal handling; Ctrl+C inside a form is handled by
+  Bubble Tea (002 US2.4), Ctrl+C during a rate request ends the process.~~
+  Since 2026-11-15 SIGINT and SIGTERM cancel the CLI context: a rate request
+  in progress returns, the spinner stops and shows the cursor again, and the
+  CLI exits with "Run failed". Ctrl+C inside a form is still a key press
+  handled by Bubble Tea (002 US2.4). (T020)
 
 ## Requirements *(mandatory)*
 
@@ -178,8 +183,9 @@ a `v*` tag.
 - **FR-002**: The CLI MUST show name, usage, description, author, commands,
   and global options in its help, and support `--help`/`-h` and
   `--version`/`-v`.
-- **FR-003**: The CLI MUST print the banner before running a command and
-  "Exit..." after it.
+- **FR-003**: The CLI MUST print the banner before running ~~a command~~ `run`
+  or `convert` and "Exit..." after it, both to the command's writer; help,
+  version, and unknown commands print neither. (Changed 2026-11-15, T019.)
 - **FR-004**: An unknown command MUST print ~~"Command [<name>] not
   supported." and a hint to use `--help`~~ urfave/cli's "No help topic for
   '<name>'" on stderr (BUG-001: the custom handler could not return an

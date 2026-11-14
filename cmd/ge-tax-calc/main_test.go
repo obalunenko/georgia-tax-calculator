@@ -48,3 +48,33 @@ func TestNewAppCommands(t *testing.T) {
 	assert.Equal(t, []string{"run", "convert"}, names)
 	assert.Nil(t, app.CommandNotFound, "a custom handler would make unknown commands exit with 0")
 }
+
+func TestNewAppHelpHasNoBannerOrExitLine(t *testing.T) {
+	var out bytes.Buffer
+
+	ctx := context.Background()
+
+	app := newApp(ctx)
+	app.Writer = &out
+
+	require.NoError(t, app.Run(ctx, []string{"ge-tax-calc", "--help"}))
+
+	assert.Contains(t, out.String(), "COMMANDS:")
+	assert.NotContains(t, out.String(), "██", "no banner for --help")
+	assert.NotContains(t, out.String(), "Exit...", "no exit line for --help")
+}
+
+func TestCommandsHaveBannerAndExitLine(t *testing.T) {
+	for _, c := range commands() {
+		assert.NotNil(t, c.Before, c.Name)
+		assert.NotNil(t, c.After, c.Name)
+	}
+}
+
+func TestOnExitWritesToCommandWriter(t *testing.T) {
+	var out bytes.Buffer
+
+	require.NoError(t, onExit(context.Background(), &cli.Command{Writer: &out}))
+
+	assert.Equal(t, "Exit...\n", out.String())
+}

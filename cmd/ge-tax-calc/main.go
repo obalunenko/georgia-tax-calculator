@@ -4,13 +4,18 @@ package main
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	log "github.com/obalunenko/logger"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	ctx := context.Background()
+	// Ctrl+C during a rate request cancels it, so the spinner stops and shows the cursor again.
+	// Inside the Bubble Tea forms Ctrl+C is a key press handled by the forms.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	ctx = log.ContextWithLogger(ctx, log.FromContext(ctx))
 
@@ -34,10 +39,9 @@ func newApp(ctx context.Context) *cli.Command {
 		"Oleg Balunenko <oleg.balunenko@gmail.com>",
 	}
 
+	// The banner and the exit line belong to run and convert only, not to --help, --version, or unknown commands.
 	app.Commands = commands()
 	app.Version = printVersion(ctx)
-	app.Before = printHeader
-	app.After = onExit
 
 	return &app
 }
