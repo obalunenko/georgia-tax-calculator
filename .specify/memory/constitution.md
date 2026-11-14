@@ -1,13 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.4 → 1.0.5 (PATCH: known deviation resolved)
-- Modified: Known Deviations (removed "The bot binary is named `ge-tax` in
-  `.goreleaser.yml`": goreleaser builds `ge-bot` now, like the Dockerfile and
-  README)
+- Version change: 1.0.5 → 1.0.6 (PATCH: factual correction)
+- Modified: VI. Test Behavior Changes (`cmd/bot` handlers are tested against
+  a fake Telegram API; only the process entry point is untested)
 - Templates: plan-template.md, tasks-template.md, spec-template.md — no
   change needed; AGENTS.md — no change needed
 - Follow-up: none
-- Previous: 1.0.3 → 1.0.4 removed the spinner deviation and allowed the CLI
+- Previous: 1.0.4 → 1.0.5 removed the bot binary name deviation;
+  1.0.3 → 1.0.4 removed the spinner deviation and allowed the CLI
   to use `internal/spinner`; 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
   tests; `cmd/bot` is partly tested); 1.0.1 → 1.0.2 corrected VII (currency
   codes are regenerated manually; `make codegen` runs only stringer)
@@ -93,8 +93,8 @@ Evidence: no `pkg/` package imports `internal/` today.
 ### VI. Test Behavior Changes
 
 - Behavior changes in `internal/` and `pkg/` MUST include or update tests.
-  Tests for `cmd/bot` (partly covered: callback and amount validation,
-  per-user serialization; Telegram I/O is untested), `pkg/moneyutils`, and
+  Tests for `cmd/bot` (handlers, flows, broadcasts, and shutdown are tested
+  against a fake Telegram API; `main` is not), `pkg/moneyutils`, and
   `internal/spinner` (both untested) are encouraged but not required. The
   `pkg/nbggovge` support packages `currencies`, `internal`, and `option` have
   no tests of their own and are exercised through `pkg/nbggovge` and
@@ -180,4 +180,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.5 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
+**Version**: 1.0.6 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15

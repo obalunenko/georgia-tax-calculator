@@ -31,8 +31,12 @@ a Docker image run through Docker Compose.
 
 **Testing**: ~~None in `cmd/bot`.~~ Since BUG-001 and BUG-002, `cmd/bot`
 tests cover callback parsing and validation, step keyboards, amount
-validation, and per-user serialization (run with `-race`); handlers that call
-Telegram are still untested. Flow logic below the bot is tested in
+validation, and per-user serialization (run with `-race`); ~~handlers that call
+Telegram are still untested~~ since T032 the real handlers run through
+`telegohandler.BotHandler` over a fake `telegoapi.Caller` (`fakeTelegram` in
+`cmd/bot/fake_telegram_test.go`) that records Bot API calls, so `/convert`,
+`/calculate`, stale buttons, service errors, panics, broadcasts with 403, and
+`run`/`shutdown` are covered. Flow logic below the bot is tested in
 `internal/service`, `internal/converter`, and `internal/taxes`.
 
 **Target Platform**: Linux and macOS binaries (goreleaser `bot` build:
@@ -58,8 +62,10 @@ amd64/arm64); Docker image on Alpine 3.24 built from `golang:1.27.3-alpine`.
 - [x] III. N/A.
 - [x] IV. N/A (no direct NBG access).
 - [x] V. N/A.
-- [ ] VI. ~~No tests in `cmd/bot`~~ Partial tests in `cmd/bot` since
-      BUG-001/BUG-002; Telegram I/O is untested (allowed by VI).
+- [x] VI. ~~No tests in `cmd/bot`~~ ~~Partial tests in `cmd/bot` since
+      BUG-001/BUG-002; Telegram I/O is untested (allowed by VI).~~ Since
+      2026-11-15 handlers, flows, broadcasts, and `run`/`shutdown` are tested
+      against a fake Telegram API (T032); only `main` is untested.
 - [x] VII. N/A.
 - [x] Known deviations: ~~binary named `ge-tax` in `.goreleaser.yml` but
       `ge-bot` in Docker and README; the service spinner runs in the bot

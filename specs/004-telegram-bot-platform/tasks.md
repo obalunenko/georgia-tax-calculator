@@ -113,6 +113,7 @@ feature.
 - [x] T028 [US1] Wait for running handlers before the maintenance broadcast: `inflight` (`track`, `done` middleware registered first, `wait`) and `shutdown` in `cmd/bot/bot.go`; test `TestInflightWaitsForHandledUpdates` in `cmd/bot/session_test.go` (gap 10, FR-023)
 - [x] T029 [US2] Forget users idle for more than `sessionTTL` (24 h): `sessionStore.touch` (called by `get`, `reset`, and `lock`, sweeping at most once per `sessionSweepInterval`) in `cmd/bot/session.go`; test `TestSessionStoreForgetsIdleUsers` in `cmd/bot/session_test.go` (gap 6, FR-024)
 - [x] T030 [P] [US1] Log user input by command or length (`inputLogField`) and outgoing messages by length in `cmd/bot/send_message.go` and `cmd/bot/bot.go`; test `TestInputLogField` in `cmd/bot/session_test.go` (gap 7, FR-014)
+- [x] T032 [US2] Test the bot against a fake Telegram API: `fakeTelegram` (`telegoapi.Caller` recording calls; `getUpdates` blocks until the context is done) and `botHarness` (real `registerHandlers` over `telegohandler.BotHandler`) in `cmd/bot/fake_telegram_test.go`; scenarios in `cmd/bot/flows_test.go` (service commands, full `/convert` and `/calculate`, stale buttons, invalid amounts, declined review, service errors, panic, message without sender) and `cmd/bot/run_test.go` (`run` start and shutdown with welcome-back and maintenance broadcasts, 403 removal, invalid token); `run` takes extra `telego.BotOption`s for the fake (gap 5, SC-005); new-code coverage rises from 66.6% to about 88% (local estimate)
 - [x] T031 [P] [US4] Rename the goreleaser `bot` binary from `ge-tax` to `ge-bot` in `.goreleaser.yml` (archives become `ge-bot-<version>-<os>-<arch>`); `goreleaser check` and a snapshot build of `--id bot` produce `ge-bot` (gap 9; constitution 1.0.5)
 
 ---
@@ -138,7 +139,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 4. **Mostly fixed by T027:** throttled and drops chats that answer 403; no opt-out yet. **Broadcast behavior.** Every start and stop messages all known chats,
    sequentially and without throttling for Telegram rate limits; chats that
    blocked the bot are never removed; there is no opt-out.
-5. **Partly fixed by T018 and T022.** **No tests in `cmd/bot`.** Callback
+5. **Fixed by T018, T022, and T032.** **No tests in `cmd/bot`.** Callback
    validation, keyboards, amount validation, and serialization are tested;
    handlers that call Telegram, the user store, and formatting are not.
 6. **Fixed by T029.** **Unbounded sessions.** Sessions are never removed; one per user stays in

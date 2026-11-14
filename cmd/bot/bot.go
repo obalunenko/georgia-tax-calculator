@@ -30,9 +30,9 @@ func userStorePath() string {
 	return "users.json"
 }
 
-// run starts the Telegram bot.
-func run(ctx context.Context, token string) error {
-	bot, err := telego.NewBot(token, telego.WithDefaultLogger(false, true))
+// run starts the Telegram bot. opts are applied after the default logger; tests pass a fake API caller.
+func run(ctx context.Context, token string, opts ...telego.BotOption) error {
+	bot, err := telego.NewBot(token, append([]telego.BotOption{telego.WithDefaultLogger(false, true)}, opts...)...)
 	if err != nil {
 		return fmt.Errorf("create bot: %w", err)
 	}
