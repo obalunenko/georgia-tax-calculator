@@ -79,7 +79,7 @@ feature.
 
 - [x] T016 [US2] Add step IDs and `session.stepID` in `cmd/bot/session.go`; build keyboards with callback data `cb:<step>:<value>` from `stepOptions` (`stepKeyboard`, `keyboardOption`) in `cmd/bot/keyboards.go` (FR-012)
 - [x] T017 [US2] Accept a callback only through `callbackValue` (current step and one of its current options) in `handleCallback`, `cmd/bot/handlers.go`; tax type buttons send the type name, `taxTypeFromItem` removed (FR-015)
-- [x] T018 [P] [US2] Tests for callback parsing and validation, step keyboards (every button accepted, 64-byte limit), tax type and day options in `cmd/bot/keyboards_test.go`
+- [x] T018 [P] [US2] Tests for callback parsing and validation, step keyboards (every button accepted, 64-byte limit), tax type and day options in `cmd/bot/keyboards_test.go` (SC-005)
 
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
@@ -90,7 +90,7 @@ feature.
 - [x] T019 [US1] Register the `recoverPanics` middleware first in `registerHandlers` (`cmd/bot/bot.go`): log the panic with the stack and reply with `msgInternalError` (FR-016)
 - [x] T020 [US2] Add `sessionStore.lock` (one mutex per user) in `cmd/bot/session.go` and the `serializeMsg`/`serializeCallback` wrappers in `cmd/bot/bot.go`; `serializeMsg` drops messages without `From` (FR-017, FR-018)
 - [x] T021 [US2] Answer callback queries in the `answerCallback` wrapper before the per-user lock (`cmd/bot/handlers.go`) (FR-006, FR-017)
-- [x] T022 [P] [US2] Race test for one user's concurrent updates, per-user lock, `From == nil`, `updateChatID`, and step IDs in `cmd/bot/session_test.go`; removing the lock makes the test fail with `DATA RACE`
+- [x] T022 [P] [US2] Race test for one user's concurrent updates, per-user lock, `From == nil`, `updateChatID`, and step IDs in `cmd/bot/session_test.go`; removing the lock makes the test fail with `DATA RACE` (SC-005)
 
 **Bugfix**: 2026-11-15 — BUG-002 Updated from bugfix patch
 

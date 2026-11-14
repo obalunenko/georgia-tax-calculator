@@ -128,7 +128,7 @@ the rate math.
    them; the CLI `validateMoneyInput` and the bot `validateMoney` call them,
    so all three apply one rule (constitution I and II). `cmd/` packages
    cannot share code with each other, so the rule cannot live in either of
-   them.
+   them. (FR-006, FR-010, FR-011, FR-014)
 
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
