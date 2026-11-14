@@ -16,7 +16,7 @@ command with two commands (`run`, `convert`), a `Before` hook that prints the
 banner, an `After` hook that prints "Exit...", a `CommandNotFound` handler,
 and a version string rendered at startup from build info. The flows behind
 the commands are Bubble Tea forms (002, 003). `internal/spinner` wraps
-`briandowns/spinner` and is started by `internal/service`. Releases are
+`briandowns/spinner` and is started by ~~`internal/service`~~ the CLI around service calls (since 2026-11-15). Releases are
 built by goreleaser from `v*` tags in GitHub Actions; local builds use the
 same goreleaser config through Docker.
 
@@ -64,9 +64,10 @@ release workflow.
 - [ ] VI. No tests for the root command, hooks, version output, or
       `internal/spinner` (allowed by VI, recorded as gaps).
 - [x] VII. No generated code involved.
-- [ ] Known deviations: the spinner is started in `internal/service`, so it
-      also runs for bot requests; the bot binary name differs between
-      goreleaser and Docker (004). Existing deviations, not extended.
+- [ ] Known deviations: ~~the spinner is started in `internal/service`, so it
+      also runs for bot requests;~~ (resolved on 2026-11-15, constitution
+      1.0.4) the bot binary name differs between goreleaser and Docker (004).
+      Existing deviation, not extended.
 
 ## Project Structure
 
@@ -125,8 +126,9 @@ forms; platform concerns are small and split by role (`main`, `commands`,
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
 **Bugfix**: 2026-11-15 — BUG-002 Updated from bugfix patch
-3. **Spinner on stderr** so stdout keeps only results; the service starts it
-   around each conversion.
+3. **Spinner on stderr** so stdout keeps only results; ~~the service starts it
+   around each conversion~~ `menuConvert` and `menuCalcTaxes` start it around
+   the service call (T018).
 4. **goreleaser for local and CI builds** so `make build` and releases use
    one configuration; tools run in Docker (`go-tools` image).
 5. **Release only from tags** (`on.push.tags: v*`, branches excluded), gated

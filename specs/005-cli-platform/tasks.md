@@ -49,7 +49,7 @@ feature.
 
 ## Phase 5: User Story 3 - See progress during a request (Priority: P3)
 
-- [x] T007 [US3] Start the spinner around each conversion in `service.Convert` (`internal/service/service.go`); see the known deviation in the constitution
+- [x] T007 [US3] Start the spinner around each conversion in `service.Convert` (`internal/service/service.go`); see the known deviation in the constitution (moved to the CLI by T018)
 
 ---
 
@@ -89,6 +89,7 @@ feature.
 - [x] T015 [P] [US1] Fix the description typo in `cmd/ge-tax-calc/main.go` and replace the README help block with the urfave/cli v3 output (VERSION section omitted); document the unknown-command exit status in `README.md` (gap 5)
 - [x] T016 [P] [US4] Remove the unused `AOC_SESSION` secret from `.github/workflows/release.yml` and the `GOPRIVATE=example.com/blah` placeholder from `.goreleaser.yml`; `goreleaser check` passes (gap 6)
 - [x] T017 [US4] Select the build with `--id "${BUILD_ID:-cli}"` in `scripts/build/app.sh` and fail when the binary is missing (gap 7, FR-012)
+- [x] T018 [US3] Remove `spinner.Start` from `service.Convert` (`internal/service/service.go`) and start the spinner around the service call in `menuConvert` and `menuCalcTaxes` (`cmd/ge-tax-calc/menu.go`); one spinner per `run`; constitution 1.0.4 removes the known deviation (gap 8, FR-007)
 
 ---
 
@@ -130,8 +131,9 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    at bin/ge-tax-calc".
 8. **Spinner and signals.** The CLI context has no signal handling; the
    spinner hides the cursor, and whether the cursor is restored when Ctrl+C
-   ends the process during a request was not verified. The spinner also
-   runs in the bot process (known deviation).
+   ends the process during a request was not verified. ~~The spinner also
+   runs in the bot process (known deviation).~~ Fixed by T018: only the CLI
+   starts it.
 9. **SC-002 not verified.** Whether a release binary reports the tag as
    `version` (module version from build info with `-trimpath` and
    `mod: vendor`) was not checked against a published release.

@@ -1,14 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.2 → 1.0.3 (PATCH: factual correction after spec gap
-  fixes)
-- Modified: VI. Test Behavior Changes (`pkg/nbggovge/mock` now has its own
-  tests; `cmd/bot` is partly tested)
+- Version change: 1.0.3 → 1.0.4 (PATCH: known deviation resolved)
+- Modified: I. Keep the Service Layer the Single Domain Entry Point (the CLI
+  may use `internal/spinner` for terminal output); Known Deviations (removed
+  "`internal/service` starts a terminal spinner": the CLI starts it now)
 - Templates: plan-template.md, tasks-template.md, spec-template.md — no
-  change needed; AGENTS.md — no change needed
+  change needed; AGENTS.md — no change needed (it already places
+  `internal/spinner/` in the interface layer)
 - Follow-up: none
-- Previous: 1.0.1 → 1.0.2 corrected VII (currency codes are regenerated
-  manually; `make codegen` runs only stringer)
+- Previous: 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
+  tests; `cmd/bot` is partly tested); 1.0.1 → 1.0.2 corrected VII (currency
+  codes are regenerated manually; `make codegen` runs only stringer)
 -->
 
 # Georgia Tax Calculator Constitution
@@ -31,7 +33,8 @@ and release, not the runtime.
   are composition roots and user interfaces. They call `internal/service` for
   calculation and conversion and may use shared value types from
   `internal/taxes`, `pkg/nbggovge/currencies`, `pkg/moneyutils`, and
-  `pkg/dateutils`.
+  `pkg/dateutils`. The CLI may use `internal/spinner` for terminal output;
+  the service layer MUST NOT.
 - Interfaces MUST NOT import `internal/converter` or `pkg/nbggovge` directly;
   new domain behavior lives in `internal/service` or the packages below it.
 - `internal/service` composes `internal/converter` (currency conversion) and
@@ -167,8 +170,6 @@ extend them:
   not exist in this repository.
 - `depguard` rules are configured in `.golangci.yml`, but the linter is not
   enabled.
-- `internal/service` starts a terminal spinner (`internal/spinner`), so
-  presentation leaks into the service layer and also runs for bot requests.
 
 ## Governance
 
@@ -181,4 +182,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.3 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
+**Version**: 1.0.4 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15

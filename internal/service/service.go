@@ -9,7 +9,6 @@ import (
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
-	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -159,12 +158,6 @@ func New() Service {
 }
 
 func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error) {
-	name := fmt.Sprintf("Converting %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
-	finalMsg := fmt.Sprintf("Converted %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
-
-	stop := spinner.Start(name, finalMsg)
-	defer stop()
-
 	year, err := dateutils.ParseYear(p.Year)
 	if err != nil {
 		return nil, err

@@ -63,8 +63,9 @@ flow.
 - [ ] VI. Converter, service, and CLI form are tested; the bot flow and
       `pkg/moneyutils` are not (allowed by VI, recorded as gaps).
 - [x] VII. No generated code involved.
-- [ ] Known deviations: `service.Convert` starts the terminal spinner, also
-      for bot requests (existing deviation, not extended).
+- [x] Known deviations: ~~`service.Convert` starts the terminal spinner, also
+      for bot requests (existing deviation, not extended).~~ Resolved on
+      2026-11-15: the CLI starts the spinner (005 T018, constitution 1.0.4).
 
 ## Project Structure
 

@@ -104,10 +104,15 @@ tests.
 
 **Acceptance Scenarios**:
 
-1. **Given** a conversion (also each income in `run`), **When** the service
-   requests rates, **Then** a yellow spinner with "in progress...Converting
-   <amount><from> to <to>" is shown on stderr with the cursor hidden, and
-   "Converted <amount><from> to <to>" is printed when it stops.
+1. **Given** a conversion ~~(also each income in `run`)~~, **When** the
+   ~~service requests rates~~ CLI calls the service, **Then** a yellow spinner
+   with "in progress...Converting <amount><from> to <to>" is shown on stderr
+   with the cursor hidden, and "Converted <amount><from> to <to>" is printed
+   when it stops.
+2. **Given** `run`, **When** the CLI calls the service, **Then** one spinner
+   "Calculating taxes for <N> incomes" runs for the whole calculation and
+   "Calculated taxes for <N> incomes" is printed when it stops. (Since
+   2026-11-15, T018.)
 
 ---
 
@@ -158,8 +163,9 @@ a `v*` tag.
   key, including `vcs.modified=false`, so clean builds also show it. This is
   a defect of `github.com/obalunenko/version` v1.3.1 (BUG-002), not intended
   behavior; fixed by upgrading to v1.4.0 (T014).
-- The spinner runs inside `internal/service`, so it also runs in the bot
-  process (constitution known deviation).
+- ~~The spinner runs inside `internal/service`, so it also runs in the bot
+  process (constitution known deviation).~~ Since 2026-11-15 the CLI starts
+  it around service calls; the bot has no spinner (constitution 1.0.4).
 - The CLI context has no signal handling; Ctrl+C inside a form is handled by
   Bubble Tea (002 US2.4), Ctrl+C during a rate request ends the process.
 
@@ -185,7 +191,8 @@ a `v*` tag.
   (`github.com/obalunenko/version`), marking ~~builds from a modified tree~~
   only builds whose build info has `vcs.modified=true` (BUG-002).
 - **FR-007**: Long operations MUST show a spinner on stderr with a start and
-  a final message (`internal/spinner`).
+  a final message (`internal/spinner`), started by the CLI around service
+  calls, not by the service.
 - **FR-008**: Releases MUST be built by goreleaser from a `v*` tag after the
   build, regression test, and lint jobs pass.
 - **FR-009**: The `cli` build MUST be static (`CGO_ENABLED=0`), use

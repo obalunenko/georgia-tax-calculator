@@ -134,7 +134,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    selects the set by date, tests pass the fixture dates, and a case on
    2022-11-25 plus "no rates for the date" and "unknown currency" cases were
    added. A mutation check (sending the next day's date) fails 14 cases.
-7. **Spinner in the service.** `service.Convert` starts a terminal spinner,
+7. **Fixed (2026-11-15, 005 T018).** **Spinner in the service.** `service.Convert` starts a terminal spinner,
    also for bot requests. Tracked as a known deviation in
    `.specify/memory/constitution.md`; 003 refers here.
 8. **Unused `survey:"…"` struct tags** on `DateRequest`, `ConvertRequest`, and

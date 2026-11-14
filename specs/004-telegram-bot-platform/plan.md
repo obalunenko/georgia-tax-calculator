@@ -62,8 +62,9 @@ amd64/arm64); Docker image on Alpine 3.24 built from `golang:1.27.3-alpine`.
       BUG-001/BUG-002; Telegram I/O is untested (allowed by VI).
 - [x] VII. N/A.
 - [ ] Known deviations: binary named `ge-tax` in `.goreleaser.yml` but
-      `ge-bot` in Docker and README; the service spinner runs in the bot
-      process (existing deviations, not extended).
+      `ge-bot` in Docker and README ~~; the service spinner runs in the bot
+      process~~ (the spinner deviation was resolved on 2026-11-15, 005 T018;
+      existing deviation, not extended).
 
 ## Project Structure
 
