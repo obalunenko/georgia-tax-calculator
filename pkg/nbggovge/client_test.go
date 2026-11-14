@@ -89,9 +89,7 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestClient_Rates(t *testing.T) {
-	if !getenv.EnvOrDefault("INTEGRATION_TESTS", false) {
-		t.Skip("skipping integration tests")
-	}
+	integration := getenv.EnvOrDefault("INTEGRATION_TESTS", false)
 
 	ctx := context.Background()
 
@@ -105,14 +103,16 @@ func TestClient_Rates(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		fields   fields
-		args     args
-		wantPath string
-		wantErr  require.ErrorAssertionFunc
+		name        string
+		integration bool
+		fields      fields
+		args        args
+		wantPath    string
+		wantErr     require.ErrorAssertionFunc
 	}{
 		{
-			name: "integration: one currency EUR",
+			name:        "integration: one currency EUR",
+			integration: true,
 			fields: fields{
 				httpClient: http.DefaultClient,
 			},
@@ -127,7 +127,8 @@ func TestClient_Rates(t *testing.T) {
 			wantErr:  require.NoError,
 		},
 		{
-			name: "integration: two currencies: USD, GBP",
+			name:        "integration: two currencies: USD, GBP",
+			integration: true,
 			fields: fields{
 				httpClient: http.DefaultClient,
 			},
@@ -143,7 +144,8 @@ func TestClient_Rates(t *testing.T) {
 			wantErr:  require.NoError,
 		},
 		{
-			name: "integration: no currencies - all currencies",
+			name:        "integration: no currencies - all currencies",
+			integration: true,
 			fields: fields{
 				httpClient: http.DefaultClient,
 			},
@@ -157,7 +159,8 @@ func TestClient_Rates(t *testing.T) {
 			wantErr:  require.NoError,
 		},
 		{
-			name: "integration: not existed currency - empty",
+			name:        "integration: not existed currency - empty",
+			integration: true,
 			fields: fields{
 				httpClient: http.DefaultClient,
 			},
@@ -192,6 +195,10 @@ func TestClient_Rates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.integration && !integration {
+				t.Skip("skipping integration test")
+			}
+
 			want := ratesFromFile(t, tt.wantPath)
 
 			cli := NewWithHTTPClient(tt.fields.httpClient)
