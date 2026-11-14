@@ -1,0 +1,19 @@
+# Build context of build/docker/bot/Dockerfile (repository root).
+.git/
+bin/
+dist/
+coverage/
+*.log
+*.out
+report.xml
+tests-report.json
+
+# Secrets: the bot token is passed at runtime, never copied into the image.
+.env
+.env.*
+deployments/docker-compose/.env
+
+# Editors and OS files.
+.idea/
+.vscode/
+.DS_Store
