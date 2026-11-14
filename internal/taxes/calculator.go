@@ -66,10 +66,14 @@ const (
 	twentyPercents = onePercent * 20
 )
 
-// SmallBusinessTurnoverLimit is the Small Business annual turnover limit in GEL per calendar year.
-// It is pending confirmation against the Tax Code of Georgia (specs/003-tax-calculation FR-015).
+// SmallBusinessTurnoverLimit is the Small Business annual turnover limit in GEL per calendar year
+// (Tax Code of Georgia, Articles 88(3), 89(2)(a), 90(2); 700 000 GEL for wine tourism and agrotourism,
+// which the calculator does not support).
 const SmallBusinessTurnoverLimit float64 = 500_000
 
+// taxrates follow the Tax Code of Georgia (consolidated version of 30.10.2026):
+// Small Business 1% (Article 90(1)), Small Business over the limit 3% (Article 90(2)),
+// Employment 20% (Article 81(1)).
 var taxrates = map[TaxType]TaxRate{
 	TaxTypeSmallBusiness:          newTaxRate(TaxTypeSmallBusiness, onePercent),
 	TaxTypeSmallBusinessOverLimit: newTaxRate(TaxTypeSmallBusinessOverLimit, threePercents),

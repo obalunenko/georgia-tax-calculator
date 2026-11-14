@@ -6,7 +6,7 @@
 
 **Created**: 2026-11-15
 
-**Status**: Implemented (2026-11-15); FR-004 limit value pending 003 FR-015
+**Status**: Implemented (2026-11-15); limit and rates confirmed against the Tax Code (003 FR-015)
 
 **Input**: User description: "Year-income rules for tax calculation (follow-up
 to specs/003-tax-calculation clarifications of 2026-11-15): Small Business
@@ -193,8 +193,8 @@ the labels and rates.
   calculated at the selected category's rate.
 - **FR-003**: No limit warning MUST be shown for other categories or when the
   reported year income is equal to or below the limit.
-- **FR-004**: The limit MUST be 500 000 GEL until confirmed or corrected
-  against the Tax Code of Georgia (003 FR-015).
+- **FR-004**: The limit MUST be 500 000 GEL (Tax Code of Georgia, Articles
+  88(3), 89(2)(a), 90(2); confirmed on 2026-11-15, 003 FR-015).
 - **FR-005**: After the first income of a calculation, both interfaces MUST
   offer only the year of that income for later incomes; restarting income
   entry or the flow MUST clear this restriction.
@@ -236,13 +236,15 @@ the labels and rates.
 ## Assumptions
 
 - The Small Business annual turnover limit is 500 000 GEL and the over-limit
-  rate is 3%. Secondary sources agree on both
-  (e.g., expathub.ge, Legalese Georgia, PwC Tax Summaries, checked on
-  2026-11-15); the primary text (Tax Code of Georgia, articles on small
-  business status) is pending from the user because matsne.gov.ge blocks
-  automated access. Secondary sources disagree on how the 3% applies over
-  the limit and when the status is lost, so the warning states only the
-  facts above and does not compute the 3%.
+  rate is 3% (Tax Code of Georgia (საქართველოს საგადასახადო კოდექსი), consolidated
+  version with amendment no. 248 of 28.10.2026 (published 30.10.2026), Georgian
+  text from matsne.gov.ge, checked on 2026-11-15; see 003 Assumptions for the articles). By
+  Article 90(2) the 3% applies from the start of the month in which the limit
+  is exceeded until the end of the year; the calculator does not split
+  incomes by month, so the warning states the facts and the user picks
+  Small Business (over limit) for those incomes.
+- The 700 000 GEL limit for wine tourism and agrotourism (Articles 88(3),
+  90(2)) is out of scope.
 - Whether the general Individual Entrepreneur regime should be supported is
   out of scope; it taxes profit, which the tool does not collect.
 - No compatibility alias for the old category name is needed: categories are

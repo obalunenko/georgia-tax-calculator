@@ -46,8 +46,10 @@ Tax calculation rules:
 - The tax is calculated once on the total income converted to GEL.
 - For Small Business, if income since the start of the year plus the new
   incomes exceeds 500 000 GEL, the result shows a warning; the tax is still
-  calculated at 1%. Check the current limit and rates with the Revenue
-  Service before filing.
+  calculated at 1%. By the Tax Code (Article 90(2)), income from the start
+  of the month in which the limit is exceeded until the end of the year is
+  taxed at 3%; use Small Business (over limit) for those incomes. Rates and
+  the limit follow the Tax Code as of 30.10.2026.
 
 All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
 section with the build information of your binary is omitted here, see

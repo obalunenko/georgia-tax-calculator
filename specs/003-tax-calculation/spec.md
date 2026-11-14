@@ -198,7 +198,7 @@ A user sends `/calculate` and follows the bot.
   a warning with the result. The tax MUST still be calculated at the category
   rate (FR-004). Year income MUST NOT change the rate or the category.
   ~~[Not implemented yet.]~~ Implemented by 006 with a limit of
-  500 000 GEL, pending FR-015.
+  500 000 GEL, confirmed by FR-015.
 - **FR-014**: All incomes in one calculation MUST be in the same calendar
   year, fixed by the year of the first income. After the first income, both
   interfaces MUST offer only that year; the service MUST reject a request
@@ -207,7 +207,8 @@ A user sends `/calculate` and follows the bot.
 - **FR-015**: Before the next release, every rate in the rate table and the
   Small Business turnover limit (FR-013) MUST be checked against the current
   Tax Code of Georgia, and the source (article) and check date MUST be
-  recorded in Assumptions. [Not done yet.]
+  recorded in Assumptions. ~~[Not done yet.]~~ Done on 2026-11-15; see
+  Assumptions.
 - **FR-016**: Year income MUST be validated with `service.ParseYearIncome`
   (0 or greater) and each income amount with `service.ParseAmount` (greater
   than 0), in the service and in both interfaces (002 FR-014).
@@ -240,11 +241,24 @@ Edge Cases.
 ## Assumptions
 
 - The three categories and their rates reflect the rules the tool targets;
-  rates are fixed in code. Their legal source is not recorded yet, and the
+  rates are fixed in code. ~~Their legal source is not recorded yet, and the
   3% rate (Individual Entrepreneur, renamed to Small Business (over limit) by
-  006) in particular is unverified (FR-015).
+  006) in particular is unverified (FR-015).~~ Source (FR-015): Tax Code of Georgia (საქართველოს საგადასახადო კოდექსი), consolidated
+  version with amendment no. 248 of 28.10.2026 (published 30.10.2026), Georgian
+  text from matsne.gov.ge, checked on 2026-11-15:
+  - Employment 20%: Article 81(1).
+  - Small Business 1%: Article 90(1).
+  - Small Business (over limit) 3%: Article 90(2). It applies to taxable
+    income from the start of the month in which the 500 000 GEL limit is
+    exceeded until the end of the calendar year; the calculator does not
+    split incomes by month (warning only, FR-013).
+  - Articles 88–90 were last amended by Law No. 3922 of 13.12.2023.
 - The user enters year income already in GEL.
-- The Small Business annual turnover limit is assumed to be 500 000 GEL; the
-  value MUST be checked against the current Tax Code of Georgia before FR-013
-  is implemented.
-- Each income's tax is calculated independently of the others.
+- The Small Business annual turnover limit is ~~assumed to be~~ 500 000 GEL
+  per calendar year (Articles 88(3), 89(2)(a), 90(2)); 700 000 GEL applies
+  to wine tourism and agrotourism, which the calculator does not support. The
+  status is cancelled from the next year if the limit is exceeded in each of
+  2 calendar years (Article 89(2)(a), 89(3)); the calculator does not track
+  this.
+- ~~Each income's tax is calculated independently of the others.~~
+  Superseded by FR-004: the tax is calculated once on the total.

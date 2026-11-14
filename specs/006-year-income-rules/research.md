@@ -15,10 +15,16 @@
   when the status is lost (two consecutive years; one source mentions a
   1 000 000 GEL ceiling), so the tool states only the facts it can compute.
 - **Primary source**: Tax Code of Georgia on matsne.gov.ge (document
-  1043717, latest consolidated publication 248 of 30/10/2026). Automated
-  access returned "Access Denied"; the article text is pending from the user
-  (003 FR-015). The constant is the only thing to change if the text
-  differs.
+  1043717, consolidated version with amendment no. 248 of 28.10.2026,
+  published 30.10.2026). Automated access returned "Access Denied"; the user
+  provided the Georgian PDF on 2026-11-15. Confirmed: 1% (Article 90(1));
+  3% when the total income from economic activity exceeds 500 000 GEL,
+  from the start of the month in which the limit is exceeded until the end
+  of the calendar year (Article 90(2)); the limit is 700 000 GEL for wine
+  tourism and agrotourism (Articles 88(3), 90(2)); the status is cancelled
+  from the next year if the limit is exceeded in each of 2 calendar years
+  (Article 89(2)(a), 89(3)); Employment 20% (Article 81(1)). The secondary
+  sources' 1 000 000 GEL ceiling is not in the text.
 - **Alternatives considered**: computing 3% on the excess (rejected by the
   003 clarification "warning only"); a configurable limit (no need: the
   value changes with the law, not per user).
