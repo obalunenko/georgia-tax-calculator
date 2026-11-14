@@ -2,8 +2,7 @@ package nbggovge
 
 import (
 	"context"
-	"fmt"
-	"hash/crc32"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -65,7 +64,8 @@ func (c *CachedClient) Rates(ctx context.Context, opts ...option.RatesOption) (R
 		// Check if cache entry is still valid
 		if c.ttl == 0 || time.Since(cached.timestamp) < c.ttl {
 			c.mutex.RUnlock()
-			return cached.rates, nil
+			// Callers get a copy, so changing the result does not change the cache.
+			return cloneRates(cached.rates), nil
 		}
 	}
 	c.mutex.RUnlock()
@@ -76,15 +76,22 @@ func (c *CachedClient) Rates(ctx context.Context, opts ...option.RatesOption) (R
 		return Rates{}, err
 	}
 
-	// Store in cache
+	// Store in cache; expired entries are removed here, so a long-running process does not accumulate them.
 	c.mutex.Lock()
+	c.clearExpiredLocked()
 	c.cache[cacheKey] = cachedRates{
-		rates:     rates,
+		rates:     cloneRates(rates),
 		timestamp: time.Now(),
 	}
 	c.mutex.Unlock()
 
 	return rates, nil
+}
+
+func cloneRates(r Rates) Rates {
+	r.Currencies = slices.Clone(r.Currencies)
+
+	return r
 }
 
 // generateCacheKey creates a unique cache key based on date and currency codes.
@@ -97,12 +104,8 @@ func (c *CachedClient) generateCacheKey(date time.Time, currencyCodes []string) 
 	copy(sortedCodes, currencyCodes)
 	sort.Strings(sortedCodes)
 
-	// Create key: date + sorted currencies
-	keyData := dateStr + ":" + strings.Join(sortedCodes, ",")
-
-	// Use CRC32 hash for shorter, consistent keys
-	hash := crc32.ChecksumIEEE([]byte(keyData))
-	return fmt.Sprintf("%x", hash)
+	// The key is the date and the sorted codes themselves: unlike a hash, it cannot collide.
+	return dateStr + ":" + strings.Join(sortedCodes, ",")
 }
 
 // ClearCache removes all cached entries.
@@ -120,6 +123,15 @@ func (c *CachedClient) ClearExpired() {
 
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+
+	c.clearExpiredLocked()
+}
+
+// clearExpiredLocked removes expired entries. Must be called with the write lock held.
+func (c *CachedClient) clearExpiredLocked() {
+	if c.ttl == 0 {
+		return
+	}
 
 	for key, cached := range c.cache {
 		if time.Since(cached.timestamp) >= c.ttl {

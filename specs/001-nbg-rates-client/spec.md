@@ -194,6 +194,18 @@ tests use `mock.NewClient` with fixtures from `internal/converter/testdata/`.
   `mock.NewClient` MUST serve fixture rate sets through the real client,
   selected by the requested date and limited to the requested currencies,
   returning an empty set where NBG would.
+- **FR-016**: `New()` MUST use an HTTP client with a 30-second timeout, so a
+  request without a context deadline cannot hang. (Added 2026-11-15, T021.)
+- **FR-017**: The cache key MUST be the date and the sorted codes themselves,
+  not a hash, so different requests never share a key. (Added 2026-11-15,
+  T022.)
+- **FR-018**: `CachedClient` MUST store and return copies of `Rates`, so a
+  caller changing a result does not change the cache. (Added 2026-11-15,
+  T022.)
+- **FR-019**: Expired entries MUST be removed when a new entry is stored.
+  (Added 2026-11-15, T022.)
+- **FR-020**: The currencies generator MUST fail when the live response has
+  no currency other than GEL. (Added 2026-11-15, T023.)
 
 ### Key Entities
 

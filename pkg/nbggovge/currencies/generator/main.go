@@ -26,6 +26,7 @@ import (
 const (
 	templateName  = "codes.go.tmpl"
 	generatorName = "currencies-generator"
+	gelCode       = "GEL"
 )
 
 //go:embed codes.go.tmpl
@@ -139,9 +140,13 @@ func main() {
 func getInput(ctx context.Context, useClient bool, input string) ([]nbggovge.Rates, error) {
 	if useClient {
 		rates, err := nbggovge.New().Rates(ctx, option.WithDate(time.Now()))
-
-		if err != nil || len(rates.Currencies) == 0 {
+		if err != nil {
 			return nil, fmt.Errorf("get rates from client: %w", err)
+		}
+
+		// The client adds GEL itself, so an empty NBG response still has one currency.
+		if !slices.ContainsFunc(rates.Currencies, func(c nbggovge.Currency) bool { return c.Code != gelCode }) {
+			return nil, errors.New("get rates from client: no currencies other than GEL in the response")
 		}
 
 		return []nbggovge.Rates{rates}, nil
@@ -172,10 +177,10 @@ func mutateCurrencyList(currencies []currencyInfo) []currencyInfo {
 	newV := slices.Clone(currencies)
 
 	if !slices.ContainsFunc(newV, func(info currencyInfo) bool {
-		return info.Code == "GEL"
+		return info.Code == gelCode
 	}) {
 		newV = append(newV, currencyInfo{
-			Code: "GEL",
+			Code: gelCode,
 			Name: "Georgian Lari",
 		})
 	}

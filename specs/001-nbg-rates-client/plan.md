@@ -107,11 +107,14 @@ return `*CachedClient`.
    `internal.RatesParams`) keep `Rates` extensible without breaking callers;
    parameters stay unexported to consumers through `internal/`.
 2. **`HTTPClient` interface** (`Do(*http.Request)`) allows injecting test
-   doubles and custom transports; `New()` uses `http.DefaultClient`.
+   doubles and custom transports; `New()` uses ~~`http.DefaultClient`~~ an
+   `http.Client` with a 30-second timeout (FR-016).
 3. **Synthetic GEL entry** lets converters treat GEL like any other currency
    (rate 1, quantity 1) even though NBG does not publish it.
-4. **Cache key**: CRC32 of `YYYY-MM-DD:` plus sorted, comma-joined codes;
-   order of `WithCurrency` calls does not matter.
+4. **Cache key**: ~~CRC32 of~~ `YYYY-MM-DD:` plus sorted, comma-joined codes
+   (FR-017); order of `WithCurrency` calls does not matter. Entries are
+   stored and returned as copies (FR-018); expired entries are removed on
+   each write (FR-019).
 5. **Concurrency**: `sync.RWMutex`; reads under a read lock, writes under a
    write lock; no request coalescing.
 6. **Code generation**: the generator reads one rate set (live API with

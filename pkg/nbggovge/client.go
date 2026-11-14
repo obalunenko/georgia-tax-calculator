@@ -28,9 +28,12 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// New returns nbg.gov.ge API client.
+// defaultHTTPTimeout bounds a request when the caller's context has no deadline.
+const defaultHTTPTimeout = 30 * time.Second
+
+// New returns nbg.gov.ge API client with an HTTP client that times out after 30 seconds.
 func New() Client {
-	return NewWithHTTPClient(http.DefaultClient)
+	return NewWithHTTPClient(&http.Client{Timeout: defaultHTTPTimeout})
 }
 
 // NewWithHTTPClient returns nbg.gov.ge API client with specified http client.

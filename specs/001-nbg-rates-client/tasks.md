@@ -80,6 +80,14 @@ feature.
 - [x] T018 [US4] Implement `mock.NewClient` serving fixture rate sets through the real client in `pkg/nbggovge/mock/mock.go`
 - [x] T020 [US4] Select the fixture set by the requested date, filter by requested currencies, return an empty set like NBG, and leave fixtures unmodified in `pkg/nbggovge/mock/mock.go`; tests in `pkg/nbggovge/mock/mock_test.go`; run the `mocked:` case of `TestClient_Rates` without `INTEGRATION_TESTS` (fixes gaps 1 and 2, 2026-11-15)
 
+
+---
+
+## Phase F: Follow-up for migration gaps 4–8 (2026-11-15)
+
+- [x] T021 [P] [US1] `New()` uses an `http.Client` with `defaultHTTPTimeout` (30 s) in `pkg/nbggovge/client.go`; test `TestNew_HTTPTimeout` in `pkg/nbggovge/client_cached_test.go` (gap 5, FR-016)
+- [x] T022 [US2] Use the date and sorted codes as the cache key, store and return copies of `Rates`, and remove expired entries on each write in `pkg/nbggovge/cache.go`; tests in `pkg/nbggovge/cache_test.go` (`TestCachedClient_GenerateCacheKey`, `TestCachedClient_ReturnsCopies`, `TestCachedClient_EvictsExpiredOnWrite`); update `pkg/nbggovge/README_CACHE.md` (gaps 4, 6, 7; FR-017–FR-019)
+- [x] T023 [P] [US3] Fail in `getInput` when the live response has no currency other than GEL, without wrapping a nil error, in `pkg/nbggovge/currencies/generator/main.go` (gap 8, FR-020)
 ---
 
 ## Phase N: Polish & Cross-Cutting Concerns
@@ -113,16 +121,16 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    or Makefile target runs the generator; `make codegen` only runs stringer.
    `codes.gen.go` was last generated on 2025-08-02. Constitution VII (1.0.2)
    documents the manual command; automating it remains open.
-4. **No automatic cache eviction.** `ClearExpired` and `GetCacheStats` are not
+4. **Fixed by T022.** **No automatic cache eviction.** `ClearExpired` and `GetCacheStats` are not
    called anywhere; in the long-running bot, entries accumulate (one per
    date and currency set).
-5. **No HTTP timeout.** `New()` uses `http.DefaultClient`; only the caller's
+5. **Fixed by T021.** **No HTTP timeout.** `New()` uses `http.DefaultClient`; only the caller's
    context bounds a request.
-6. **CRC32 cache key.** A hash collision would return rates for a different
+6. **Fixed by T022.** **CRC32 cache key.** A hash collision would return rates for a different
    date or currency set.
-7. **Shared cached data.** Cached `Rates` are returned by value, but the
+7. **Fixed by T022.** **Shared cached data.** Cached `Rates` are returned by value, but the
    `Currencies` slice is shared; a caller that mutates it changes the cache.
-8. **Generator empty-response guard never fires.** `getInput`
+8. **Fixed by T023.** **Generator empty-response guard never fires.** `getInput`
    (`pkg/nbggovge/currencies/generator/main.go:143`) checks
    `len(rates.Currencies) == 0`, but with no requested codes the client always
    appends GEL (FR-004), so an empty NBG response yields one currency and
