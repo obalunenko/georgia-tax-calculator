@@ -45,7 +45,7 @@ builds:
       - -trimpath
 
   - id: bot
-    binary: ge-tax
+    binary: ge-bot
     goos:
       - 'linux'
       - 'darwin'

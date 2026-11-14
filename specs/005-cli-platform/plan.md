@@ -64,10 +64,11 @@ release workflow.
 - [ ] VI. No tests for the root command, hooks, version output, or
       `internal/spinner` (allowed by VI, recorded as gaps).
 - [x] VII. No generated code involved.
-- [ ] Known deviations: ~~the spinner is started in `internal/service`, so it
+- [x] Known deviations: ~~the spinner is started in `internal/service`, so it
       also runs for bot requests;~~ (resolved on 2026-11-15, constitution
-      1.0.4) the bot binary name differs between goreleaser and Docker (004).
-      Existing deviation, not extended.
+      1.0.4) ~~the bot binary name differs between goreleaser and Docker (004).
+      Existing deviation, not extended.~~ (resolved on 2026-11-15, 004 T031,
+      constitution 1.0.5)
 
 ## Project Structure
 

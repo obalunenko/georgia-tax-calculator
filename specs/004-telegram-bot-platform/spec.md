@@ -32,7 +32,7 @@ Bot" section. History: `0a76d1d` (Telegram bot, #221).
   `/calculate` and `/convert` from 002 and 003); broadcast messages; environment
   variables `TELEGRAM_BOT_TOKEN` (required), `TELEGRAM_BOT_LOG_LEVEL`
   (default `info`), `USER_STORE_PATH` (default `users.json`).
-- **Release impact**: goreleaser `bot` build (binary `ge-tax`, linux/darwin,
+- **Release impact**: goreleaser `bot` build (binary ~~`ge-tax`~~ `ge-bot` since 2026-11-15, linux/darwin,
   amd64/arm64) and the `ge-bot` Docker image built in CI (not pushed).
 
 ## User Scenarios & Testing *(mandatory)*

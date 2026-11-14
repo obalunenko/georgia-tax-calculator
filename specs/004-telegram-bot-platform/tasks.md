@@ -113,6 +113,7 @@ feature.
 - [x] T028 [US1] Wait for running handlers before the maintenance broadcast: `inflight` (`track`, `done` middleware registered first, `wait`) and `shutdown` in `cmd/bot/bot.go`; test `TestInflightWaitsForHandledUpdates` in `cmd/bot/session_test.go` (gap 10, FR-023)
 - [x] T029 [US2] Forget users idle for more than `sessionTTL` (24 h): `sessionStore.touch` (called by `get`, `reset`, and `lock`, sweeping at most once per `sessionSweepInterval`) in `cmd/bot/session.go`; test `TestSessionStoreForgetsIdleUsers` in `cmd/bot/session_test.go` (gap 6, FR-024)
 - [x] T030 [P] [US1] Log user input by command or length (`inputLogField`) and outgoing messages by length in `cmd/bot/send_message.go` and `cmd/bot/bot.go`; test `TestInputLogField` in `cmd/bot/session_test.go` (gap 7, FR-014)
+- [x] T031 [P] [US4] Rename the goreleaser `bot` binary from `ge-tax` to `ge-bot` in `.goreleaser.yml` (archives become `ge-bot-<version>-<os>-<arch>`); `goreleaser check` and a snapshot build of `--id bot` produce `ge-bot` (gap 9; constitution 1.0.5)
 
 ---
 
@@ -149,7 +150,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    Fix together with gap 3: with a non-root `USER` and no writable
    `WORKDIR` or volume, writing `/users.json` fails, and the error is
    ignored, so chat tracking stops without any log.
-9. **Known deviation**: the binary is `ge-tax` in `.goreleaser.yml` but
+9. **Fixed by T031.** **Known deviation**: the binary is `ge-tax` in `.goreleaser.yml` but
    `ge-bot` in the Dockerfile and README.
 10. **Fixed by T028.** **Shutdown does not wait for handlers.** `bh.Start()` returns as soon as
     the long-polling channel closes

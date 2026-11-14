@@ -1,14 +1,14 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.3 → 1.0.4 (PATCH: known deviation resolved)
-- Modified: I. Keep the Service Layer the Single Domain Entry Point (the CLI
-  may use `internal/spinner` for terminal output); Known Deviations (removed
-  "`internal/service` starts a terminal spinner": the CLI starts it now)
+- Version change: 1.0.4 → 1.0.5 (PATCH: known deviation resolved)
+- Modified: Known Deviations (removed "The bot binary is named `ge-tax` in
+  `.goreleaser.yml`": goreleaser builds `ge-bot` now, like the Dockerfile and
+  README)
 - Templates: plan-template.md, tasks-template.md, spec-template.md — no
-  change needed; AGENTS.md — no change needed (it already places
-  `internal/spinner/` in the interface layer)
+  change needed; AGENTS.md — no change needed
 - Follow-up: none
-- Previous: 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
+- Previous: 1.0.3 → 1.0.4 removed the spinner deviation and allowed the CLI
+  to use `internal/spinner`; 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
   tests; `cmd/bot` is partly tested); 1.0.1 → 1.0.2 corrected VII (currency
   codes are regenerated manually; `make codegen` runs only stringer)
 -->
@@ -164,8 +164,6 @@ Evidence: `//go:generate` in `internal/taxes/calculator.go`,
 These are current exceptions. They are not rules, and new features MUST NOT
 extend them:
 
-- The bot binary is named `ge-tax` in `.goreleaser.yml` but `ge-bot` in
-  `build/docker/bot/Dockerfile` and README.
 - `.golangci.yml` excludes `internal/input/` and `internal/puzzles/`, which do
   not exist in this repository.
 - `depguard` rules are configured in `.golangci.yml`, but the linter is not
@@ -182,4 +180,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.4 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
+**Version**: 1.0.5 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
