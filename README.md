@@ -33,20 +33,40 @@ Calculates income taxes in Georgia.
 
 2. Run `ge-tax-calc run` and follow instructions
 
-All available flags, commands and usage:
+Amounts are plain numbers with a dot as the decimal separator (e.g. `1500.50`).
+Income and conversion amounts must be greater than 0; income since the start
+of the year can be `0`. The CLI and the bot apply the same rules.
+
+Tax calculation rules:
+
+- Tax categories: Employment (20%), Small Business (1%), and Small Business
+  (over limit) (3%, formerly "Individual Entrepreneur").
+- One calculation covers one calendar year: after the first income, only its
+  year can be chosen.
+- The tax is calculated once on the total income converted to GEL.
+- For Small Business, if income since the start of the year plus the new
+  incomes exceeds 500 000 GEL, the result shows a warning; the tax is still
+  calculated at 1%. By the Tax Code (Article 90(2)), income from the start
+  of the month in which the limit is exceeded until the end of the year is
+  taxed at 3%; use Small Business (over limit) for those incomes. Rates and
+  the limit follow the Tax Code as of 30.10.2026.
+
+All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
+section with the build information of your binary is omitted here, see
+`ge-tax-calc --version`):
 
 ```text
 NAME:
    ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia 
 
 USAGE:
-   ge-tax-calc [global options] command [command options] [arguments...]
+   ge-tax-calc [global options] [command [command options]]
 
 DESCRIPTION:
    Helper tool for preparing tax declarations in Georgia.
-   It get income amount in received currency, converts it to GEL according to
-   official rates on date of income and calculates tax amount
-   according to selected taxes category.
+   It gets the income amount in the received currency, converts it to GEL at the
+   official NBG rate on the date of income, and calculates the tax amount for the
+   selected tax category.
 
 AUTHOR:
    Oleg Balunenko <oleg.balunenko@gmail.com>
@@ -57,9 +77,12 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
+   --help, -h     show help
+   --version, -v  print the version
 ```
+
+An unknown command prints `No help topic for '<command>'` and exits with
+status 3.
 
 ### Demo
 
@@ -125,6 +148,10 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    | `make bot-down` | Stop and remove the bot container |
    | `make bot-logs` | Follow the bot's log output |
 
+   The container runs as a non-root user (UID 10001). Known chats are stored in
+   the `bot-data` volume mounted at `/data`, so they survive `make bot-down` and
+   image rebuilds; `docker compose down -v` removes them.
+
 ### Bot Commands
 
 - `/start` — Welcome message and command overview
@@ -132,6 +159,9 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 - `/convert` — Start the currency conversion flow (guided step-by-step)
 - `/cancel` — Cancel the current operation
 - `/help` — Show available commands
+
+Only the buttons of the latest step are accepted: pressing a button from an
+earlier message replies with "Unexpected input" and keeps the current step.
 
 ## For Developers
 

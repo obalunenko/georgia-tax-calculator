@@ -11,6 +11,7 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -367,15 +368,15 @@ func (p *promptModel) inheritHeight(prev *promptModel) {
 }
 
 func validateMoneyInput(val string) error {
-	if strings.TrimSpace(val) == "" {
-		return errors.New("value is required")
-	}
+	_, err := service.ParseAmount(val)
 
-	if _, err := moneyutils.Parse(val); err != nil {
-		return fmt.Errorf("invalid amount: %w", err)
-	}
+	return err
+}
 
-	return nil
+func validateYearIncomeInput(val string) error {
+	_, err := service.ParseYearIncome(val)
+
+	return err
 }
 
 func taxTypeOptions() ([]option, error) {
@@ -412,7 +413,7 @@ func currencyOptions() []option {
 }
 
 func yearOptions() []option {
-	years := getYears(time.Now())
+	years := getYears(service.Now())
 
 	sort.Slice(years, func(i, j int) bool {
 		return years[i] > years[j]
@@ -427,7 +428,7 @@ func monthOptions(year string) ([]option, error) {
 		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
-	months := dateutils.GetMonthsInYearTillDate(parseYear, time.Now())
+	months := dateutils.GetMonthsInYearTillDate(parseYear, service.Now())
 
 	return valuesToOptions(months), nil
 }
@@ -443,7 +444,7 @@ func dayOptions(year, month string) ([]option, error) {
 		return nil, fmt.Errorf("parse month: %w", err)
 	}
 
-	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(parseMonth, parseYear, time.Now()))
+	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(parseMonth, parseYear, service.Now()))
 
 	return valuesToOptions(days), nil
 }
@@ -461,11 +462,11 @@ func valuesToOptions(values []string) []option {
 }
 
 func defaultYearValue() string {
-	return strconv.Itoa(time.Now().Year())
+	return strconv.Itoa(service.Now().Year())
 }
 
 func defaultMonthValue(year string) string {
-	now := time.Now()
+	now := service.Now()
 	if strconv.Itoa(now.Year()) == year {
 		return now.Month().String()
 	}
@@ -474,7 +475,7 @@ func defaultMonthValue(year string) string {
 }
 
 func defaultDayValue(year, month string) string {
-	now := time.Now()
+	now := service.Now()
 	if strconv.Itoa(now.Year()) != year {
 		return ""
 	}
@@ -497,9 +498,7 @@ func defaultDayValue(year, month string) string {
 func getYears(now time.Time) []string {
 	var years []string
 
-	const begin = 2016
-
-	for i := begin; i <= now.Year(); i++ {
+	for i := service.FirstYear; i <= now.Year(); i++ {
 		years = append(years, strconv.Itoa(i))
 	}
 

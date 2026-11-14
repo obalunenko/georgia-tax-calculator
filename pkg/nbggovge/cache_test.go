@@ -135,50 +135,78 @@ func TestCachedClient_Rates_CacheExpired(t *testing.T) {
 }
 
 func TestCachedClient_GenerateCacheKey(t *testing.T) {
-	mockCli := &mockClient{}
-	cachedClient := NewCachedClient(mockCli, time.Hour)
+	cachedClient := NewCachedClient(&mockClient{}, time.Hour)
 
 	date := time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
 
 	tests := []struct {
-		name           string
-		currencyCodes  []string
-		expectedLength int
+		name          string
+		currencyCodes []string
+		want          string
 	}{
-		{
-			name:           "empty currencies",
-			currencyCodes:  []string{},
-			expectedLength: 8, // MD5 hash length
-		},
-		{
-			name:           "single currency",
-			currencyCodes:  []string{"USD"},
-			expectedLength: 8,
-		},
-		{
-			name:           "multiple currencies",
-			currencyCodes:  []string{"USD", "EUR", "GBP"},
-			expectedLength: 8,
-		},
+		{name: "empty currencies", currencyCodes: []string{}, want: "2023-12-01:"},
+		{name: "single currency", currencyCodes: []string{"USD"}, want: "2023-12-01:USD"},
+		{name: "codes are sorted", currencyCodes: []string{"USD", "EUR", "GBP"}, want: "2023-12-01:EUR,GBP,USD"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			key := cachedClient.generateCacheKey(date, tt.currencyCodes)
-			assert.Len(t, key, tt.expectedLength)
+			assert.Equal(t, tt.want, cachedClient.generateCacheKey(date, tt.currencyCodes))
 		})
 	}
 
-	// Test that same parameters produce same key
 	key1 := cachedClient.generateCacheKey(date, []string{"USD", "EUR"})
 	key2 := cachedClient.generateCacheKey(date, []string{"EUR", "USD"}) // Different order
 	assert.Equal(t, key1, key2, "Cache keys should be same regardless of currency order")
 
-	// Test that different dates produce different keys
 	date2 := time.Date(2023, 12, 2, 0, 0, 0, 0, time.UTC)
-	key3 := cachedClient.generateCacheKey(date2, []string{"USD"})
-	key4 := cachedClient.generateCacheKey(date, []string{"USD"})
-	assert.NotEqual(t, key3, key4, "Different dates should produce different cache keys")
+	assert.NotEqual(t, cachedClient.generateCacheKey(date2, []string{"USD"}), cachedClient.generateCacheKey(date, []string{"USD"}),
+		"Different dates should produce different cache keys")
+}
+
+func TestCachedClient_ReturnsCopies(t *testing.T) {
+	mockCli := &mockClient{returnRates: Rates{
+		Date:       "2023-12-01",
+		Currencies: []Currency{{Code: "USD", Rate: 2.7, Name: "US Dollar"}},
+	}}
+	cachedClient := NewCachedClient(mockCli, time.Hour)
+
+	ctx := context.Background()
+	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
+
+	first, err := cachedClient.Rates(ctx, opts...)
+	require.NoError(t, err)
+
+	first.Currencies[0].Rate = 0 // the fetched result is not shared with the cache
+
+	second, err := cachedClient.Rates(ctx, opts...)
+	require.NoError(t, err)
+	assert.Equal(t, 1, mockCli.callCount, "second call is served from the cache")
+	assert.InDelta(t, 2.7, second.Currencies[0].Rate, 0)
+
+	second.Currencies[0].Rate = 0 // a cached result is not shared either
+
+	third, err := cachedClient.Rates(ctx, opts...)
+	require.NoError(t, err)
+	assert.InDelta(t, 2.7, third.Currencies[0].Rate, 0)
+}
+
+func TestCachedClient_EvictsExpiredOnWrite(t *testing.T) {
+	mockCli := &mockClient{returnRates: Rates{Date: "2023-12-01"}}
+	cachedClient := NewCachedClient(mockCli, time.Millisecond)
+
+	ctx := context.Background()
+
+	_, err := cachedClient.Rates(ctx, option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)))
+	require.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 10)
+
+	_, err = cachedClient.Rates(ctx, option.WithDate(time.Date(2023, 12, 2, 0, 0, 0, 0, time.UTC)))
+	require.NoError(t, err)
+
+	stats := cachedClient.GetCacheStats()
+	assert.Equal(t, 1, stats.TotalEntries, "the expired entry was removed when the new one was stored")
 }
 
 func TestCachedClient_ClearCache(t *testing.T) {

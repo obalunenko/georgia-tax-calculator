@@ -87,6 +87,9 @@ A user runs `ge-tax-calc convert` and fills an interactive form.
    the current input summary is displayed above the prompt.
 4. **Given** Ctrl+C at any step, **When** pressed, **Then** the command exits
    with "failed to collect converter input: input aborted".
+5. **Given** the amount step, **When** the user enters `12abc`, `1,500`,
+   `NaN`, `0`, or `-5`, **Then** the prompt shows a validation error and
+   does not advance (FR-014).
 
 ---
 
@@ -111,6 +114,12 @@ A user sends `/convert` and follows inline keyboards.
    replies "❌ Conversion error: ..." and suggests `/convert`.
 5. **Given** text at a step that expects a button, **When** it is sent,
    **Then** the bot replies "⚠️ Unexpected input".
+6. **Given** the amount step, **When** the user sends `12abc`, `1,500`,
+   `NaN`, `0`, or `-5`, **Then** the bot asks again with "❌ Invalid amount"
+   and stays on the amount step (FR-014).
+7. **Given** a button from an earlier step or keyboard, **When** it is
+   pressed, **Then** the bot replies "⚠️ Unexpected input" and the step does
+   not change (004 FR-015).
 
 ---
 
@@ -118,15 +127,27 @@ A user sends `/convert` and follows inline keyboards.
 
 - Selectable years are 2016 through the current year; months and days are
   limited to dates up to today in both interfaces.
-- The service itself does not reject future dates, day 0, or day 31 in a
-  30-day month; `time.Date` normalizes such dates.
-- Negative and zero amounts are accepted by both interfaces.
-- The bot accepts amounts like `12abc` or `1,500` at input time (`fmt.Sscanf`)
-  and fails only at conversion; the CLI rejects them immediately.
+- ~~"Today" is the local date of the process (`time.Now()`). In the Docker
+  image this is UTC, so from 00:00 to 04:00 Tbilisi time (UTC+4) the current
+  Georgian date cannot be selected.~~ Since 2026-11-15 "today" is the date in
+  Georgia (UTC+4) in both interfaces and the service (FR-016).
+- ~~The service itself does not reject future dates, day 0, or day 31 in a
+  30-day month; `time.Date` normalizes such dates.~~ Since 2026-11-15 the
+  service rejects them, and dates before 2016 (FR-015).
+- ~~Negative and zero amounts are accepted by both interfaces.~~ Superseded
+  by BUG-001: amounts ≤ 0 MUST be rejected by the service and both
+  interfaces (FR-014).
+- ~~The bot accepts amounts like `12abc`, `1,500`, `NaN`, or `Inf` at input
+  time (`fmt.Sscanf`) and fails only at conversion; the CLI rejects them
+  immediately.~~ Superseded by BUG-001: both interfaces reject such input at
+  the amount step (FR-014).
 - A currency missing from the NBG response for the date returns
   `ErrCodeNotFound`.
 - NBG errors and timeouts surface as conversion errors; no retry.
-- Stale inline buttons in the bot are applied to the current step.
+- ~~Stale inline buttons in the bot are applied to the current step; at the
+  confirmation step any button other than "No" starts the conversion.~~
+  Superseded by 004 BUG-001: buttons from another step or with an option the
+  current step does not offer are rejected (004 FR-015).
 
 ## Requirements *(mandatory)*
 
@@ -140,9 +161,9 @@ A user sends `/convert` and follows inline keyboards.
   rate to 4.
 - **FR-004**: Empty source or target currency MUST return `ErrCurrencyNotSet`.
 - **FR-005**: The service MUST accept the date as year, month name, and day
-  strings and build a UTC date.
+  strings and build a UTC date, validated by FR-015.
 - **FR-006**: The service MUST parse the amount with `moneyutils.Parse` and
-  return an error for invalid input.
+  return an error for invalid input, using the rule in FR-014.
 - **FR-007**: The response MUST contain the date, the source amount, the
   converted amount, and the rate; its text form prints `Date`, `Amount`,
   `Converted`, `Rate`.
@@ -151,14 +172,31 @@ A user sends `/convert` and follows inline keyboards.
   USD → GEL, and a confirmation step that restarts the form on "No".
 - **FR-009**: The bot MUST offer the same date and currency choices through
   inline keyboards, request the amount as text, and confirm before converting.
-- **FR-010**: The CLI MUST validate the amount with `moneyutils.Parse` before
-  accepting it.
-- **FR-011**: The bot MUST validate the amount before accepting it.
-  [Current behavior differs from FR-010: `fmt.Sscanf` accepts trailing text.]
+- **FR-010**: The CLI MUST validate the amount with ~~`moneyutils.Parse`~~
+  the rule in FR-014 before accepting it.
+- **FR-011**: The bot MUST validate the amount with the same rule as the CLI
+  (FR-014) before accepting it. ~~[Known defect: the bot uses
+  `fmt.Sscanf("%f")`, which accepts `12abc`, `1,500`, `NaN`, and `Inf`; see
+  tasks.md gap 1 and BUG-001.]~~ Fixed on 2026-11-15 (BUG-001, T020).
 - **FR-012**: Conversion errors MUST be shown to the user (CLI returns the
   error; the bot replies with the error and suggests `/convert`).
 - **FR-013**: `/cancel` MUST abort an in-progress bot conversion (see
   [004-telegram-bot-platform](../004-telegram-bot-platform/spec.md)).
+- **FR-014**: One amount rule in `internal/service` MUST be used by the
+  service, the CLI, and the bot: trim spaces, parse with `moneyutils.Parse`,
+  and require a value greater than 0.
+- **FR-015**: The service MUST reject, with `ErrInvalidDate`, a date that does
+  not exist (day 0, 31 April, 29 February in a common year), is before
+  `service.FirstYear` (2016), or is after today in Georgia. (Added
+  2026-11-15, T022.)
+- **FR-016**: "Today" for year, month, and day options in both interfaces and
+  for FR-015 MUST be the date in Georgia (`service.Now()`, UTC+4), and both
+  interfaces MUST take the first selectable year from `service.FirstYear`.
+  (Added 2026-11-15, T023.)
+
+**Bugfix**: 2026-11-15 — BUG-001 Added FR-014 (shared amount rule, amount
+greater than 0), updated FR-006, FR-010, FR-011, Edge Cases, and acceptance
+scenarios US2.5, US3.6, US3.7.
 
 ### Key Entities
 

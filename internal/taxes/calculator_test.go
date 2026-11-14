@@ -39,15 +39,15 @@ func TestCalc(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 		{
-			name: "Individual Entrepreneur",
+			name: "Small Business (over limit)",
 			args: args{
 				income:  models.NewMoney(100278.88, currencies.GEL),
-				taxType: TaxTypeIndividualEntrepreneur,
+				taxType: TaxTypeSmallBusinessOverLimit,
 			},
 			want: Response{
 				Money: models.NewMoney(3008.37, currencies.GEL),
 				Rate: TaxRate{
-					Type: TaxTypeIndividualEntrepreneur,
+					Type: TaxTypeSmallBusinessOverLimit,
 					Rate: 0.03,
 				},
 			},
@@ -93,7 +93,7 @@ func TestCalc(t *testing.T) {
 
 func TestAllTaxTypes(t *testing.T) {
 	expected := []TaxType{
-		TaxTypeSmallBusiness, TaxTypeIndividualEntrepreneur, TaxTypeEmployment,
+		TaxTypeSmallBusiness, TaxTypeSmallBusinessOverLimit, TaxTypeEmployment,
 	}
 
 	assert.ElementsMatchf(t, expected, AllTaxTypes(), "AllTaxTypes()")
@@ -119,9 +119,9 @@ func TestTaxType_Rate(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 		{
-			name:    "Individual Entrepreneur - 3%",
-			i:       TaxTypeIndividualEntrepreneur,
-			want:    TaxRate{Type: TaxTypeIndividualEntrepreneur, Rate: 0.03},
+			name:    "Small Business (over limit) - 3%",
+			i:       TaxTypeSmallBusinessOverLimit,
+			want:    TaxRate{Type: TaxTypeSmallBusinessOverLimit, Rate: 0.03},
 			wantErr: assert.NoError,
 		},
 		{
@@ -142,4 +142,38 @@ func TestTaxType_Rate(t *testing.T) {
 			assert.Equalf(t, tt.want, got, "Rate()")
 		})
 	}
+}
+
+func TestParseTaxType(t *testing.T) {
+	tests := []struct {
+		raw     string
+		want    TaxType
+		wantErr bool
+	}{
+		{raw: "Small Business", want: TaxTypeSmallBusiness},
+		{raw: " small business (over limit) ", want: TaxTypeSmallBusinessOverLimit},
+		{raw: "Employment", want: TaxTypeEmployment},
+		{raw: "Individual Entrepreneur", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.raw, func(t *testing.T) {
+			got, err := ParseTaxType(tt.raw)
+			if tt.wantErr {
+				assert.ErrorIs(t, err, ErrInvalidTaxType)
+
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestTaxRate_String(t *testing.T) {
+	tr, err := TaxTypeSmallBusinessOverLimit.Rate()
+	assert.NoError(t, err)
+
+	assert.Equal(t, "Small Business (over limit) 3 %", tr.String())
 }

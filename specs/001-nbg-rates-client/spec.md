@@ -123,15 +123,20 @@ Package consumers test conversion logic without calling NBG.
 **Why this priority**: The constitution requires default tests to run without
 network access.
 
-**Independent Test**: `internal/converter` tests use `mock.NewClient` with
-fixtures from `internal/converter/testdata/`.
+**Independent Test**: `pkg/nbggovge/mock/mock_test.go`; `internal/converter`
+tests use `mock.NewClient` with fixtures from `internal/converter/testdata/`.
 
 **Acceptance Scenarios**:
 
 1. **Given** fixture rate sets, **When** a client is built with
-   `mock.NewClient`, **Then** `Rates` returns those sets through the real
-   client code path.
-2. **Given** a custom `HTTPClient`, **When** it is passed to
+   `mock.NewClient`, **Then** `Rates` returns, through the real client code
+   path, the set whose date matches the requested date, limited to the
+   requested currencies (all when none are requested), and the fixtures are
+   not modified.
+2. **Given** a date without a fixture set, or currencies missing from the
+   set, **When** `Rates` is called, **Then** an empty rate set is returned
+   without error, as NBG does.
+3. **Given** a custom `HTTPClient`, **When** it is passed to
    `NewWithHTTPClient` or a `NewCached*WithHTTPClient` constructor, **Then**
    all requests go through it.
 
@@ -186,7 +191,21 @@ fixtures from `internal/converter/testdata/`.
 - **FR-014**: The package MUST provide currency code constants and `All()`,
   generated from NBG data and including GEL.
 - **FR-015**: Callers MUST be able to inject an `HTTPClient`, and
-  `mock.NewClient` MUST serve fixture rate sets through the real client.
+  `mock.NewClient` MUST serve fixture rate sets through the real client,
+  selected by the requested date and limited to the requested currencies,
+  returning an empty set where NBG would.
+- **FR-016**: `New()` MUST use an HTTP client with a 30-second timeout, so a
+  request without a context deadline cannot hang. (Added 2026-11-15, T021.)
+- **FR-017**: The cache key MUST be the date and the sorted codes themselves,
+  not a hash, so different requests never share a key. (Added 2026-11-15,
+  T022.)
+- **FR-018**: `CachedClient` MUST store and return copies of `Rates`, so a
+  caller changing a result does not change the cache. (Added 2026-11-15,
+  T022.)
+- **FR-019**: Expired entries MUST be removed when a new entry is stored.
+  (Added 2026-11-15, T022.)
+- **FR-020**: The currencies generator MUST fail when the live response has
+  no currency other than GEL. (Added 2026-11-15, T023.)
 
 ### Key Entities
 

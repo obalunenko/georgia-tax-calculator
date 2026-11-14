@@ -32,7 +32,7 @@ Bot" section. History: `0a76d1d` (Telegram bot, #221).
   `/calculate` and `/convert` from 002 and 003); broadcast messages; environment
   variables `TELEGRAM_BOT_TOKEN` (required), `TELEGRAM_BOT_LOG_LEVEL`
   (default `info`), `USER_STORE_PATH` (default `users.json`).
-- **Release impact**: goreleaser `bot` build (binary `ge-tax`, linux/darwin,
+- **Release impact**: goreleaser `bot` build (binary ~~`ge-tax`~~ `ge-bot` since 2026-11-15, linux/darwin,
   amd64/arm64) and the `ge-bot` Docker image built in CI (not pushed).
 
 ## User Scenarios & Testing *(mandatory)*
@@ -85,6 +85,14 @@ A user discovers the bot, reads help, and cancels a flow.
 5. **Given** a flow step that expects a button, **When** the user sends text,
    **Then** the bot replies "⚠️ Unexpected input. Please follow the flow or
    use /cancel to start over."
+6. **Given** a button from an earlier step, another flow, or an older
+   keyboard of the same step whose value the current step does not offer
+   (e.g., day 31 while April is selected), **When** it is pressed, **Then**
+   the bot replies "⚠️ Unexpected input …" and the step does not change
+   (FR-015).
+7. **Given** a handler panics, **When** the update is processed, **Then** the
+   bot logs the panic, replies "❌ Something went wrong. Please use /cancel to
+   start over.", and keeps running (FR-016).
 
 ---
 
@@ -132,20 +140,41 @@ builds the image in `.github/workflows/dockerfiles.yml`.
    with "TELEGRAM_BOT_TOKEN is required".
 3. **Given** a running container, **When** `make bot-logs` or `make bot-down`
    runs, **Then** logs are followed or the container is removed.
+4. **Given** known chats stored by a running container, **When** `make
+   bot-up` recreates the container (e.g., after an image change), **Then**
+   the chats are still known and receive the welcome-back message, because
+   the store lives in the `/data` volume (FR-019).
+5. **Given** the running container, **When** its user is checked, **Then**
+   the bot runs as a non-root user that can write to `/data` (FR-019).
 
 ---
 
 ### Edge Cases
 
 - Unknown commands are handled as text input (`AnyMessageWithText`).
-- A missing or unreadable user store file is ignored at startup; write
-  failures are ignored.
+- ~~A missing or unreadable user store file is ignored at startup; write
+  failures are ignored.~~ Superseded by BUG-003: a missing file is ignored;
+  unreadable or invalid files and write failures are logged and the bot keeps
+  running (FR-020).
 - Sessions are kept in memory only; a restart loses all in-progress flows.
 - Each update is handled in its own goroutine; one user can trigger concurrent
-  handlers by pressing buttons quickly.
-- In Docker, the user store file lives inside the container (no volume) and
-  is lost when the container is recreated.
-- Chats that blocked the bot stay in the store and fail on every broadcast.
+  handlers by pressing buttons quickly. Since BUG-002, updates of one user
+  wait for each other (FR-017); updates of different users still run in
+  parallel.
+- Buttons sent before the `cb:<step>:<value>` format (BUG-001) are rejected
+  as unexpected input after the upgrade.
+- ~~In Docker, the user store file lives inside the container (no volume) and
+  is lost when the container is recreated.~~ Superseded by BUG-003: it lives
+  in the `/data` volume (FR-019); `make bot-down` keeps the volume, `docker
+  compose down -v` removes it.
+- ~~Chats that blocked the bot stay in the store and fail on every
+  broadcast.~~ Since 2026-11-15 a chat that answers 403 is removed (FR-022).
+- ~~On shutdown, `bh.Start` returns when the updates channel closes without
+  waiting for running handlers; a calculation in progress is cut off when the
+  process exits after the maintenance broadcast.~~ Since 2026-11-15 the bot
+  waits up to 30 seconds for running handlers before the broadcast (FR-023).
+- With one message per 50 ms, the 30-second shutdown broadcast reaches about
+  600 chats; the rest do not get the maintenance message.
 
 ## Requirements *(mandatory)*
 
@@ -164,7 +193,8 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   indicator, even if handling fails.
 - **FR-007**: Text and callbacks MUST be routed to the active flow
   (calculate or convert); without a flow the bot MUST prompt to start one.
-- **FR-008**: Sessions MUST be kept per Telegram user ID in memory.
+- **FR-008**: Sessions MUST be kept per Telegram user ID in memory, and
+  forgotten after 24 hours without updates from that user (FR-024).
 - **FR-009**: Chat IDs MUST be tracked for every message and callback and
   persisted as a JSON array at `USER_STORE_PATH` (default `users.json`,
   file mode 0600).
@@ -172,13 +202,57 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   on shutdown, the maintenance message, bounded by a 30-second timeout.
 - **FR-011**: Broadcast failures for individual chats MUST be logged and MUST
   NOT stop the broadcast.
-- **FR-012**: Inline keyboards MUST prefix callback data with `cb:` and lay
-  out options in rows of a fixed width.
+- **FR-012**: Inline keyboards MUST ~~prefix callback data with `cb:`~~ set
+  callback data to `cb:<step>:<value>`, where `<step>` identifies the flow
+  and step, within Telegram's 64-byte limit (BUG-001), and lay out options in
+  rows of a fixed width.
 - **FR-013**: The Docker image MUST build a static (`CGO_ENABLED=0`) binary
   from vendored dependencies and run it as the entrypoint; compose MUST pass
-  the three environment variables.
+  the three environment variables. See FR-019 for the runtime user and
+  storage (BUG-003).
 - **FR-014**: Outgoing messages and user input MUST be logged at debug level
-  with the chat ID.
+  with the chat ID ~~.~~, without their content: commands are logged as is,
+  other user text and outgoing text only by length (they contain amounts).
+  (Changed 2026-11-15, T030.)
+- **FR-015**: A callback MUST be accepted only when its step equals the
+  session's current step and its value is one of the options that step
+  offers at that moment; otherwise the bot MUST reply with the unexpected
+  input message and leave the session unchanged.
+- **FR-016**: A panic in a handler MUST NOT stop the process; it MUST be
+  logged with the stack, and the user MUST get a generic error reply.
+- **FR-017**: Updates of one user MUST be handled one at a time; callback
+  queries MUST still be answered before waiting (FR-006).
+- **FR-018**: Messages without a sender (`From` empty) MUST be ignored by the
+  handlers.
+- **FR-019**: The Docker image MUST run the bot as a non-root user with
+  working directory `/data`, writable by that user; compose MUST mount a
+  named volume at `/data`, so the default `USER_STORE_PATH` (`users.json`)
+  survives container recreation.
+- **FR-020**: Errors reading the user store (other than a missing file) and
+  errors writing it MUST be logged with the path; the bot MUST keep running
+  with the chats it has in memory.
+- **FR-021**: Broadcasts MUST send at most one message per 50 ms, below
+  Telegram's limit of about 30 messages per second, and stop when their
+  context is done. (Added 2026-11-15, T027.)
+- **FR-022**: A chat that answers a broadcast with Telegram error 403 (the
+  user blocked the bot, or the bot was removed) MUST be removed from the
+  store; other errors MUST be logged and keep the chat. (Added 2026-11-15,
+  T027.)
+- **FR-023**: On shutdown, the bot MUST wait up to 30 seconds for running
+  handlers to finish, without canceling them, and only then send the
+  maintenance broadcast. (Added 2026-11-15, T028.)
+- **FR-024**: The session, the per-user lock, and the last-activity time of a
+  user without updates for more than 24 hours MUST be removed; the check runs
+  at most once per hour, on a user's update. (Added 2026-11-15, T029.)
+
+**Bugfix**: 2026-11-15 — BUG-001 Changed FR-012 (step-tagged callback data),
+added FR-015 and acceptance scenario US2.6, updated Edge Cases.
+
+**Bugfix**: 2026-11-15 — BUG-002 Added FR-016, FR-017, FR-018, acceptance
+scenario US2.7, SC-005, and updated Edge Cases.
+
+**Bugfix**: 2026-11-15 — BUG-003 Added FR-019, FR-020, acceptance scenarios
+US4.4 and US4.5, SC-006, and updated FR-013 and Edge Cases.
 
 ### Key Entities
 
@@ -198,10 +272,18 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   every previously seen chat receives the welcome-back message.
 - **SC-003**: `/cancel` at any step returns the user to the idle state.
 - **SC-004**: The CI image build (`build-bot-image`) succeeds for every PR.
+- **SC-005**: `go test -race ./cmd/bot/...` passes and covers callback
+  validation (stale step, same-step invalid value, other flow) and concurrent
+  updates of one user.
+- **SC-006**: In the bot image, `id` reports a non-root user, and a chat ID
+  written by one container is loaded by a new container on the same volume
+  (BUG-003).
 
 ## Assumptions
 
 - One bot instance runs per token; sessions are not shared between
   instances.
-- The number of known chats is small enough for sequential broadcasts.
+- The number of known chats is small enough for sequential broadcasts
+  (about 600 fit into the 30-second shutdown window at one message per
+  50 ms).
 - Users accept being notified about restarts; there is no opt-out.

@@ -125,7 +125,7 @@ func (m *taxDetailsModel) advance() tea.Cmd {
 			"Income from the beginning of a calendar year (GEL)",
 			"0.00",
 			"",
-			validateMoneyInput,
+			validateYearIncomeInput,
 		)
 
 		return m.setPrompt(prompt)
@@ -181,7 +181,7 @@ func (m *incomeModel) Init() tea.Cmd {
 	}
 
 	if m.prompt == nil {
-		return m.setPrompt(newSelectPrompt("Select year of income", yearOptions(), defaultYearValue()))
+		return m.setPrompt(m.yearPrompt())
 	}
 
 	return m.prompt.Init()
@@ -228,6 +228,18 @@ func (m *incomeModel) View() tea.View {
 	}
 
 	return tea.NewView(b.String())
+}
+
+// yearPrompt asks for the income year. After the first income only its year is offered,
+// because one calculation covers one calendar year.
+func (m *incomeModel) yearPrompt() *promptModel {
+	if len(m.incomes) > 0 {
+		year := m.incomes[0].Year
+
+		return newSelectPrompt("Select year of income", valuesToOptions([]string{year}), year)
+	}
+
+	return newSelectPrompt("Select year of income", yearOptions(), defaultYearValue())
 }
 
 func (m *incomeModel) advance() tea.Cmd {
@@ -278,7 +290,7 @@ func (m *incomeModel) advance() tea.Cmd {
 		if m.prompt.Value() == confirmYes {
 			m.step = incomeStepYear
 
-			return m.setPrompt(newSelectPrompt("Select year of income", yearOptions(), defaultYearValue()))
+			return m.setPrompt(m.yearPrompt())
 		}
 
 		m.step = incomeStepConfirm
@@ -297,7 +309,7 @@ func (m *incomeModel) advance() tea.Cmd {
 		m.current = service.Income{}
 		m.step = incomeStepYear
 
-		return m.setPrompt(newSelectPrompt("Select year of income", yearOptions(), defaultYearValue()))
+		return m.setPrompt(m.yearPrompt())
 	default:
 		return tea.Quit
 	}

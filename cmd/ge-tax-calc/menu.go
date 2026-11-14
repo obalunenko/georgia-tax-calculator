@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
+	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
 )
 
 func createLink(text, url string) {
@@ -19,7 +20,7 @@ func createLink(text, url string) {
 }
 
 func menuCalcTaxes(ctx context.Context, _ *cli.Command) error {
-	createLink("Declarations", "https://decl.rs.ge/decls.aspx")
+	createLink("Declarations", service.DeclarationsURL)
 
 	req, err := runTaxDetailsMenu()
 	if err != nil {
@@ -35,7 +36,15 @@ func menuCalcTaxes(ctx context.Context, _ *cli.Command) error {
 
 	svc := service.New()
 
+	stop := spinner.Start(
+		fmt.Sprintf("Calculating taxes for %d incomes", len(req.Income)),
+		fmt.Sprintf("Calculated taxes for %d incomes", len(req.Income)),
+	)
+
 	resp, err := svc.Calculate(ctx, req)
+
+	stop()
+
 	if err != nil {
 		return err
 	}
@@ -53,7 +62,15 @@ func menuConvert(ctx context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to collect converter input: %w", err)
 	}
 
+	stop := spinner.Start(
+		fmt.Sprintf("Converting %s%s to %s", req.Amount, req.CurrencyFrom, req.CurrencyTo),
+		fmt.Sprintf("Converted %s%s to %s", req.Amount, req.CurrencyFrom, req.CurrencyTo),
+	)
+
 	resp, err := service.New().Convert(ctx, req)
+
+	stop()
+
 	if err != nil {
 		return err
 	}

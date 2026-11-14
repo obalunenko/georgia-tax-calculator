@@ -71,7 +71,7 @@ feature.
 
 - [x] T013 [P] [US3] Add `flowCalculate`, `calcStep`, `calcReq`, `incomes`, and `currentInc` to the session in `cmd/bot/session.go`
 - [x] T014 [P] [US3] Build the tax type keyboard and parse the selected item in `cmd/bot/keyboards.go`
-- [x] T015 [US3] Implement `/calculate`, text input for year income and amounts, step callbacks, add-more loop, confirmation, and result formatting in `cmd/bot/handlers.go`
+- [x] T015 [US3] ⚠️ Reopened Implement `/calculate`, text input for year income and amounts, step callbacks, add-more loop, confirmation, and result formatting in `cmd/bot/handlers.go` (reopened — 002 BUG-001: amount validation did not meet FR-016; closed by T017 on 2026-11-15)
 
 **Checkpoint**: `/calculate` works end to end in the bot.
 
@@ -83,31 +83,64 @@ feature.
 
 ---
 
+## Phase B: Bugfix 002 BUG-001 - Year income and income amount rules
+
+Depends on 002 T018 (`service.ParseAmount`, `service.ParseYearIncome`).
+
+- [x] T017 [US1] Use `service.ParseYearIncome` for year income and `service.ParseAmount` for income amounts in `Calculate` (`internal/service/service.go`), the CLI tax forms (`cmd/ge-tax-calc/tax_menus.go`), and the bot text input (`cmd/bot/handlers.go`); tests for 0 and negative year income in `internal/service/amount_test.go`; CLI validator tests in `cmd/ge-tax-calc/prompts_test.go` (FR-016)
+
+**Bugfix**: 2026-11-15 — 002 BUG-001 Updated from bugfix patch
+
+---
+
+## Phase F: Follow-up for migration gaps 2 and 6 (2026-11-15)
+
+- [x] T018 [US3] On "No" at the final review, restart income entry and keep the tax type and year income (`session.restartIncomes` in `cmd/bot/session.go`, used in `cmd/bot/handlers.go`); test `TestSessionRestartIncomesKeepsTaxDetails` in `cmd/bot/session_test.go` (gap 2)
+- [x] T019 [P] [US3] Add `service.DeclarationsURL` in `internal/service/service.go`; the CLI link (`cmd/ge-tax-calc/menu.go`) and the bot's `/calculate` start message (`cmd/bot/handlers.go`) use it (gap 6)
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **Bot amount parsing** (`fmt.Sscanf`, `cmd/bot/handlers.go:697`) accepts
-   `12abc` and `1,500` for year income and income amounts; the error appears
-   only after confirmation. See 002 gap 1.
-2. **Different restart scope.** On "No" at the final review, the CLI restarts
+1. **Fixed by T017 (002 BUG-001).** **Bot amount parsing** also applies to year income and income amounts in
+   `/calculate`. See 002 gap 1 (canonical entry).
+2. **Fixed by T018.** **Different restart scope.** On "No" at the final review, the CLI restarts
    only income entry (`cmd/ge-tax-calc/tax_menus.go`), while the bot restarts
    the whole flow including category and year income
    (`cmd/bot/handlers.go:393`).
 3. **Year income has no effect and incomes are not limited to one year.**
    Year income is only added to the reported total; incomes from 2016 to the
-   current year can be mixed. Open question recorded as FR-013.
+   current year can be mixed. Clarified on 2026-11-15: turnover-limit
+   warning only (FR-013), one calendar year per calculation (FR-014).
+   Implemented by `specs/006-year-income-rules` on 2026-11-15.
 4. **No bot tests and no end-to-end calculation test.** Service tests use
    `mockConverter` (1:1 conversion); no test runs `Calculate` with fixture NBG
-   rates.
+   rates. SC-002 (same tax in the CLI and the bot) is checked only by hand.
 5. **Per-income rounding.** Tax is rounded per income before summing, so the
-   total can differ by a few tetri from rounding the total once. Not verified
-   against declaration rules.
-6. **Declarations link only in the CLI.** `menuCalcTaxes` prints a link to
+   total can differ by a few tetri from rounding the total once. Clarified on
+   2026-11-15: tax is calculated once on the total (FR-004). Implemented by
+   `specs/006-year-income-rules`; the rule was not checked against
+   decl.rs.ge.
+6. **Fixed by T019.** **Declarations link only in the CLI.** `menuCalcTaxes` prints a link to
    `https://decl.rs.ge/decls.aspx` when the terminal supports hyperlinks; the
    bot does not show it.
 7. **Error text for invalid categories in `taxes.Calc`** uses the stringer
    fallback (`TaxType(N): tax type not supported`).
-8. **Inherited from 002**: spinner in the service, unused `survey` tags,
-   negative and zero amounts accepted, date validation only in the interfaces.
+8. **Inherited from 002**: ~~spinner in the service,~~ unused `survey` tags,
+   ~~negative and zero amounts accepted, date validation only in the
+   interfaces, no time zone for "today"~~ (002 gaps 2, 3, 7, 8, 10). All
+   fixed as of 2026-11-15 (the `survey` tags by 002 T024).
+9. **Fixed by 004 T016–T018 (BUG-001).** **Stale inline buttons in `/calculate`.** `handleCalcCallback` applies
+   callback data to the current step without checking its origin:
+   - at `calcStepAddMore` (`cmd/bot/handlers.go:364`) any data other than
+     `yes` opens the final review;
+   - at `calcStepConfirm` (`cmd/bot/handlers.go:392`) any data other than
+     `no` starts the calculation;
+   - at `calcStepTaxType`, `taxTypeFromItem` (`cmd/bot/keyboards.go:84`)
+     returns unknown data unchanged, so the error appears only after
+     confirmation.
+
+   See the decision in 002 gap 4.

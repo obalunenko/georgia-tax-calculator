@@ -55,6 +55,7 @@ flow.
       imports `internal/converter` or `pkg/nbggovge`.
 - [ ] II. Flows match, but amount validation differs: the CLI uses
       `moneyutils.Parse`, the bot uses `fmt.Sscanf` (see tasks Gaps).
+      BUG-001: resolved by one shared rule in `internal/service` (decision 6).
 - [x] III. Rate and amount arithmetic and rounding use `pkg/moneyutils`.
 - [x] IV. Rates come from `nbggovge.Client`; tests use `mock.NewClient` and
       fixtures.
@@ -62,8 +63,9 @@ flow.
 - [ ] VI. Converter, service, and CLI form are tested; the bot flow and
       `pkg/moneyutils` are not (allowed by VI, recorded as gaps).
 - [x] VII. No generated code involved.
-- [ ] Known deviations: `service.Convert` starts the terminal spinner, also
-      for bot requests (existing deviation, not extended).
+- [x] Known deviations: ~~`service.Convert` starts the terminal spinner, also
+      for bot requests (existing deviation, not extended).~~ Resolved on
+      2026-11-15: the CLI starts the spinner (005 T018, constitution 1.0.4).
 
 ## Project Structure
 
@@ -120,6 +122,16 @@ the rate math.
    dates cannot be selected.
 5. **Confirmation step**: both interfaces show a summary and restart the whole
    form on "No".
+6. **Shared amount rule** (BUG-001): `internal/service` exports
+   `ParseAmount` (amount > 0) and `ParseYearIncome` (year income ≥ 0, used
+   by 003), both trimming spaces, parsing with `moneyutils.Parse`, and
+   wrapping a sentinel `ErrInvalidAmount`. `Convert` and `Calculate` call
+   them; the CLI `validateMoneyInput` and the bot `validateMoney` call them,
+   so all three apply one rule (constitution I and II). `cmd/` packages
+   cannot share code with each other, so the rule cannot live in either of
+   them. (FR-006, FR-010, FR-011, FR-014)
+
+**Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
 ## Complexity Tracking
 

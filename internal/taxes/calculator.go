@@ -25,8 +25,8 @@ type TaxType uint
 const (
 	taxTypeUnknown TaxType = iota
 
-	// TaxTypeIndividualEntrepreneur is Individual Entrepreneur tax type.
-	TaxTypeIndividualEntrepreneur // Individual Entrepreneur
+	// TaxTypeSmallBusinessOverLimit is the Small Business rate for turnover above SmallBusinessTurnoverLimit.
+	TaxTypeSmallBusinessOverLimit // Small Business (over limit)
 	// TaxTypeSmallBusiness is Small Business tax type.
 	TaxTypeSmallBusiness // Small Business
 	// TaxTypeEmployment is Employment tax type.
@@ -41,7 +41,7 @@ var ErrInvalidTaxType = errors.New("invalid tax type")
 
 var stringToTaxType = map[string]TaxType{
 	strings.ToLower(TaxTypeSmallBusiness.String()):          TaxTypeSmallBusiness,
-	strings.ToLower(TaxTypeIndividualEntrepreneur.String()): TaxTypeIndividualEntrepreneur,
+	strings.ToLower(TaxTypeSmallBusinessOverLimit.String()): TaxTypeSmallBusinessOverLimit,
 	strings.ToLower(TaxTypeEmployment.String()):             TaxTypeEmployment,
 }
 
@@ -66,9 +66,17 @@ const (
 	twentyPercents = onePercent * 20
 )
 
+// SmallBusinessTurnoverLimit is the Small Business annual turnover limit in GEL per calendar year
+// (Tax Code of Georgia, Articles 88(3), 89(2)(a), 90(2); 700 000 GEL for wine tourism and agrotourism,
+// which the calculator does not support).
+const SmallBusinessTurnoverLimit float64 = 500_000
+
+// taxrates follow the Tax Code of Georgia (consolidated version of 30.10.2026):
+// Small Business 1% (Article 90(1)), Small Business over the limit 3% (Article 90(2)),
+// Employment 20% (Article 81(1)).
 var taxrates = map[TaxType]TaxRate{
 	TaxTypeSmallBusiness:          newTaxRate(TaxTypeSmallBusiness, onePercent),
-	TaxTypeIndividualEntrepreneur: newTaxRate(TaxTypeIndividualEntrepreneur, threePercents),
+	TaxTypeSmallBusinessOverLimit: newTaxRate(TaxTypeSmallBusinessOverLimit, threePercents),
 	TaxTypeEmployment:             newTaxRate(TaxTypeEmployment, twentyPercents),
 }
 

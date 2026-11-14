@@ -23,14 +23,32 @@
   (`tax_menus.go`, `menu.go`, `prompts.go`), `cmd/bot/` (`handlers.go`,
   `session.go`, `keyboards.go`). Each income is converted through
   [002-currency-conversion](../002-currency-conversion/spec.md).
-- **Tax categories and rates**: Individual Entrepreneur 3%, Small Business
-  1%, Employment 20%.
+- **Tax categories and rates**: ~~Individual Entrepreneur 3%~~ Small
+  Business (over limit) 3% (renamed by 006), Small Business 1%, Employment
+  20%.
 - **Currencies and rate dates**: Each income uses the NBG rate for its own
   date and is converted to GEL.
 - **User-facing contract**: CLI `run` (two interactive forms: tax details,
   then incomes); bot `/calculate`. Output: tax rate, year income, each income
   with converted amount and rate, total converted income, tax.
 - **Release impact**: Adding a category requires `make codegen` (stringer).
+
+## Clarifications
+
+### Session 2026-11-15
+
+- Q: How must year income affect the tax for Small Business? → A: Only a
+  warning: the tax is still calculated at the category rate, and a warning is
+  shown when the annual turnover limit is exceeded.
+- Q: Can one calculation mix incomes from different calendar years? → A: No,
+  only one year: the year of the first income fixes the year of the
+  calculation.
+- Q: How must tax be rounded when there are several incomes? → A: Tax on the
+  total: each converted income is rounded to 2 places, then the tax is
+  `round(total × rate, 2)` once.
+- Q: What should happen to the Individual Entrepreneur 3% category? → A: Keep
+  it, and check all rates against the Tax Code before the next release,
+  recording the source.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -52,8 +70,9 @@ Georgian tax declaration).
 
 1. **Given** an income of 100278.88 GEL and category Small Business, **When**
    the tax is calculated, **Then** it is 1002.79 GEL at rate 1%.
-2. **Given** categories Individual Entrepreneur and Employment, **When** their
-   rates are requested, **Then** they are 3% and 20%.
+2. **Given** categories ~~Individual Entrepreneur~~ Small Business (over
+   limit) and Employment, **When** their rates are requested, **Then** they
+   are 3% and 20%.
 3. **Given** category Employment, year income "67.99", and incomes 1000 EUR
    and 200 USD that convert to 1000 GEL and 200 GEL, **When** the service
    calculates, **Then** total converted income is 1200 GEL, tax is 240 GEL,
@@ -63,6 +82,9 @@ Georgian tax declaration).
 5. **Given** an income that cannot be converted, **When** the service
    calculates, **Then** it fails with `failed to convert income: ...` and no
    partial result is returned.
+6. **Given** incomes dated in two different calendar years, **When** the
+   service calculates, **Then** it fails with an error that the incomes span
+   more than one calendar year (FR-014, implemented by 006).
 
 ---
 
@@ -100,45 +122,65 @@ A user sends `/calculate` and follows the bot.
 
 **Acceptance Scenarios**:
 
-1. **Given** `/calculate`, **When** the user picks a category (buttons show
-   the rate), types year income, then for each income picks year, month, day,
+1. **Given** `/calculate`, **When** the bot shows the "📄 Declarations" link
+   (since 2026-11-15, as the CLI does) and the user picks a category (buttons
+   show the rate), types year income, then for each income picks year, month, day,
    types the amount, and picks the currency, **Then** the bot shows captured
    incomes and asks "➕ Add another income entry?".
 2. **Given** the review step, **When** the user confirms, **Then** the bot
    replies "⏳ Calculating taxes..." and then the result with each income
    converted to GEL, total income, and taxes to pay.
-3. **Given** the review step, **When** the user picks "No", **Then** the whole
-   flow restarts from the category.
+3. **Given** the review step, **When** the user picks "No", **Then** ~~the whole
+   flow restarts from the category~~ income entry restarts from the year of
+   the first income; the category and year income are kept, as in the CLI
+   (US2.3; since 2026-11-15).
 4. **Given** a calculation error, **When** the service fails, **Then** the bot
    replies "❌ Calculation error: ..." and suggests `/calculate`.
+5. **Given** the year income step, **When** the user sends `0` or `0.00`,
+   **Then** it is accepted; **When** the user sends `-1` or `12abc`, **Then**
+   the bot asks again with "❌ Invalid amount" (FR-016).
+6. **Given** the income amount step, **When** the user sends `0`, `-5`, or
+   `12abc`, **Then** the bot asks again with "❌ Invalid amount" (FR-016).
 
 ---
 
 ### Edge Cases
 
 - Year income is only added to the reported year income; it does not change
-  the tax.
-- Incomes from different calendar years can be mixed in one calculation.
-- Tax is rounded to 2 decimal places per income, then summed.
+  the tax. For Small Business, exceeding the annual turnover limit only adds
+  a warning (FR-013).
+- Incomes from different calendar years MUST NOT be mixed in one
+  calculation (FR-014, implemented by 006).
+- Tax is calculated once on the total converted income and rounded to 2
+  decimal places (FR-004, implemented by 006).
 - A category string is matched case-insensitively and trimmed.
 - Amount and date edge cases are inherited from
-  [002-currency-conversion](../002-currency-conversion/spec.md) (negative
-  amounts, bot `fmt.Sscanf` parsing, date validation only in interfaces).
+  [002-currency-conversion](../002-currency-conversion/spec.md) (~~negative
+  amounts, bot `fmt.Sscanf` parsing,~~ date validation only in interfaces).
+  Amounts follow FR-016 since BUG-001.
+- ~~Stale inline buttons in the bot are applied to the current step; at the
+  final review any button other than "No" starts the calculation.~~
+  Superseded by 004 BUG-001: such buttons are rejected (004 FR-015).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST support the tax categories Individual
-  Entrepreneur (3%), Small Business (1%), and Employment (20%).
+- **FR-001**: The system MUST support the tax categories ~~Individual
+  Entrepreneur (3%)~~ Small Business (over limit) (3%), Small Business (1%),
+  and Employment (20%). (Renamed by
+  [006-year-income-rules](../006-year-income-rules/spec.md) FR-008.)
 - **FR-002**: Categories MUST be parsed from their display names,
   case-insensitively; unknown names MUST return `ErrInvalidTaxType`.
 - **FR-003**: Each income MUST be converted to GEL at the NBG rate for its
   date using the currency conversion feature.
-- **FR-004**: Tax per income MUST be `converted amount × rate`, computed with
-  `pkg/moneyutils` and rounded to 2 decimal places.
-- **FR-005**: The total tax MUST be the sum of per-income taxes; the total
-  converted income MUST be the sum of converted incomes.
+- **FR-004**: The tax MUST be `total converted income × rate`, computed with
+  `pkg/moneyutils` and rounded once to 2 decimal places. ~~[Current code
+  rounds the tax per income and sums the results; not changed yet.]~~
+  Implemented by 006 on 2026-11-15.
+- **FR-005**: Each converted income MUST be rounded to 2 decimal places
+  (002 FR-003); the total converted income MUST be the sum of the rounded
+  converted incomes.
 - **FR-006**: The reported year income MUST be the entered year income plus
   the total converted income, in GEL.
 - **FR-007**: Any parse, conversion, or calculation error MUST abort the
@@ -154,9 +196,29 @@ A user sends `/calculate` and follows the bot.
 - **FR-012**: Adding or changing a category MUST update `TaxType`, the rate
   table, `taxtype_string.go` (via `make codegen`), and tests together
   (constitution III).
-- **FR-013**: Whether year income must affect the rate or the category
-  [NEEDS CLARIFICATION: e.g., should a turnover limit for Small Business be
-  checked, and should incomes be restricted to one calendar year?].
+- **FR-013**: For Small Business, when the reported year income (FR-006)
+  exceeds the Small Business annual turnover limit, both interfaces MUST show
+  a warning with the result. The tax MUST still be calculated at the category
+  rate (FR-004). Year income MUST NOT change the rate or the category.
+  ~~[Not implemented yet.]~~ Implemented by 006 with a limit of
+  500 000 GEL, confirmed by FR-015.
+- **FR-014**: All incomes in one calculation MUST be in the same calendar
+  year, fixed by the year of the first income. After the first income, both
+  interfaces MUST offer only that year; the service MUST reject a request
+  whose incomes span more than one year. ~~[Not implemented yet.]~~
+  Implemented by 006.
+- **FR-015**: Before the next release, every rate in the rate table and the
+  Small Business turnover limit (FR-013) MUST be checked against the current
+  Tax Code of Georgia, and the source (article) and check date MUST be
+  recorded in Assumptions. ~~[Not done yet.]~~ Done on 2026-11-15; see
+  Assumptions.
+- **FR-016**: Year income MUST be validated with `service.ParseYearIncome`
+  (0 or greater) and each income amount with `service.ParseAmount` (greater
+  than 0), in the service and in both interfaces (002 FR-014).
+
+**Bugfix**: 2026-11-15 — 002 BUG-001 Added FR-016 (year income ≥ 0, income
+amount greater than 0), acceptance scenarios US3.5 and US3.6, and updated
+Edge Cases.
 
 ### Key Entities
 
@@ -166,7 +228,8 @@ A user sends `/calculate` and follows the bot.
 - **Income**: Date (year, month name, day), currency, amount (strings).
 - **CalculateRequest**: Category name, year income (GEL string), incomes.
 - **CalculateResponse**: Tax rate, year income, converted incomes, total
-  converted income, tax (all `Money` in GEL except source amounts).
+  converted income, tax (all `Money` in GEL except source amounts), and a
+  turnover-limit warning when FR-013 applies.
 
 ## Success Criteria *(mandatory)*
 
@@ -181,6 +244,24 @@ A user sends `/calculate` and follows the bot.
 ## Assumptions
 
 - The three categories and their rates reflect the rules the tool targets;
-  rates are fixed in code.
+  rates are fixed in code. ~~Their legal source is not recorded yet, and the
+  3% rate (Individual Entrepreneur, renamed to Small Business (over limit) by
+  006) in particular is unverified (FR-015).~~ Source (FR-015): Tax Code of Georgia (საქართველოს საგადასახადო კოდექსი), consolidated
+  version with amendment no. 248 of 28.10.2026 (published 30.10.2026), Georgian
+  text from matsne.gov.ge, checked on 2026-11-15:
+  - Employment 20%: Article 81(1).
+  - Small Business 1%: Article 90(1).
+  - Small Business (over limit) 3%: Article 90(2). It applies to taxable
+    income from the start of the month in which the 500 000 GEL limit is
+    exceeded until the end of the calendar year; the calculator does not
+    split incomes by month (warning only, FR-013).
+  - Articles 88–90 were last amended by Law No. 3922 of 13.12.2023.
 - The user enters year income already in GEL.
-- Each income's tax is calculated independently of the others.
+- The Small Business annual turnover limit is ~~assumed to be~~ 500 000 GEL
+  per calendar year (Articles 88(3), 89(2)(a), 90(2)); 700 000 GEL applies
+  to wine tourism and agrotourism, which the calculator does not support. The
+  status is cancelled from the next year if the limit is exceeded in each of
+  2 calendar years (Article 89(2)(a), 89(3)); the calculator does not track
+  this.
+- ~~Each income's tax is calculated independently of the others.~~
+  Superseded by FR-004: the tax is calculated once on the total.
