@@ -37,6 +37,18 @@ Amounts are plain numbers with a dot as the decimal separator (e.g. `1500.50`).
 Income and conversion amounts must be greater than 0; income since the start
 of the year can be `0`. The CLI and the bot apply the same rules.
 
+Tax calculation rules:
+
+- Tax categories: Employment (20%), Small Business (1%), and Small Business
+  (over limit) (3%, formerly "Individual Entrepreneur").
+- One calculation covers one calendar year: after the first income, only its
+  year can be chosen.
+- The tax is calculated once on the total income converted to GEL.
+- For Small Business, if income since the start of the year plus the new
+  incomes exceeds 500 000 GEL, the result shows a warning; the tax is still
+  calculated at 1%. Check the current limit and rates with the Revenue
+  Service before filing.
+
 All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
 section with the build information of your binary is omitted here, see
 `ge-tax-calc --version`):

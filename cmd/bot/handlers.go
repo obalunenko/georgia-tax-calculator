@@ -560,6 +560,11 @@ func formatCalcResult(resp *service.CalculateResponse) string {
 	b.WriteString(fmt.Sprintf("\nTotal Income (GEL): %s\n", resp.TotalIncomeConverted.String()))
 	b.WriteString(fmt.Sprintf("Taxes to Pay: %s", resp.Tax.String()))
 
+	if resp.LimitWarning != nil {
+		b.WriteString("\n⚠️ ")
+		b.WriteString(resp.LimitWarning.String())
+	}
+
 	return b.String()
 }
 

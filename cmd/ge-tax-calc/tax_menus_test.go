@@ -81,6 +81,35 @@ func TestIncomeModelDeclinedRestarts(t *testing.T) {
 	assert.Equal(t, service.Income{}, m.current)
 }
 
+func TestIncomeModelOffersOnlyFirstIncomeYear(t *testing.T) {
+	m := newIncomeModel()
+	m.Init()
+
+	require.Greater(t, len(m.prompt.options), 1, "the first income can be in any year")
+
+	addIncome(t, m, "100")
+	send(m, enterKey())
+	require.Equal(t, incomeStepYear, m.step)
+
+	require.Len(t, m.prompt.options, 1)
+	assert.Equal(t, m.incomes[0].Year, m.prompt.options[0].Value)
+
+	send(m, enterKey())
+	assert.Equal(t, m.incomes[0].Year, m.current.Year)
+}
+
+func TestIncomeModelDeclinedRestartOffersAllYears(t *testing.T) {
+	m := newIncomeModel()
+	m.Init()
+
+	addIncome(t, m, "100")
+	send(m, downKey(), enterKey())
+	send(m, downKey(), enterKey())
+	require.Equal(t, incomeStepYear, m.step)
+
+	assert.Greater(t, len(m.prompt.options), 1)
+}
+
 func TestRenderIncomesWithoutEntries(t *testing.T) {
 	assert.Contains(t, renderIncomeList(nil), "none yet")
 	assert.Equal(t, "No income entries captured.", renderIncomeDetails(nil))

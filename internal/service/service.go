@@ -53,6 +53,8 @@ type CalculateResponse struct {
 	Incomes              []ConvertResponse
 	TotalIncomeConverted models.Money
 	Tax                  models.Money
+	// LimitWarning is set when the Small Business turnover limit is exceeded.
+	LimitWarning *LimitWarning
 }
 
 func (c CalculateResponse) String() string {
@@ -89,6 +91,11 @@ func (c CalculateResponse) String() string {
 	resp.WriteString(fmt.Sprintf("Total Income Converted: %s\n", c.TotalIncomeConverted.String()))
 
 	resp.WriteString(fmt.Sprintf("Taxes: %s", c.Tax.String()))
+
+	if c.LimitWarning != nil {
+		resp.WriteString("\n⚠️ ")
+		resp.WriteString(c.LimitWarning.String())
+	}
 
 	return resp.String()
 }
@@ -218,10 +225,12 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		return nil, fmt.Errorf("failed to parse year income: %w", err)
 	}
 
-	var (
-		inc float64
-		txs float64
-	)
+	// Checked before any conversion, so an invalid request makes no NBG calls.
+	if err = checkSingleYear(req.Income); err != nil {
+		return nil, fmt.Errorf("failed to check incomes: %w", err)
+	}
+
+	var inc float64
 
 	incomes := make([]ConvertResponse, 0, len(req.Income))
 
@@ -249,14 +258,14 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 			Rate:      convertResp.Rate,
 		})
 
-		tax, err := taxes.Calc(convertResp.Converted, tt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate taxes: %w", err)
-		}
-
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
 		inc = moneyutils.Add(inc, convertResp.Converted.Amount)
-		txs = moneyutils.Add(txs, tax.Money.Amount)
+	}
+
+	// The tax is calculated once on the total, as the declaration does.
+	tax, err := taxes.Calc(models.NewMoney(inc, currencies.GEL), tt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate taxes: %w", err)
 	}
 
 	return &CalculateResponse{
@@ -264,7 +273,8 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		YearIncome:           models.NewMoney(yi, currencies.GEL),
 		Incomes:              incomes,
 		TotalIncomeConverted: models.NewMoney(inc, currencies.GEL),
-		Tax:                  models.NewMoney(txs, currencies.GEL),
+		Tax:                  tax.Money,
+		LimitWarning:         newLimitWarning(tt, yi),
 	}, nil
 }
 

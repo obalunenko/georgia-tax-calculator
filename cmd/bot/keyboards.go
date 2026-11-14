@@ -123,7 +123,14 @@ func stepOptions(sess *session) ([]keyboardOption, int, error) {
 		opts, err := taxTypeOptions()
 
 		return opts, oneColumn, err
-	case stepCalcYear, stepConvertYear:
+	case stepCalcYear:
+		// One calculation covers one calendar year, fixed by the first income.
+		if len(sess.incomes) > 0 {
+			return optionsFromValues([]string{sess.incomes[0].Year}), defaultPerRow, nil
+		}
+
+		return yearOptions(), defaultPerRow, nil
+	case stepConvertYear:
 		return yearOptions(), defaultPerRow, nil
 	case stepCalcMonth:
 		opts, err := monthOptions(sess.currentInc.Year)

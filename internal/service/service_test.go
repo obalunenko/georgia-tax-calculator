@@ -240,7 +240,7 @@ func Test_service_Calculate(t *testing.T) {
 						},
 						{
 							DateRequest: DateRequest{
-								Year:  "2023",
+								Year:  "2022",
 								Month: "June",
 								Day:   "08",
 							},
@@ -275,7 +275,7 @@ func Test_service_Calculate(t *testing.T) {
 						Rate: models.NewMoney(1, ""),
 					},
 					{
-						Date: time.Date(2023, time.June, 8, 0, 0, 0, 0, time.UTC),
+						Date: time.Date(2022, time.June, 8, 0, 0, 0, 0, time.UTC),
 						Amount: models.Money{
 							Amount:   200,
 							Currency: currencies.USD,

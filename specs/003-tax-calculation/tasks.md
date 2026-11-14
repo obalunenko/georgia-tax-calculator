@@ -107,15 +107,16 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 3. **Year income has no effect and incomes are not limited to one year.**
    Year income is only added to the reported total; incomes from 2016 to the
    current year can be mixed. Clarified on 2026-11-15: turnover-limit
-   warning only (FR-013), one calendar year per calculation (FR-014). Not
-   implemented yet.
+   warning only (FR-013), one calendar year per calculation (FR-014).
+   Implemented by `specs/006-year-income-rules` on 2026-11-15.
 4. **No bot tests and no end-to-end calculation test.** Service tests use
    `mockConverter` (1:1 conversion); no test runs `Calculate` with fixture NBG
    rates. SC-002 (same tax in the CLI and the bot) is checked only by hand.
 5. **Per-income rounding.** Tax is rounded per income before summing, so the
    total can differ by a few tetri from rounding the total once. Clarified on
-   2026-11-15: tax is calculated once on the total (FR-004). Not implemented
-   yet; confirm the rule against decl.rs.ge when implementing.
+   2026-11-15: tax is calculated once on the total (FR-004). Implemented by
+   `specs/006-year-income-rules`; the rule was not checked against
+   decl.rs.ge.
 6. **Declarations link only in the CLI.** `menuCalcTaxes` prints a link to
    `https://decl.rs.ge/decls.aspx` when the terminal supports hyperlinks; the
    bot does not show it.

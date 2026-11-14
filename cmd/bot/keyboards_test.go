@@ -228,3 +228,57 @@ func TestDayOptions(t *testing.T) {
 	require.Len(t, opts, 29)
 	assert.Equal(t, keyboardOption{text: "29", value: "29"}, opts[28])
 }
+
+func TestCalcYearAfterFirstIncome(t *testing.T) {
+	first := service.Income{DateRequest: service.DateRequest{Year: "2025", Month: "June", Day: "08"}}
+
+	before := calcSession(calcStepYear, service.Income{})
+	after := calcSession(calcStepYear, service.Income{})
+	after.incomes = []service.Income{first}
+
+	opts, _, err := stepOptions(after)
+	require.NoError(t, err)
+	assert.Equal(t, []keyboardOption{{text: "2025", value: "2025"}}, opts)
+
+	tests := []struct {
+		name   string
+		sess   *session
+		data   string
+		wantOK bool
+	}{
+		{name: "first income: any year", sess: before, data: "cb:calc_year:2024", wantOK: true},
+		{name: "later income: the same year", sess: after, data: "cb:calc_year:2025", wantOK: true},
+		{name: "later income: another year from an old keyboard", sess: after, data: "cb:calc_year:2024", wantOK: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, ok, err := callbackValue(tt.sess, tt.data)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.wantOK, ok)
+		})
+	}
+}
+
+func TestTaxTypeOptionsOverLimit(t *testing.T) {
+	opts, err := taxTypeOptions()
+	require.NoError(t, err)
+
+	want := keyboardOption{text: "Small Business (over limit) (3%)", value: taxes.TaxTypeSmallBusinessOverLimit.String()}
+	assert.Contains(t, opts, want)
+
+	kb := buildInlineKeyboard(stepCalcTaxType, opts, 1)
+	for _, row := range kb.InlineKeyboard {
+		for _, btn := range row {
+			assert.LessOrEqual(t, len(btn.CallbackData), 64, btn.CallbackData)
+		}
+	}
+
+	names := make([]string, 0, len(opts))
+	for _, o := range opts {
+		names = append(names, o.value)
+	}
+
+	assert.Equal(t, []string{"Employment", "Small Business", "Small Business (over limit)"}, names)
+}

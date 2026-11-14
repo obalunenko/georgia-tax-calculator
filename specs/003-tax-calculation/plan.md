@@ -121,7 +121,9 @@ collection and output formatting.
 
 Decisions 4 and 5 describe the current code. The 2026-11-15 clarifications
 in [spec.md](spec.md) change them (tax on the total, FR-004; limit warning,
-FR-013; one calendar year, FR-014); these changes are not implemented yet.
+FR-013; one calendar year, FR-014); ~~these changes are not implemented
+yet~~ they are implemented by
+[006-year-income-rules](../006-year-income-rules/plan.md).
 
 **Bugfix**: 2026-11-15 — 002 BUG-001 Updated from bugfix patch (amount rules,
 FR-016; see 002 plan decision 6)

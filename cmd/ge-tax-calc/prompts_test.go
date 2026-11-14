@@ -447,3 +447,15 @@ func TestValidateYearIncomeInput(t *testing.T) {
 		})
 	}
 }
+
+func TestTaxTypeOptionsOrderAndLabels(t *testing.T) {
+	opts, err := taxTypeOptions()
+	require.NoError(t, err)
+
+	got := make([]string, 0, len(opts))
+	for _, o := range opts {
+		got = append(got, o.Label+" "+o.Description)
+	}
+
+	assert.Equal(t, []string{"Employment 20 %", "Small Business 1 %", "Small Business (over limit) 3 %"}, got)
+}
