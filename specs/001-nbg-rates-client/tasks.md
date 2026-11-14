@@ -89,6 +89,7 @@ feature.
 - [x] T022 [US2] Use the date and sorted codes as the cache key, store and return copies of `Rates`, and remove expired entries on each write in `pkg/nbggovge/cache.go`; tests in `pkg/nbggovge/cache_test.go` (`TestCachedClient_GenerateCacheKey`, `TestCachedClient_ReturnsCopies`, `TestCachedClient_EvictsExpiredOnWrite`); update `pkg/nbggovge/README_CACHE.md` (gaps 4, 6, 7; FR-017–FR-019)
 - [x] T023 [P] [US3] Fail in `getInput` when the live response has no currency other than GEL, without wrapping a nil error, in `pkg/nbggovge/currencies/generator/main.go` (gap 8, FR-020)
 - [x] T024 [P] [US3] Define `GELCode` and `GELName` once in `pkg/nbggovge/client.go` and use them in `maybeAddGELCodeToResponse` and in the currencies generator, which must not depend on the generated `currencies` package; test `TestGELCodeMatchesGeneratedCode` in `pkg/nbggovge/client_cached_test.go`
+- [x] T025 [P] [US1] Default-run tests for `client.Rates` in `pkg/nbggovge/client_test.go`: transport error, status other than 200, unreadable body, invalid JSON, more than one rate set (`TestClient_Rates_Errors`), request method, URL, and query parameters (`TestClient_Rates_Request`), canceled context (`TestClient_Rates_CanceledContext`) (gap 1)
 ---
 
 ## Phase N: Polish & Cross-Cutting Concerns
@@ -102,11 +103,11 @@ feature.
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **`client.Rates` has no default-run test.** Partly fixed by T020: the
+1. **Fixed by T020 and T025.** **`client.Rates` has no default-run test.** Partly fixed by T020: the
    `mocked:` case of `TestClient_Rates` and `mock/mock_test.go` now run by
    default and cover the query parameters, GEL insertion, sorting, and empty
-   responses. Non-200 statuses, transport errors, and responses with more than
-   one rate set are still untested.
+   responses. ~~Non-200 statuses, transport errors, and responses with more than
+   one rate set are still untested.~~ T025 covers them.
 2. **Fixed by T020 (2026-11-15).** `mock.NewClient` defects
    (`pkg/nbggovge/mock/mock.go`, before the fix):
    - reads the date from the `currencies` query parameter instead of `date`

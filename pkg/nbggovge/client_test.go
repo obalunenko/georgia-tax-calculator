@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -209,4 +210,117 @@ func TestClient_Rates(t *testing.T) {
 			assert.Equal(t, want, got)
 		})
 	}
+}
+
+type doerFunc func(req *http.Request) (*http.Response, error)
+
+func (f doerFunc) Do(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+type failingReader struct{}
+
+func (failingReader) Read([]byte) (int, error) {
+	return 0, errors.New("connection reset")
+}
+
+func httpResponse(req *http.Request, status int, body io.Reader) *http.Response {
+	return &http.Response{
+		Status:     fmt.Sprintf("%d %s", status, http.StatusText(status)),
+		StatusCode: status,
+		Body:       io.NopCloser(body),
+		Request:    req,
+	}
+}
+
+func TestClient_Rates_Errors(t *testing.T) {
+	date := time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		do      doerFunc
+		wantErr string
+	}{
+		{
+			name: "transport error",
+			do: func(*http.Request) (*http.Response, error) {
+				return nil, errors.New("dial tcp: no route to host")
+			},
+			wantErr: "send request: dial tcp: no route to host",
+		},
+		{
+			name: "status other than 200",
+			do: func(req *http.Request) (*http.Response, error) {
+				return httpResponse(req, http.StatusServiceUnavailable, strings.NewReader("")), nil
+			},
+			wantErr: "invalid response status: 503 Service Unavailable",
+		},
+		{
+			name: "unreadable body",
+			do: func(req *http.Request) (*http.Response, error) {
+				return httpResponse(req, http.StatusOK, failingReader{}), nil
+			},
+			wantErr: "read response body: connection reset",
+		},
+		{
+			name: "invalid JSON",
+			do: func(req *http.Request) (*http.Response, error) {
+				return httpResponse(req, http.StatusOK, strings.NewReader("{")), nil
+			},
+			wantErr: "unmarshal body to rates:",
+		},
+		{
+			name: "more than one rate set",
+			do: func(req *http.Request) (*http.Response, error) {
+				return httpResponse(req, http.StatusOK, strings.NewReader(`[{"date":"a"},{"date":"b"}]`)), nil
+			},
+			wantErr: "response contains more than one rate",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewWithHTTPClient(tt.do).Rates(context.Background(), option.WithDate(date))
+
+			require.Error(t, err)
+			assert.ErrorContains(t, err, tt.wantErr)
+			assert.Equal(t, Rates{}, got)
+		})
+	}
+}
+
+func TestClient_Rates_Request(t *testing.T) {
+	var got *http.Request
+
+	do := doerFunc(func(req *http.Request) (*http.Response, error) {
+		got = req
+
+		return httpResponse(req, http.StatusOK, strings.NewReader("[]")), nil
+	})
+
+	_, err := NewWithHTTPClient(do).Rates(context.Background(),
+		option.WithDate(time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)),
+		option.WithCurrency(currencies.USD),
+		option.WithCurrency(currencies.EUR),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+
+	assert.Equal(t, http.MethodGet, got.Method)
+	assert.Equal(t, basePath, got.URL.Scheme+"://"+got.URL.Host+got.URL.Path)
+	assert.Equal(t, "2024-02-10", got.URL.Query().Get(dateParam))
+	assert.Equal(t, []string{currencies.USD, currencies.EUR}, got.URL.Query()[currenciesParam])
+}
+
+func TestClient_Rates_CanceledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	do := doerFunc(func(req *http.Request) (*http.Response, error) {
+		return nil, req.Context().Err()
+	})
+
+	_, err := NewWithHTTPClient(do).Rates(ctx)
+
+	assert.ErrorIs(t, err, context.Canceled)
 }
