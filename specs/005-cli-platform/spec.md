@@ -46,7 +46,9 @@ calculation or currency conversion.
 **Why this priority**: Entry point to every CLI capability.
 
 **Independent Test**: Manual: run the binary with no arguments, with
-`--help`, with `run`, `convert`, and an unknown command. No automated tests.
+`--help`, with `run`, `convert`, and an unknown command. The unknown command
+and the command list are covered by `cmd/ge-tax-calc/main_test.go`
+(BUG-001).
 
 **Acceptance Scenarios**:
 
@@ -56,9 +58,10 @@ calculation or currency conversion.
 2. **Given** `run` or `convert`, **When** the command runs, **Then** the
    banner is printed and the flow from 003 or 002 starts.
 3. **Given** an unknown command `foo`, **When** it runs, **Then** the CLI
-   prints "Command [foo] not supported.\nTry --help flag to see how to use
-   it" and "Exit..." and exits with ~~status 0~~ a non-zero status
-   (BUG-001: status 0 made the error invisible to scripts; FR-013).
+   prints ~~"Command [foo] not supported.\nTry --help flag to see how to use
+   it" and "Exit..."~~ the banner and, on stderr, "No help topic for 'foo'",
+   and exits with ~~status 0~~ status 3; "Exit..." is not printed (BUG-001:
+   status 0 made the error invisible to scripts; FR-013).
 4. **Given** a command returns an error, **When** the CLI finishes, **Then**
    the error is logged with "Run failed" and the process exits with a
    non-zero status (`log.Fatal`).
@@ -144,11 +147,11 @@ a `v*` tag.
 ### Edge Cases
 
 - ~~An unknown command exits with status 0, so scripts cannot detect it.~~
-  Superseded by BUG-001: it MUST exit non-zero (FR-013); the code still
-  exits 0 until T012.
+  Superseded by BUG-001: it exits with status 3 (FR-013, fixed by T012).
 - The banner is printed before every command, including unknown commands
   and the help; "Exit..." is printed to stdout with `fmt.Println`, not to
-  `cmd.Writer`, after every run.
+  `cmd.Writer`, after every run except an unknown command, where urfave/cli
+  exits before the `After` hook (BUG-001).
 - A binary built without VCS information (e.g., `go install` from the module
   proxy) prints `unset` for commit and build date.
 - The `+CHANGES` suffix is added whenever build info has a `vcs.modified`
@@ -171,8 +174,10 @@ a `v*` tag.
   `--version`/`-v`.
 - **FR-003**: The CLI MUST print the banner before running a command and
   "Exit..." after it.
-- **FR-004**: An unknown command MUST print "Command [<name>] not supported."
-  and a hint to use `--help`.
+- **FR-004**: An unknown command MUST print ~~"Command [<name>] not
+  supported." and a hint to use `--help`~~ urfave/cli's "No help topic for
+  '<name>'" on stderr (BUG-001: the custom handler could not return an
+  error).
 - **FR-005**: A command error MUST be logged and end the process with a
   non-zero status.
 - **FR-006**: `--version` MUST report app name, version, short and full
@@ -193,7 +198,8 @@ a `v*` tag.
 - **FR-012**: `make build` MUST produce a local binary in `bin/` through
   goreleaser.
 - **FR-013**: An unknown command MUST end the process with a non-zero exit
-  status, in addition to the message in FR-004. [Not implemented yet.]
+  status, in addition to the message in FR-004. Implemented on 2026-11-15:
+  status 3 from urfave/cli (T012).
 
 **Bugfix**: 2026-11-15 — BUG-001 Added FR-013 (non-zero exit for an unknown
 command), updated acceptance scenario US1.3, Edge Cases, and SC-004.
@@ -204,7 +210,8 @@ US2.3, updated Edge Cases, Assumptions, and SC-005.
 ### Key Entities
 
 - **Root command**: `cli.Command` named `ge-tax-calc` with commands, version
-  string, `Before` (banner), `After` (exit line), and `CommandNotFound`.
+  string, `Before` (banner), and `After` (exit line), built by `newApp`;
+  ~~`CommandNotFound`~~ left unset on purpose (BUG-001).
 - **Version info**: App name, version, commit, short commit, build date, Go
   version, read once at startup from `runtime/debug.ReadBuildInfo`.
 - **Release artifact**: Archive per OS/arch, universal macOS binary, checksum

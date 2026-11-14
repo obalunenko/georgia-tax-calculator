@@ -69,7 +69,7 @@ feature.
 
 ## Phase B1: Bugfix BUG-001 - Unknown command exit status
 
-- [ ] T012 [US1] End an unknown command with a non-zero exit status (see plan decision 1) in `cmd/ge-tax-calc/main.go` and `cmd/ge-tax-calc/handlers.go`; test the exit code through `cli.OsExiter` in `cmd/ge-tax-calc/main_test.go`; update README if the message changes (FR-013, SC-004)
+- [x] T012 [US1] End an unknown command with a non-zero exit status (see plan decision 1) in `cmd/ge-tax-calc/main.go` and `cmd/ge-tax-calc/handlers.go`; test the exit code through `cli.OsExiter` in `cmd/ge-tax-calc/main_test.go`; update README if the message changes (FR-013, SC-004). Done on 2026-11-15: `notFound` removed, root command built by `newApp`; README does not show the message
 
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
@@ -89,7 +89,7 @@ feature.
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **Tracked in BUG-001 (T012).** **Unknown command exits with status 0.** `notFound`
+1. **Fixed by T012 (BUG-001).** **Unknown command exits with status 0.** `notFound`
    (`cmd/ge-tax-calc/handlers.go`) only prints a message; `ge-tax-calc foo`
    returns 0 (checked on 2026-11-15), so scripts cannot detect the error.
 2. **Tracked in BUG-002 (T013, T014).** **`+CHANGES` on clean builds.** `github.com/obalunenko/version` sets
@@ -98,8 +98,9 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    `vcs.modified=false`. A build from a clean worktree of `0bafe32` printed
    `short_commit: 0bafe32+CHANGES` (checked on 2026-11-15). The fix belongs
    in the library (same author), then `make sync-vendor`.
-3. **No tests for the platform.** Root command, hooks, unknown command, and
-   version output are untested; so is `internal/spinner`.
+3. **Partly fixed by T012.** **No tests for the platform.** The command list
+   and the unknown command are tested; hooks, version output, and
+   `internal/spinner` are not.
 4. **Output noise.** The banner is printed before every command, including
    the help and unknown commands, and "Exit..." is printed with
    `fmt.Println` to stdout instead of `cmd.Writer`, so it cannot be

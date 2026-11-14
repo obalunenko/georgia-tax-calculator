@@ -14,6 +14,15 @@ func main() {
 
 	ctx = log.ContextWithLogger(ctx, log.FromContext(ctx))
 
+	if err := newApp(ctx).Run(ctx, os.Args); err != nil {
+		log.WithError(ctx, err).Fatal("Run failed")
+	}
+}
+
+// newApp builds the root command. CommandNotFound is left unset on purpose:
+// urfave/cli then reports an unknown command ("No help topic for ...") and exits with status 3,
+// while a custom handler has no way to return an error and the CLI would exit with 0.
+func newApp(ctx context.Context) *cli.Command {
 	app := cli.Command{}
 	app.Name = "ge-tax-calc"
 	app.Description = "Helper tool for preparing tax declarations in Georgia.\n" +
@@ -25,13 +34,10 @@ func main() {
 		"Oleg Balunenko <oleg.balunenko@gmail.com>",
 	}
 
-	app.CommandNotFound = notFound
 	app.Commands = commands()
 	app.Version = printVersion(ctx)
 	app.Before = printHeader
 	app.After = onExit
 
-	if err := app.Run(ctx, os.Args); err != nil {
-		log.WithError(ctx, err).Fatal("Run failed")
-	}
+	return &app
 }

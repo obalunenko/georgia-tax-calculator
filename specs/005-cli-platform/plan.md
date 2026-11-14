@@ -32,7 +32,9 @@ known defect: treats `vcs.modified=false` as modified, BUG-002);
 
 **Storage**: None.
 
-**Testing**: No tests for the root command, hooks, or version output;
+**Testing**: ~~No tests for the root command,~~ `main_test.go` covers the
+command list and the unknown-command exit status (BUG-001); no tests for
+hooks or version output;
 `cmd/ge-tax-calc` tests cover prompts and forms only (002, 003).
 `internal/spinner` is untested (constitution VI allows it).
 
@@ -81,9 +83,9 @@ specs/005-cli-platform/
 
 ```text
 cmd/ge-tax-calc/
-├── main.go          # root command: name, description, authors, commands, version, hooks; log.Fatal on error
+├── main.go          # newApp: root command (name, description, authors, commands, version, hooks); log.Fatal on error
 ├── commands.go      # `run` → menuCalcTaxes, `convert` → menuConvert (flows: 002, 003)
-├── handlers.go      # printHeader (Before), notFound (CommandNotFound), onExit (After)
+├── handlers.go      # printHeader (Before), onExit (After); notFound removed (BUG-001)
 └── version.go       # printVersion: version table from github.com/obalunenko/version
 internal/spinner/
 └── spinner.go       # Start(name, finishMsg) StopFunc on stderr
@@ -109,12 +111,15 @@ forms; platform concerns are small and split by role (`main`, `commands`,
    `nil` (exit 0); without it, it returns `Exit("No help topic …", 3)`.
    FR-013 needs either removing `notFound` (and the custom message) or
    returning a `cli.Exit` error from the root command after `notFound` ran;
-   the choice is made in T012.
+   the choice is made in T012. T012 removed `notFound`: urfave/cli prints
+   "No help topic for '<name>'" and exits 3; `Suggest` stays off because it
+   proposed unrelated commands (e.g., `convert` for `foo`). (FR-004, FR-013,
+   SC-004)
 2. **Version from build info** (`runtime/debug.ReadBuildInfo`) instead of
    `-ldflags -X`: goreleaser needs no ldflags, and `go install` builds also
    report a module version. BUG-002: the modified flag must come from the
    value of `vcs.modified`, fixed in the library (T013) and picked up by a
-   dependency bump (T014).
+   dependency bump (T014). (FR-006, SC-005)
 
 **Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
 
