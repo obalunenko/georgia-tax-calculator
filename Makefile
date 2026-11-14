@@ -20,6 +20,20 @@ BOT_ENV_FILE?=deployments/docker-compose/.env
 
 GOVERSION:=1.27.3
 
+SPECKIT_VERSION?=1.2.5
+SPECKIT_COMPANION_VERSION?=0.25.0
+SPECKIT_BROWNFIELD_VERSION?=1.0.0
+SPECKIT_BUGFIX_VERSION?=1.1.0
+SPECKIT_FEATURE_NUMBERING_VERSION?=1.0.0
+# Space-separated Spec Kit agent integrations; the first one is the default.
+SPECKIT_INTEGRATIONS?=claude
+SPECKIT_ENV=SPECKIT_VERSION=$(SPECKIT_VERSION) \
+	SPECKIT_COMPANION_VERSION=$(SPECKIT_COMPANION_VERSION) \
+	SPECKIT_BROWNFIELD_VERSION=$(SPECKIT_BROWNFIELD_VERSION) \
+	SPECKIT_BUGFIX_VERSION=$(SPECKIT_BUGFIX_VERSION) \
+	SPECKIT_FEATURE_NUMBERING_VERSION=$(SPECKIT_FEATURE_NUMBERING_VERSION) \
+	SPECKIT_INTEGRATIONS="$(SPECKIT_INTEGRATIONS)"
+
 TARGET_MAX_CHAR_NUM=20
 
 ## Show help
@@ -175,6 +189,21 @@ bot-down:
 bot-logs:
 	$(COMPOSE_BOT_CMD_BASE) logs -f bot
 .PHONY: bot-logs
+
+## Install pinned Spec Kit, its extensions and agent skills.
+speckit-install:
+	$(SPECKIT_ENV) ./scripts/speckit/install.sh
+.PHONY: speckit-install
+
+## Check Spec Kit and extension updates without installing them.
+speckit-update-check:
+	$(SPECKIT_ENV) python3 ./scripts/speckit/check-updates.py
+.PHONY: speckit-update-check
+
+## Run network-free Spec Kit update-checker tests.
+speckit-update-test:
+	python3 ./scripts/speckit/test_check_updates.py
+.PHONY: speckit-update-test
 
 .DEFAULT_GOAL := help
 
