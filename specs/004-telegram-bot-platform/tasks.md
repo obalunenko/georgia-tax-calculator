@@ -107,6 +107,13 @@ feature.
 
 ---
 
+## Phase F: Follow-up for migration gaps 4 and 10 (2026-11-15)
+
+- [x] T027 [US3] Throttle `broadcast` to one message per `broadcastInterval` (50 ms), stop on context cancel, and remove chats that answer 403 via `userStore.Remove` in `cmd/bot/users.go`; send through a `sendFunc` so it is testable; tests in `cmd/bot/users_test.go` (gap 4; FR-021, FR-022)
+- [x] T028 [US1] Wait for running handlers before the maintenance broadcast: `inflight` (`track`, `done` middleware registered first, `wait`) and `shutdown` in `cmd/bot/bot.go`; test `TestInflightWaitsForHandledUpdates` in `cmd/bot/session_test.go` (gap 10, FR-023)
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
@@ -125,7 +132,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    image sets no `WORKDIR`, so `users.json` is written to `/users.json` inside
    the container and is lost when the container is recreated (`make bot-up`
    uses `--build`). Load and save errors are ignored silently.
-4. **Broadcast behavior.** Every start and stop messages all known chats,
+4. **Mostly fixed by T027:** throttled and drops chats that answer 403; no opt-out yet. **Broadcast behavior.** Every start and stop messages all known chats,
    sequentially and without throttling for Telegram rate limits; chats that
    blocked the bot are never removed; there is no opt-out.
 5. **Partly fixed by T018 and T022.** **No tests in `cmd/bot`.** Callback
@@ -142,7 +149,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    ignored, so chat tracking stops without any log.
 9. **Known deviation**: the binary is `ge-tax` in `.goreleaser.yml` but
    `ge-bot` in the Dockerfile and README.
-10. **Shutdown does not wait for handlers.** `bh.Start()` returns as soon as
+10. **Fixed by T028.** **Shutdown does not wait for handlers.** `bh.Start()` returns as soon as
     the long-polling channel closes
     (`vendor/github.com/mymmrac/telego/telegohandler/bot_handler.go:85`);
     only `Stop`/`StopWithContext` wait for running handlers. `run` waits for

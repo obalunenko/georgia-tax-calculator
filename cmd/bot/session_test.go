@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"sync/atomic"
@@ -151,4 +152,36 @@ func TestUpdateChatID(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInflightWaitsForHandledUpdates(t *testing.T) {
+	var running inflight
+
+	updates := make(chan telego.Update)
+	out := running.track(updates)
+
+	// Both channels are unbuffered: receive each update, as the bot handler does, before sending the next.
+	updates <- telego.Update{UpdateID: 1}
+
+	<-out
+
+	updates <- telego.Update{UpdateID: 2}
+
+	<-out
+
+	// Finish only the first update.
+	running.wg.Done()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+
+	assert.False(t, running.wait(ctx), "one update is still being handled")
+
+	running.wg.Done()
+	close(updates)
+
+	assert.True(t, running.wait(context.Background()))
+
+	_, open := <-out
+	assert.False(t, open, "the forwarded channel closes with the source")
 }

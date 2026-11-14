@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/mymmrac/telego"
+	"github.com/mymmrac/telego/telegoapi"
 	log "github.com/obalunenko/logger"
 )
 
@@ -104,6 +107,24 @@ func (s *userStore) Track(chatID int64) (bool, error) {
 	return true, nil
 }
 
+// Remove forgets a chat ID and persists the store. It reports whether the ID was known.
+func (s *userStore) Remove(chatID int64) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.chatIDs[chatID]; !ok {
+		return false, nil
+	}
+
+	delete(s.chatIDs, chatID)
+
+	if err := s.save(); err != nil {
+		return true, fmt.Errorf("save user store %s: %w", s.path, err)
+	}
+
+	return true, nil
+}
+
 // All returns a snapshot of all known chat IDs.
 func (s *userStore) All() []int64 {
 	s.mu.Lock()
@@ -117,17 +138,62 @@ func (s *userStore) All() []int64 {
 	return ids
 }
 
-// broadcast sends text to every chatID. Per-user errors are logged but do not abort the loop.
-func broadcast(ctx context.Context, bot *telego.Bot, chatIDs []int64, text string) {
-	for _, chatID := range chatIDs {
+// broadcastInterval keeps broadcasts below Telegram's limit of about 30 messages per second.
+const broadcastInterval = 50 * time.Millisecond
+
+// sendFunc sends text to a chat.
+type sendFunc func(ctx context.Context, chatID int64, text string) error
+
+// botSender sends messages through bot.
+func botSender(bot *telego.Bot) sendFunc {
+	return func(ctx context.Context, chatID int64, text string) error {
 		_, err := sendMessage(ctx, bot, &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
 			Text:   text,
 		})
-		if err != nil {
-			log.WithError(ctx, err).
-				WithField("chat_id", chatID).
-				Warn("broadcast: failed to send message")
-		}
+
+		return err
 	}
+}
+
+// broadcast sends text to every known chat, waiting interval between messages, until ctx is done.
+// Chats that blocked the bot are removed from the store; other per-chat errors are logged and do not stop it.
+func broadcast(ctx context.Context, send sendFunc, users *userStore, text string, interval time.Duration) {
+	for i, chatID := range users.All() {
+		if i > 0 {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(interval):
+			}
+		}
+
+		err := send(ctx, chatID, text)
+		if err == nil {
+			continue
+		}
+
+		ctxLog := log.WithError(ctx, err).WithField("chat_id", chatID)
+
+		if !isChatUnreachable(err) {
+			ctxLog.Warn("broadcast: failed to send message")
+
+			continue
+		}
+
+		if _, rmErr := users.Remove(chatID); rmErr != nil {
+			ctxLog.WithField("remove_error", rmErr.Error()).Error("broadcast: failed to remove unreachable chat")
+
+			continue
+		}
+
+		ctxLog.Info("broadcast: removed chat that blocked the bot")
+	}
+}
+
+// isChatUnreachable reports a Telegram 403 error: the user blocked the bot or the bot was removed from the chat.
+func isChatUnreachable(err error) bool {
+	var apiErr *telegoapi.Error
+
+	return errors.As(err, &apiErr) && apiErr.ErrorCode == http.StatusForbidden
 }

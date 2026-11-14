@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+	"sync"
 	"time"
 
 	"github.com/mymmrac/telego"
@@ -14,7 +15,10 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 )
 
-const shutdownBroadcastTimeout = 30 * time.Second
+const (
+	shutdownBroadcastTimeout = 30 * time.Second
+	shutdownHandlersTimeout  = 30 * time.Second
+)
 
 // userStorePath returns the path for the persisted user store file.
 // It can be overridden with the USER_STORE_PATH environment variable.
@@ -47,7 +51,9 @@ func run(ctx context.Context, token string) error {
 		return fmt.Errorf("start long polling: %w", err)
 	}
 
-	bh, err := telegohandler.NewBotHandler(bot, updates)
+	var running inflight
+
+	bh, err := telegohandler.NewBotHandler(bot, running.track(updates))
 	if err != nil {
 		return fmt.Errorf("create bot handler: %w", err)
 	}
@@ -55,35 +61,85 @@ func run(ctx context.Context, token string) error {
 	store := newSessionStore()
 	svc := service.New()
 
+	bh.Use(running.done)
 	registerHandlers(bh, store, svc, users)
 
 	// Broadcast welcome-back message to all previously known users.
-	if knownUsers := users.All(); len(knownUsers) > 0 {
-		go broadcast(ctx, bot, knownUsers, msgWelcomeBack)
-	}
+	go broadcast(ctx, botSender(bot), users, msgWelcomeBack, broadcastInterval)
 
-	// Graceful shutdown: broadcast maintenance message before the process exits.
-	shutdownDone := make(chan struct{})
-
-	go func() {
-		defer close(shutdownDone)
-
-		<-ctx.Done()
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownBroadcastTimeout)
-		defer cancel()
-
-		broadcast(shutdownCtx, bot, users.All(), msgMaintenance)
-	}()
-
+	// Start returns when ctx is done and long polling has closed the updates channel.
 	if err = bh.Start(); err != nil {
 		return fmt.Errorf("bot handler: %w", err)
 	}
 
-	// Wait for shutdown broadcast to finish before returning.
-	<-shutdownDone
+	shutdown(ctx, bot, users, &running)
 
 	return nil
+}
+
+// shutdown lets running handlers finish, then tells known chats that the bot goes offline.
+// It keeps the logger of ctx but not its cancellation.
+func shutdown(ctx context.Context, bot *telego.Bot, users *userStore, running *inflight) {
+	base := context.WithoutCancel(ctx)
+
+	handlersCtx, cancelHandlers := context.WithTimeout(base, shutdownHandlersTimeout)
+	defer cancelHandlers()
+
+	if !running.wait(handlersCtx) {
+		log.FromContext(ctx).Warn("bot: handlers did not finish before shutdown")
+	}
+
+	broadcastCtx, cancelBroadcast := context.WithTimeout(base, shutdownBroadcastTimeout)
+	defer cancelBroadcast()
+
+	broadcast(broadcastCtx, botSender(bot), users, msgMaintenance, broadcastInterval)
+}
+
+// inflight counts updates from the moment they are received until their handlers return,
+// so shutdown can wait for them. telegohandler's Stop would cancel their contexts instead.
+type inflight struct {
+	wg sync.WaitGroup
+}
+
+// track forwards updates and counts each one before the bot handler receives it.
+func (f *inflight) track(updates <-chan telego.Update) <-chan telego.Update {
+	out := make(chan telego.Update)
+
+	go func() {
+		defer close(out)
+
+		for update := range updates {
+			f.wg.Add(1)
+
+			out <- update
+		}
+	}()
+
+	return out
+}
+
+// done is a middleware, registered first, that marks an update as handled when its handlers return.
+func (f *inflight) done(ctx *telegohandler.Context, update telego.Update) error {
+	defer f.wg.Done()
+
+	return ctx.Next(update)
+}
+
+// wait blocks until all tracked updates are handled or ctx is done; it reports whether they finished.
+func (f *inflight) wait(ctx context.Context) bool {
+	finished := make(chan struct{})
+
+	go func() {
+		f.wg.Wait()
+		close(finished)
+	}()
+
+	select {
+	case <-finished:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }
 
 // trackChat records chatID in the user store and logs new chats and save errors.

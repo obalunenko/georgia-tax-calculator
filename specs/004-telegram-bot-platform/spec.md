@@ -167,10 +167,14 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   is lost when the container is recreated.~~ Superseded by BUG-003: it lives
   in the `/data` volume (FR-019); `make bot-down` keeps the volume, `docker
   compose down -v` removes it.
-- Chats that blocked the bot stay in the store and fail on every broadcast.
-- On shutdown, `bh.Start` returns when the updates channel closes without
+- ~~Chats that blocked the bot stay in the store and fail on every
+  broadcast.~~ Since 2026-11-15 a chat that answers 403 is removed (FR-022).
+- ~~On shutdown, `bh.Start` returns when the updates channel closes without
   waiting for running handlers; a calculation in progress is cut off when the
-  process exits after the maintenance broadcast.
+  process exits after the maintenance broadcast.~~ Since 2026-11-15 the bot
+  waits up to 30 seconds for running handlers before the broadcast (FR-023).
+- With one message per 50 ms, the 30-second shutdown broadcast reaches about
+  600 chats; the rest do not get the maintenance message.
 
 ## Requirements *(mandatory)*
 
@@ -224,6 +228,16 @@ builds the image in `.github/workflows/dockerfiles.yml`.
 - **FR-020**: Errors reading the user store (other than a missing file) and
   errors writing it MUST be logged with the path; the bot MUST keep running
   with the chats it has in memory.
+- **FR-021**: Broadcasts MUST send at most one message per 50 ms, below
+  Telegram's limit of about 30 messages per second, and stop when their
+  context is done. (Added 2026-11-15, T027.)
+- **FR-022**: A chat that answers a broadcast with Telegram error 403 (the
+  user blocked the bot, or the bot was removed) MUST be removed from the
+  store; other errors MUST be logged and keep the chat. (Added 2026-11-15,
+  T027.)
+- **FR-023**: On shutdown, the bot MUST wait up to 30 seconds for running
+  handlers to finish, without canceling them, and only then send the
+  maintenance broadcast. (Added 2026-11-15, T028.)
 
 **Bugfix**: 2026-11-15 — BUG-001 Changed FR-012 (step-tagged callback data),
 added FR-015 and acceptance scenario US2.6, updated Edge Cases.
@@ -263,5 +277,7 @@ US4.4 and US4.5, SC-006, and updated FR-013 and Edge Cases.
 
 - One bot instance runs per token; sessions are not shared between
   instances.
-- The number of known chats is small enough for sequential broadcasts.
+- The number of known chats is small enough for sequential broadcasts
+  (about 600 fit into the 30-second shutdown window at one message per
+  50 ms).
 - Users accept being notified about restarts; there is no opt-out.

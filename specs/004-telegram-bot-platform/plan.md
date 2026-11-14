@@ -122,9 +122,16 @@ test token; CI `build-bot-image` and hadolint.
    ~~are ignored~~ are logged with the path since BUG-003: `newUserStore`
    logs load errors except a missing file, `Track` returns the save error and
    `trackUserMsg`/`trackUserCallback` log it. (FR-020)
-5. **Graceful shutdown**: the signal context stops polling; a goroutine
+5. **Graceful shutdown**: the signal context stops polling; ~~a goroutine
    broadcasts the maintenance message with a fresh 30-second context; `run`
-   waits for it before returning.
+   waits for it before returning.~~ since 2026-11-15 `bh.Start` returns when
+   long polling closes the updates channel, then `shutdown` waits up to 30 s
+   for running handlers and broadcasts the maintenance message within another
+   30 s (FR-023). Running handlers are counted by `inflight`: `track` adds
+   one per received update, the first middleware `done` marks it handled.
+   `telegohandler.BotHandler.Stop` is not used because it cancels the
+   handlers' contexts. Broadcasts are throttled to one message per 50 ms and
+   drop chats that answer 403 (FR-021, FR-022).
 6. **Multi-stage Docker build** with vendored dependencies and a static binary.
    Since BUG-003 the runtime stage creates a system user `bot` (UID/GID
    10001; numeric `USER` because hadolint DL3066 fails CI at
