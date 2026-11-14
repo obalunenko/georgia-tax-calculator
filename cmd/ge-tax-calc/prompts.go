@@ -11,6 +11,7 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -367,15 +368,15 @@ func (p *promptModel) inheritHeight(prev *promptModel) {
 }
 
 func validateMoneyInput(val string) error {
-	if strings.TrimSpace(val) == "" {
-		return errors.New("value is required")
-	}
+	_, err := service.ParseAmount(val)
 
-	if _, err := moneyutils.Parse(val); err != nil {
-		return fmt.Errorf("invalid amount: %w", err)
-	}
+	return err
+}
 
-	return nil
+func validateYearIncomeInput(val string) error {
+	_, err := service.ParseYearIncome(val)
+
+	return err
 }
 
 func taxTypeOptions() ([]option, error) {

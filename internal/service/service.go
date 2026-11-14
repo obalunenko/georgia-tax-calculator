@@ -175,7 +175,7 @@ func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertRespons
 
 	date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-	mv, err := moneyutils.Parse(p.Amount)
+	mv, err := ParseAmount(p.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		return nil, fmt.Errorf("failed to get tax rate: %w", err)
 	}
 
-	yi, err := moneyutils.Parse(req.YearIncome)
+	yi, err := ParseYearIncome(req.YearIncome)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse year income: %w", err)
 	}

@@ -33,6 +33,10 @@ Calculates income taxes in Georgia.
 
 2. Run `ge-tax-calc run` and follow instructions
 
+Amounts are plain numbers with a dot as the decimal separator (e.g. `1500.50`).
+Income and conversion amounts must be greater than 0; income since the start
+of the year can be `0`. The CLI and the bot apply the same rules.
+
 All available flags, commands and usage:
 
 ```text
@@ -132,6 +136,9 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 - `/convert` — Start the currency conversion flow (guided step-by-step)
 - `/cancel` — Cancel the current operation
 - `/help` — Show available commands
+
+Only the buttons of the latest step are accepted: pressing a button from an
+earlier message replies with "Unexpected input" and keeps the current step.
 
 ## For Developers
 

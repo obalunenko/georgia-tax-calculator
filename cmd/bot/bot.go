@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/mymmrac/telego"
@@ -128,18 +129,95 @@ func trackUserCallback(users *userStore, h telegohandler.CallbackQueryHandler) t
 	}
 }
 
+const msgInternalError = "❌ Something went wrong. Please use /cancel to start over."
+
+// recoverPanics is a middleware that keeps the bot running when a handler panics:
+// it logs the panic and tells the user that the request failed.
+func recoverPanics(ctx *telegohandler.Context, update telego.Update) (err error) {
+	defer func() {
+		recovered := recover()
+		if recovered == nil {
+			return
+		}
+
+		log.WithField(ctx.Context(), "panic", fmt.Sprint(recovered)).
+			WithField("stack", string(debug.Stack())).
+			Error("bot: handler panicked")
+
+		chatID, ok := updateChatID(update)
+		if !ok {
+			return
+		}
+
+		_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
+			ChatID: telego.ChatID{ID: chatID},
+			Text:   msgInternalError,
+		})
+	}()
+
+	return ctx.Next(update)
+}
+
+// updateChatID returns the chat of a message or callback update.
+func updateChatID(update telego.Update) (int64, bool) {
+	switch {
+	case update.Message != nil:
+		return update.Message.Chat.ID, true
+	case update.CallbackQuery != nil && update.CallbackQuery.Message != nil:
+		return update.CallbackQuery.Message.GetChat().ID, true
+	default:
+		return 0, false
+	}
+}
+
+// serializeMsg wraps a MessageHandler so that updates of one user are handled one at a time.
+// Messages without a sender are ignored: handlers need the user ID for the session,
+// and trackUserMsg has already logged the input.
+func serializeMsg(store *sessionStore, h telegohandler.MessageHandler) telegohandler.MessageHandler {
+	return func(ctx *telegohandler.Context, msg telego.Message) error {
+		if msg.From == nil {
+			return nil
+		}
+
+		unlock := store.lock(msg.From.ID)
+		defer unlock()
+
+		return h(ctx, msg)
+	}
+}
+
+// serializeCallback wraps a CallbackQueryHandler so that updates of one user are handled one at a time.
+func serializeCallback(store *sessionStore, h telegohandler.CallbackQueryHandler) telegohandler.CallbackQueryHandler {
+	return func(ctx *telegohandler.Context, query telego.CallbackQuery) error {
+		unlock := store.lock(query.From.ID)
+		defer unlock()
+
+		return h(ctx, query)
+	}
+}
+
 // registerHandlers registers all message and callback handlers.
 func registerHandlers(bh *telegohandler.BotHandler, store *sessionStore, svc service.Service, users *userStore) {
+	// Middlewares apply only to handlers registered after them.
+	bh.Use(recoverPanics)
+
+	msgHandler := func(h telegohandler.MessageHandler) telegohandler.MessageHandler {
+		return trackUserMsg(users, serializeMsg(store, h))
+	}
+
 	// Command handlers.
-	bh.HandleMessage(trackUserMsg(users, handleStart(store)), telegohandler.CommandEqual(cmdStart))
-	bh.HandleMessage(trackUserMsg(users, handleHelp(store)), telegohandler.CommandEqual(cmdHelp))
-	bh.HandleMessage(trackUserMsg(users, handleCancel(store)), telegohandler.CommandEqual(cmdCancel))
-	bh.HandleMessage(trackUserMsg(users, handleCalculate(store)), telegohandler.CommandEqual(cmdCalculate))
-	bh.HandleMessage(trackUserMsg(users, handleConvert(store)), telegohandler.CommandEqual(cmdConvert))
+	bh.HandleMessage(msgHandler(handleStart(store)), telegohandler.CommandEqual(cmdStart))
+	bh.HandleMessage(msgHandler(handleHelp(store)), telegohandler.CommandEqual(cmdHelp))
+	bh.HandleMessage(msgHandler(handleCancel(store)), telegohandler.CommandEqual(cmdCancel))
+	bh.HandleMessage(msgHandler(handleCalculate(store)), telegohandler.CommandEqual(cmdCalculate))
+	bh.HandleMessage(msgHandler(handleConvert(store)), telegohandler.CommandEqual(cmdConvert))
 
 	// Text input handler (for amount fields).
-	bh.HandleMessage(trackUserMsg(users, handleTextInput(store)), telegohandler.AnyMessageWithText())
+	bh.HandleMessage(msgHandler(handleTextInput(store)), telegohandler.AnyMessageWithText())
 
 	// Callback query handler (for inline keyboard selections).
-	bh.HandleCallbackQuery(trackUserCallback(users, handleCallback(store, svc)), telegohandler.AnyCallbackQuery())
+	bh.HandleCallbackQuery(
+		trackUserCallback(users, answerCallback(serializeCallback(store, handleCallback(store, svc)))),
+		telegohandler.AnyCallbackQuery(),
+	)
 }

@@ -125,7 +125,7 @@ func (m *taxDetailsModel) advance() tea.Cmd {
 			"Income from the beginning of a calendar year (GEL)",
 			"0.00",
 			"",
-			validateMoneyInput,
+			validateYearIncomeInput,
 		)
 
 		return m.setPrompt(prompt)

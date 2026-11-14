@@ -313,7 +313,7 @@ func TestInputPromptRejectsInvalidValue(t *testing.T) {
 	p.Update(enterKey())
 
 	assert.False(t, p.Completed())
-	assert.Contains(t, p.View(), "Error: value is required")
+	assert.Contains(t, p.View(), "Error: invalid amount: value is required")
 }
 
 func TestInputPromptKeepsErrorUntilInput(t *testing.T) {
@@ -404,6 +404,46 @@ func TestModelsStopOnError(t *testing.T) {
 			assertQuit(t, tt.model.Init())
 			assertQuit(t, send(tt.model, enterKey()))
 			assert.Equal(t, "error: boom\n", tt.model.View().Content)
+		})
+	}
+}
+
+func TestValidateMoneyInput(t *testing.T) {
+	tests := []struct {
+		val     string
+		wantErr bool
+	}{
+		{val: "100.5"},
+		{val: " 12 "},
+		{val: "", wantErr: true},
+		{val: "12abc", wantErr: true},
+		{val: "1,500", wantErr: true},
+		{val: "0", wantErr: true},
+		{val: "-5", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.val, func(t *testing.T) {
+			assert.Equal(t, tt.wantErr, validateMoneyInput(tt.val) != nil)
+		})
+	}
+}
+
+func TestValidateYearIncomeInput(t *testing.T) {
+	tests := []struct {
+		val     string
+		wantErr bool
+	}{
+		{val: "0"},
+		{val: "0.00"},
+		{val: "67.99"},
+		{val: "-1", wantErr: true},
+		{val: "12abc", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.val, func(t *testing.T) {
+			assert.Equal(t, tt.wantErr, validateYearIncomeInput(tt.val) != nil)
 		})
 	}
 }
