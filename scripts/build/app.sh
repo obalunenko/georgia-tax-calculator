@@ -18,13 +18,20 @@ checkInstalled 'goreleaser'
 goreleaser healthcheck
 
 APP=${APP_NAME}
+# goreleaser ignores --output unless a single build is selected; .goreleaser.yml has `cli` and `bot`.
+BUILD_ID=${BUILD_ID:-cli}
 
-echo "Building ${APP}..."
+echo "Building ${APP} (goreleaser build id: ${BUILD_ID})..."
 
 BIN_OUT="${BIN_DIR}/${APP}"
 
 rm -rf "${BIN_OUT}"
 
-goreleaser build --skip=validate --clean --single-target --output "${BIN_OUT}"
+goreleaser build --skip=validate --clean --single-target --id "${BUILD_ID}" --output "${BIN_OUT}"
+
+if [ ! -f "${BIN_OUT}" ]; then
+  echo "Binary was not created at ${BIN_OUT}"
+  exit 1
+fi
 
 echo "Binary compiled at ${BIN_OUT}"

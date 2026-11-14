@@ -37,20 +37,22 @@ Amounts are plain numbers with a dot as the decimal separator (e.g. `1500.50`).
 Income and conversion amounts must be greater than 0; income since the start
 of the year can be `0`. The CLI and the bot apply the same rules.
 
-All available flags, commands and usage:
+All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
+section with the build information of your binary is omitted here, see
+`ge-tax-calc --version`):
 
 ```text
 NAME:
    ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia 
 
 USAGE:
-   ge-tax-calc [global options] command [command options] [arguments...]
+   ge-tax-calc [global options] [command [command options]]
 
 DESCRIPTION:
    Helper tool for preparing tax declarations in Georgia.
-   It get income amount in received currency, converts it to GEL according to
-   official rates on date of income and calculates tax amount
-   according to selected taxes category.
+   It gets the income amount in the received currency, converts it to GEL at the
+   official NBG rate on the date of income, and calculates the tax amount for the
+   selected tax category.
 
 AUTHOR:
    Oleg Balunenko <oleg.balunenko@gmail.com>
@@ -61,9 +63,12 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
+   --help, -h     show help
+   --version, -v  print the version
 ```
+
+An unknown command prints `No help topic for '<command>'` and exits with
+status 3.
 
 ### Demo
 

@@ -84,6 +84,14 @@ feature.
 
 ---
 
+## Phase F: Follow-up for migration gaps 5–7
+
+- [x] T015 [P] [US1] Fix the description typo in `cmd/ge-tax-calc/main.go` and replace the README help block with the urfave/cli v3 output (VERSION section omitted); document the unknown-command exit status in `README.md` (gap 5)
+- [x] T016 [P] [US4] Remove the unused `AOC_SESSION` secret from `.github/workflows/release.yml` and the `GOPRIVATE=example.com/blah` placeholder from `.goreleaser.yml`; `goreleaser check` passes (gap 6)
+- [x] T017 [US4] Select the build with `--id "${BUILD_ID:-cli}"` in `scripts/build/app.sh` and fail when the binary is missing (gap 7, FR-012)
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
@@ -105,18 +113,21 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    the help and unknown commands, and "Exit..." is printed with
    `fmt.Println` to stdout instead of `cmd.Writer`, so it cannot be
    redirected or tested through the command's writer.
-5. **Stale README help.** The help block in README "Usage" comes from
+5. **Fixed by T015.** **Stale README help.** The help block in README "Usage" comes from
    urfave/cli v2 (for example, `--help, -h  show help (default: false)`); v3
    prints `--help, -h  show help` and a different layout. The description
    also has a typo ("It get income amount") in both `main.go` and README.
-6. **Release workflow leftovers.** The `regression_test` job of
+6. **Fixed by T016.** **Release workflow leftovers.** The `regression_test` job of
    `.github/workflows/release.yml` passes `AOC_SESSION`, a secret not used by
    this project; `.goreleaser.yml` `gomod.env` contains the placeholder
    `GOPRIVATE=example.com/blah` (inactive because `proxy: false`).
 7. **`make build` with two goreleaser builds.** `scripts/build/app.sh` runs
    `goreleaser build --single-target --output bin/${APP_NAME}` without
    `--id`, while `.goreleaser.yml` has two builds (`cli`, `bot`). Which
-   binary ends up in `bin/` was not verified.
+   binary ends up in `bin/` was not verified. **Fixed by T017.** Checked on
+   2026-11-15: goreleaser ignored `--output`, built both binaries into
+   `dist/`, left `bin/` empty, and the script still printed "Binary compiled
+   at bin/ge-tax-calc".
 8. **Spinner and signals.** The CLI context has no signal handling; the
    spinner hides the cursor, and whether the cursor is restored when Ctrl+C
    ends the process during a request was not verified. The spinner also

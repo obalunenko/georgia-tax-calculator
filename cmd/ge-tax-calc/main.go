@@ -26,9 +26,9 @@ func newApp(ctx context.Context) *cli.Command {
 	app := cli.Command{}
 	app.Name = "ge-tax-calc"
 	app.Description = "Helper tool for preparing tax declarations in Georgia.\n" +
-		"It get income amount in received currency, converts it to GEL according to \n" +
-		"official rates on date of income and calculates tax amount \n" +
-		"according to selected taxes category."
+		"It gets the income amount in the received currency, converts it to GEL at the\n" +
+		"official NBG rate on the date of income, and calculates the tax amount for the\n" +
+		"selected tax category."
 	app.Usage = `A command line tool helper for preparing tax declaration in Georgia `
 	app.Authors = []any{
 		"Oleg Balunenko <oleg.balunenko@gmail.com>",

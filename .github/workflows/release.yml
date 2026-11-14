@@ -71,8 +71,6 @@ jobs:
         shell: bash
 
       - name: Run regression tests
-        env:
-          AOC_SESSION: ${{ secrets.AOC_SESSION }}
         run: |
           make test-regression
         shell: bash

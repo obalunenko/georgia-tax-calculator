@@ -196,7 +196,8 @@ a `v*` tag.
 - **FR-011**: The release changelog MUST group commits by Conventional
   Commit type as in US4.4.
 - **FR-012**: `make build` MUST produce a local binary in `bin/` through
-  goreleaser.
+  goreleaser. [Was not met until 2026-11-15: `bin/` stayed empty with two
+  goreleaser builds; fixed by T017.]
 - **FR-013**: An unknown command MUST end the process with a non-zero exit
   status, in addition to the message in FR-004. Implemented on 2026-11-15:
   status 3 from urfave/cli (T012).
