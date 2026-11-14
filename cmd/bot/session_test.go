@@ -12,6 +12,8 @@ import (
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 )
 
 func TestSessionStepID(t *testing.T) {
@@ -184,4 +186,30 @@ func TestInflightWaitsForHandledUpdates(t *testing.T) {
 
 	_, open := <-out
 	assert.False(t, open, "the forwarded channel closes with the source")
+}
+
+func TestSessionRestartIncomesKeepsTaxDetails(t *testing.T) {
+	first := service.Income{DateRequest: service.DateRequest{Year: "2025", Month: "June", Day: "08"}, Currency: "USD", Amount: "100"}
+
+	sess := &session{
+		flow:       flowCalculate,
+		calcStep:   calcStepConfirm,
+		calcReq:    service.CalculateRequest{TaxType: "Small Business", YearIncome: "1000", Income: []service.Income{first}},
+		incomes:    []service.Income{first},
+		currentInc: first,
+	}
+
+	sess.restartIncomes()
+
+	assert.Equal(t, calcStepYear, sess.calcStep)
+	assert.Equal(t, flowCalculate, sess.flow)
+	assert.Empty(t, sess.incomes)
+	assert.Empty(t, sess.calcReq.Income)
+	assert.Equal(t, service.Income{}, sess.currentInc)
+	assert.Equal(t, "Small Business", sess.calcReq.TaxType)
+	assert.Equal(t, "1000", sess.calcReq.YearIncome)
+
+	opts, _, err := stepOptions(sess)
+	require.NoError(t, err)
+	assert.Greater(t, len(opts), 1, "any year can be chosen again after the restart")
 }

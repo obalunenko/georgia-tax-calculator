@@ -93,6 +93,13 @@ Depends on 002 T018 (`service.ParseAmount`, `service.ParseYearIncome`).
 
 ---
 
+## Phase F: Follow-up for migration gaps 2 and 6 (2026-11-15)
+
+- [x] T018 [US3] On "No" at the final review, restart income entry and keep the tax type and year income (`session.restartIncomes` in `cmd/bot/session.go`, used in `cmd/bot/handlers.go`); test `TestSessionRestartIncomesKeepsTaxDetails` in `cmd/bot/session_test.go` (gap 2)
+- [x] T019 [P] [US3] Add `service.DeclarationsURL` in `internal/service/service.go`; the CLI link (`cmd/ge-tax-calc/menu.go`) and the bot's `/calculate` start message (`cmd/bot/handlers.go`) use it (gap 6)
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
@@ -100,7 +107,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 
 1. **Fixed by T017 (002 BUG-001).** **Bot amount parsing** also applies to year income and income amounts in
    `/calculate`. See 002 gap 1 (canonical entry).
-2. **Different restart scope.** On "No" at the final review, the CLI restarts
+2. **Fixed by T018.** **Different restart scope.** On "No" at the final review, the CLI restarts
    only income entry (`cmd/ge-tax-calc/tax_menus.go`), while the bot restarts
    the whole flow including category and year income
    (`cmd/bot/handlers.go:393`).
@@ -117,7 +124,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    2026-11-15: tax is calculated once on the total (FR-004). Implemented by
    `specs/006-year-income-rules`; the rule was not checked against
    decl.rs.ge.
-6. **Declarations link only in the CLI.** `menuCalcTaxes` prints a link to
+6. **Fixed by T019.** **Declarations link only in the CLI.** `menuCalcTaxes` prints a link to
    `https://decl.rs.ge/decls.aspx` when the terminal supports hyperlinks; the
    bot does not show it.
 7. **Error text for invalid categories in `taxes.Calc`** uses the stringer

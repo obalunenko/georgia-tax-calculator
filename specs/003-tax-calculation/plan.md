@@ -50,10 +50,11 @@ CLI/bot parity (constitution II).
 
 - [x] I. Interfaces call `service.Calculate`; they use `internal/taxes` only
       for category lists and display.
-- [ ] II. (002 BUG-001: amount parsing now follows the shared rule, see 002
-      plan decision 6.) Same data and order, but different restart scope on "No" at the
+- [x] II. (002 BUG-001: amount parsing now follows the shared rule, see 002
+      plan decision 6.) Same data and order ~~, but different restart scope on "No" at the
       final review, the CLI-only declarations link, and the bot's
-      `fmt.Sscanf` amount parsing (see tasks Gaps).
+      `fmt.Sscanf` amount parsing (see tasks Gaps)~~. Since 2026-11-15 the
+      restart scope and the declarations link match too (T018, T019).
 - [x] III. Tax and sums use `pkg/moneyutils`; `TaxType` has a generated
       `String()`.
 - [x] IV. Rates come through `service.Convert` and the cached NBG client.

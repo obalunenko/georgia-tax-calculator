@@ -20,6 +20,9 @@ const (
 	layout = "2006-01-02"
 )
 
+// DeclarationsURL is the Revenue Service portal where tax declarations are filed.
+const DeclarationsURL = "https://decl.rs.ge/decls.aspx"
+
 // CalculateRequest model.
 type CalculateRequest struct {
 	Income     []Income

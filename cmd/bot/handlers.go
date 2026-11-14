@@ -88,7 +88,8 @@ func handleCalculate(store *sessionStore) telegohandler.MessageHandler {
 		sess.incomes = nil
 		sess.currentInc = service.Income{}
 
-		return sendStep(ctx, msg.Chat.ID, sess, "💼 Select your tax type:")
+		return sendStep(ctx, msg.Chat.ID, sess,
+			"📄 Declarations: "+service.DeclarationsURL+"\n\n💼 Select your tax type:")
 	}
 }
 
@@ -315,13 +316,9 @@ func handleCalcCallback(
 
 	case calcStepConfirm:
 		if data == confirmNo {
-			// Restart the whole flow.
-			sess.calcStep = calcStepTaxType
-			sess.calcReq = service.CalculateRequest{}
-			sess.incomes = nil
-			sess.currentInc = service.Income{}
+			sess.restartIncomes()
 
-			return sendStep(ctx, chatID, sess, "🔄 Restarting...\n\n💼 Select your tax type:")
+			return sendStep(ctx, chatID, sess, "🔄 Restarting income entry...\n\n📅 Select the year of income:")
 		}
 
 		return runCalculation(ctx, chatID, sess, svc)

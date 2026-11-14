@@ -20,7 +20,7 @@ func createLink(text, url string) {
 }
 
 func menuCalcTaxes(ctx context.Context, _ *cli.Command) error {
-	createLink("Declarations", "https://decl.rs.ge/decls.aspx")
+	createLink("Declarations", service.DeclarationsURL)
 
 	req, err := runTaxDetailsMenu()
 	if err != nil {

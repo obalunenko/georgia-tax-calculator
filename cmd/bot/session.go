@@ -111,6 +111,15 @@ func (s *session) stepID() string {
 	return stepWithoutKeyboard
 }
 
+// restartIncomes clears the captured incomes and returns to the first income's year step,
+// keeping the tax type and the year income, as the CLI does on "No" at the final review.
+func (s *session) restartIncomes() {
+	s.incomes = nil
+	s.currentInc = service.Income{}
+	s.calcReq.Income = nil
+	s.calcStep = calcStepYear
+}
+
 // sessionStore manages sessions for all users.
 type sessionStore struct {
 	mu       sync.Mutex

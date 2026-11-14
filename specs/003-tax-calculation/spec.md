@@ -122,15 +122,18 @@ A user sends `/calculate` and follows the bot.
 
 **Acceptance Scenarios**:
 
-1. **Given** `/calculate`, **When** the user picks a category (buttons show
-   the rate), types year income, then for each income picks year, month, day,
+1. **Given** `/calculate`, **When** the bot shows the "📄 Declarations" link
+   (since 2026-11-15, as the CLI does) and the user picks a category (buttons
+   show the rate), types year income, then for each income picks year, month, day,
    types the amount, and picks the currency, **Then** the bot shows captured
    incomes and asks "➕ Add another income entry?".
 2. **Given** the review step, **When** the user confirms, **Then** the bot
    replies "⏳ Calculating taxes..." and then the result with each income
    converted to GEL, total income, and taxes to pay.
-3. **Given** the review step, **When** the user picks "No", **Then** the whole
-   flow restarts from the category.
+3. **Given** the review step, **When** the user picks "No", **Then** ~~the whole
+   flow restarts from the category~~ income entry restarts from the year of
+   the first income; the category and year income are kept, as in the CLI
+   (US2.3; since 2026-11-15).
 4. **Given** a calculation error, **When** the service fails, **Then** the bot
    replies "❌ Calculation error: ..." and suggests `/calculate`.
 5. **Given** the year income step, **When** the user sends `0` or `0.00`,
