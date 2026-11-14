@@ -26,22 +26,22 @@ const DeclarationsURL = "https://decl.rs.ge/decls.aspx"
 // CalculateRequest model.
 type CalculateRequest struct {
 	Income     []Income
-	TaxType    string `survey:"tax_type"`
-	YearIncome string `survey:"year_income"`
+	TaxType    string
+	YearIncome string
 }
 
 // Income model.
 type Income struct {
 	DateRequest
-	Currency string `survey:"currency"`
-	Amount   string `survey:"amount"`
+	Currency string
+	Amount   string
 }
 
 // DateRequest model.
 type DateRequest struct {
-	Year  string `survey:"year"`
-	Month string `survey:"month"`
-	Day   string `survey:"day"`
+	Year  string
+	Month string
+	Day   string
 }
 
 func (d DateRequest) String() string {
@@ -105,9 +105,9 @@ func (c CalculateResponse) String() string {
 // ConvertRequest model.
 type ConvertRequest struct {
 	DateRequest
-	CurrencyFrom string `survey:"currency_from"`
-	CurrencyTo   string `survey:"currency_to"`
-	Amount       string `survey:"amount"`
+	CurrencyFrom string
+	CurrencyTo   string
+	Amount       string
 }
 
 // ConvertResponse model.
@@ -163,27 +163,27 @@ func New() Service {
 func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error) {
 	year, err := dateutils.ParseYear(p.Year)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse year: %w", err)
 	}
 
 	month, err := dateutils.ParseMonth(p.Month)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse month: %w", err)
 	}
 
 	day, err := dateutils.ParseDay(p.Day)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse day: %w", err)
 	}
 
 	date, err := newDate(year, month, day)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check date: %w", err)
 	}
 
 	mv, err := ParseAmount(p.Amount)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse amount: %w", err)
 	}
 
 	amount := models.NewMoney(mv, p.CurrencyFrom)

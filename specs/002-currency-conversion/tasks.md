@@ -95,6 +95,7 @@ feature.
 
 - [x] T022 [US1] Add `FirstYear`, `ErrInvalidDate`, and `newDate` (rejects dates that do not exist, are before 2016, or are after today in Georgia) in `internal/service/date.go` and use it in `Convert` (`internal/service/service.go`); tests in `internal/service/date_test.go` (gap 3, FR-015)
 - [x] T023 [US2] Add `service.Now()` (fixed UTC+4 zone, no tzdata needed in the Alpine image) and use it with `service.FirstYear` for the date options in `cmd/ge-tax-calc/prompts.go` and `cmd/bot/keyboards.go` (gap 10, FR-016)
+- [x] T024 [P] [US1] Remove the unused `survey` struct tags and wrap the year, month, day, date, and amount errors of `Convert` with context (`failed to parse …`, `failed to check date`) in `internal/service/service.go` (gaps 8, 9)
 
 ---
 
@@ -144,9 +145,9 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 7. **Fixed (2026-11-15, 005 T018).** **Spinner in the service.** `service.Convert` starts a terminal spinner,
    also for bot requests. Tracked as a known deviation in
    `.specify/memory/constitution.md`; 003 refers here.
-8. **Unused `survey:"…"` struct tags** on `DateRequest`, `ConvertRequest`, and
+8. **Fixed by T024.** **Unused `survey:"…"` struct tags** on `DateRequest`, `ConvertRequest`, and
    `Income` remain from the survey library used before Bubble Tea.
-9. **Unwrapped errors.** Date and amount parsing errors in `service.Convert`
+9. **Fixed by T024.** **Unwrapped errors.** Date and amount parsing errors in `service.Convert`
    are returned without context; only converter errors are wrapped.
 10. **Fixed by T023.** **No time zone for "today".** Year, month, and day options in both
     interfaces are limited by `time.Now()` in the process time zone
