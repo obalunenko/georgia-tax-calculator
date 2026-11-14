@@ -15,9 +15,8 @@ canonical .spec-context.json:
 
 This module owns the command line, the step lifecycle, the journal, terminal
 promotion, and the no-regress guard. The rest lives in siblings — `spec_context`
-(the store), `spec_deltas` (the delta grammar), `capture` (the additive capture
-writers), `task_sync` (task markers and the per-task journal), and
-`living_spec_fold` (the fold-back). Every name they hold is re-exported here, so
+(the store), `capture` (the additive capture writers), and `task_sync` (task
+markers and the per-task journal). Every name they hold is re-exported here, so
 anything that imports this module keeps reaching them by their original path.
 
 Stdlib only. Safe to run anywhere `python3` is available.
@@ -26,9 +25,10 @@ Stdlib only. Safe to run anywhere `python3` is available.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import sys
 from pathlib import Path
 
@@ -49,6 +49,7 @@ from spec_context import (  # noqa: E402,F401
     _has_complete,
     _has_step_start,
     _is_more_advanced,
+    status_moves_back,
     _is_per_task,
     _is_step_level,
     _journaled_tasks,
@@ -63,18 +64,13 @@ from spec_context import (  # noqa: E402,F401
     canonical_log,
     commit_log,
     feature_dir_from_tasks_file,
+    STEP_TEMPLATES,
+    core_template_text,
+    feature_spec_path,
     fill_required,
+    pending_start_path,
     read_ctx,
     resolve_feature_dir,
-)
-from spec_deltas import (  # noqa: E402,F401
-    _CAP_MARKER_RE,
-    _DELTA_HEADER_RE,
-    _RENAME_RE,
-    _REQ_HEADING_RE,
-    _has_deltas,
-    _split_requirements,
-    parse_spec_deltas,
 )
 from capture import (  # noqa: E402,F401
     CLASSIFICATION_VERDICTS,
@@ -85,15 +81,17 @@ from capture import (  # noqa: E402,F401
     _parsed_batch,
     _parsed_classification,
     append_capture_entries,
+    append_decisions,
     apply_batch,
     append_string_list,
     append_verification_runs,
     record_plan_check,
     set_classification,
     set_fields,
-    set_living_specs_loaded,
-    set_living_specs_skipped,
-    set_living_specs_synced,
+    set_request,
+    set_risk,
+    raise_risk,
+    apply_mutation_report,
     upsert_coverage,
     upsert_step_summary,
 )
@@ -114,18 +112,6 @@ from task_sync import (  # noqa: E402,F401
     parse_task_markers,
     sync_tasks,
 )
-from living_spec_fold import (  # noqa: E402,F401
-    _git_changed_files,
-    _initial_living_spec,
-    _living_requirement_span,
-    _load_resolver,
-    _rename_map,
-    _resolve_fold_targets,
-    _resolve_rename,
-    _retitle,
-    apply_deltas,
-    fold_living_spec,
-)
 
 
 def _pointer_resolved(args) -> bool:
@@ -142,9 +128,8 @@ def _plain_step_write(args, capture_mode: bool) -> bool:
     """True for the bare `--step <s> [--status] [--kind]` write, the branch nothing
     else in the invocation claims."""
     return not (
-        capture_mode or args.set_pairs or args.living_specs or args.living_spec_skips
-        or args.fold_living_spec or args.tasks_file or args.task or args.close_task
-        or args.mark_complete or args.finish or args.advance or args.materialize
+        capture_mode or args.set_pairs or args.tasks_file or args.task or args.close_task
+        or args.mark_complete or args.finish or args.advance or args.materialize or args.fold
     )
 
 
@@ -157,6 +142,17 @@ def _unscoped_specify_on_finished_spec(args, feature_dir: Path, capture_mode: bo
         return False
     log = canonical_log(read_ctx(feature_dir / ".spec-context.json"))
     return _has_complete(log, "specify")
+
+
+def _note_working_branch(ctx: dict, feature_dir: Path) -> None:
+    # `branch` is frozen at the first write, which lands before the feature branch exists; a step start records where the work moved to.
+    # Asked of the spec's own folder, never the fallback repo: a spec outside git has no working branch to record.
+    checked_out = _git_branch(feature_dir)
+    if checked_out and checked_out != "HEAD":
+        if checked_out == ctx.get("branch"):
+            ctx.pop("workingBranch", None)
+        else:
+            ctx["workingBranch"] = checked_out
 
 
 def update_context(
@@ -175,7 +171,11 @@ def update_context(
 
     # Never drag a more-advanced (e.g. shipped) spec backward. Leave it fully
     # intact — this is the bug the schema reconciliation exists to prevent.
-    if ctx and _is_more_advanced(ctx, step):
+    converge_on_completed = (
+        ctx.get("status") == "completed" and step == "converge" and substep is None
+        and kind in ("start", "complete")
+    )
+    if ctx and not converge_on_completed and _is_more_advanced(ctx, step):
         print(
             f"[companion] {target} already at currentStep={ctx.get('currentStep')} / "
             f"status={ctx.get('status')}; not regressing to {step}/{status}.",
@@ -185,17 +185,16 @@ def update_context(
 
     log = canonical_log(ctx)
     fill_required(ctx, feature_dir, branch)
-    # `branch` is frozen at the first write, which lands before the feature branch exists; a step start records where the work moved to.
-    # Asked of the spec's own folder, never the fallback repo: a spec outside git has no working branch to record.
-    checked_out = _git_branch(feature_dir) if kind == "start" else None
-    if checked_out and checked_out != "HEAD":
-        if checked_out == ctx.get("branch"):
-            ctx.pop("workingBranch", None)
-        else:
-            ctx["workingBranch"] = checked_out
+    if kind == "start" and not converge_on_completed:
+        _note_working_branch(ctx, feature_dir)
 
     # A start that lands after its step already finished is late, not a re-open.
     late_start = kind == "start" and substep is None and _has_complete(log, step)
+    if converge_on_completed:
+        late_start, status = True, None
+    if status is not None and not late_start and status_moves_back(ctx, step, status):
+        print(f"[companion] {step} is already {ctx.get('status')}; not moving it back to {status}.", file=sys.stderr)
+        status = None
     if not late_start:
         ctx["currentStep"] = step
     # A start carries the step forward and leaves status alone. `--status` used to
@@ -309,6 +308,345 @@ def journal_advance(feature_dir: Path, step: str, by: str) -> Path | None:
     return target
 
 
+HOOK_START_STATUS = {"plan": "planning", "tasks": "tasking", "implement": "implementing"}
+#: A saved specify start this much older than its folder belongs to an abandoned run.
+PENDING_START_MAX_AGE_S = 3600
+
+
+def _read_pending(path: Path):
+    try:
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    except OSError:
+        return None
+    try:
+        with os.fdopen(fd, encoding="utf-8") as fh:
+            return _utc_stamp(fh.read().strip())
+    except (OSError, ValueError):
+        return None
+
+
+def _write_pending(path: Path, stamp: str) -> None:
+    path.unlink(missing_ok=True)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    with os.fdopen(os.open(path, flags, 0o600), "w", encoding="utf-8") as fh:
+        fh.write(stamp)
+
+
+def _born(folder: Path) -> float:
+    """When specify made `folder`: its birth time, or its oldest entry where the OS keeps none."""
+    made = folder.stat()
+    if hasattr(made, "st_birthtime"):
+        return made.st_birthtime
+    return min([made.st_mtime, *(p.stat().st_mtime for p in folder.iterdir())])
+
+
+def _utc_stamp(text: str):
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    utc = parsed.astimezone(timezone.utc)
+    return utc.strftime("%Y-%m-%dT%H:%M:%S.") + f"{utc.microsecond // 1000:03d}Z"
+
+
+def _apply_hook(args):
+    """Turn `--hook` into the flags the hook pages used to spell out; an int means the call is done."""
+    step = args.step
+    if args.hook == "start" and step == "specify":
+        stamp = _utc_stamp(args.at) if args.at else _now_iso()
+        if stamp is None:
+            print(f"[companion] Ignoring --at {args.at!r}: not an ISO-8601 UTC stamp.", file=sys.stderr)
+            stamp = _now_iso()
+        pending = pending_start_path(_repo_root())
+        kept = _read_pending(pending)
+        if kept is not None and _age_s(kept) < PENDING_START_MAX_AGE_S:
+            print(f"[companion] Keeping the specify start already saved ({kept})")
+        else:
+            _write_pending(pending, stamp)
+            print(f"[companion] Saved the specify start ({stamp}) until its folder exists")
+        _record_outcome(True, None)
+        return 0
+    if args.hook == "start":
+        args.kind, args.status = "start", HOOK_START_STATUS.get(step)
+        return None
+    if step == "implement":
+        feature_dir = resolve_feature_dir(_repo_root(), args.feature_dir)
+        tasks_md = feature_dir / "tasks.md" if feature_dir is not None else None
+        if tasks_md is None or not tasks_md.is_file():
+            print("[companion] Skipping the implement finish: no tasks.md for the active feature.",
+                  file=sys.stderr)
+            _record_outcome(False, "no tasks.md for the active feature")
+            return 0
+        args.tasks_file = str(tasks_md)
+        return None
+    if step == "specify":
+        _record_pending_specify_start(args)
+    args.kind, args.status = "complete", STEP_COMPLETED_STATUS.get(step)
+    return None
+
+
+#: The steps a document can show finished; converge is left to its hooks.
+STEP_DOCUMENTS = {"plan": "plan.md", "tasks": "tasks.md", "implement": "tasks.md"}
+EVENT_STEPS = ("specify", *STEP_DOCUMENTS)
+_STEP_PROMPT = re.compile(r"^\s*/speckit(?:[-.]companion)?[-.](" + "|".join(EVENT_STEPS) + r")\b")
+#: Skipped when an event changed nothing, so a turn that is not a step leaves no trace line.
+_EVENT_NOOP = False
+
+
+def _epoch(stamp: str) -> float:
+    return datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp()
+
+
+def _apply_event(args):
+    """A runtime event's payload as the `--hook` call it stands for; an int means the call is done."""
+    global _EVENT_NOOP
+    try:
+        payload = json.loads("" if sys.stdin.isatty() else sys.stdin.read() or "{}")
+    except (OSError, ValueError):
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    if args.event == "user_prompt_submit":
+        prompt = payload.get("prompt")
+        match = _STEP_PROMPT.match(prompt) if isinstance(prompt, str) else None
+        step = match.group(1) if match else None
+        feature_dir = None
+    else:
+        feature_dir = resolve_feature_dir(_repo_root(), None)
+        last = payload.get("last_assistant_message")
+        asked = isinstance(last, str) and last.rstrip().rstrip("*_`\"') ").endswith("?")
+        step = _finished_step(feature_dir) if feature_dir is not None and not asked else None
+    if step is None:
+        _EVENT_NOOP = True
+        _record_outcome(True, None)
+        return 0
+    args.hook, args.step = ("start" if args.event == "user_prompt_submit" else "finish"), step
+    if feature_dir is not None:
+        args.feature_dir = str(feature_dir)
+    return _apply_hook(args)
+
+
+def _step_document(feature_dir: Path, step: str):
+    if step == "specify":
+        return feature_spec_path(feature_dir)
+    name = STEP_DOCUMENTS.get(step)
+    return feature_dir / name if name else None
+
+
+def _finished_step(feature_dir: Path):
+    """The open step whose work is on disk, or None: a turn ending is not a step ending."""
+    ctx = read_ctx(feature_dir / ".spec-context.json")
+    if ctx.get("status") in TERMINAL_STATUSES:
+        return None
+    log = canonical_log(ctx)
+    starts = [e for e in log if _is_step_level(e) and _entry_kind(e) == "start"
+              and e.get("step") in EVENT_STEPS and not _has_complete(log, e.get("step"))]
+    if starts:
+        step, at = starts[-1]["step"], _utc_stamp(str(starts[-1].get("at") or ""))
+    elif not _has_complete(log, "specify"):
+        step, at = "specify", _read_pending(pending_start_path(_repo_root()))
+        if at is not None and _age_s(at) > PENDING_START_MAX_AGE_S:
+            return None
+    else:
+        return None
+    doc = _step_document(feature_dir, step)
+    if at is None or doc is None or not doc.is_file() or doc.stat().st_mtime <= _epoch(at):
+        return None
+    if not _written_past_template(doc, step):
+        return None
+    if step == "implement" and not _feature_tasks_at_100(feature_dir):
+        return None
+    return step
+
+
+def _written_past_template(doc: Path, step: str) -> bool:
+    """False while the document is still spec-kit's template copy, or a spec still waits on answers."""
+    try:
+        text = doc.read_text(encoding="utf-8")
+    except (OSError, ValueError):
+        return False
+    stub = core_template_text(_repo_root(), STEP_TEMPLATES.get(step, STEP_TEMPLATES["tasks"]))
+    if stub is not None and text.strip() == stub.strip():
+        return False
+    return not (step == "specify" and "[NEEDS CLARIFICATION" in text)
+
+
+def _age_s(stamp: str) -> float:
+    return datetime.now(timezone.utc).timestamp() - _epoch(stamp)
+
+
+def _record_pending_specify_start(args) -> None:
+    pending = pending_start_path(_repo_root())
+    at = _read_pending(pending)
+    feature_dir = resolve_feature_dir(_repo_root(), args.feature_dir)
+    if at is None or feature_dir is None:
+        return
+    pending.unlink(missing_ok=True)
+    if _has_complete(canonical_log(read_ctx(feature_dir / ".spec-context.json")), "specify"):
+        return
+    started = _epoch(at)
+    if started < _born(feature_dir) - PENDING_START_MAX_AGE_S:
+        return
+    update_context(feature_dir, "specify", "specifying", args.by, "start", None, at)
+
+
+FOLD_BOUNDARIES = (("plan", "start"), ("plan", "complete"), ("tasks", "start"), ("tasks", "complete"))
+
+
+def fold_plan_tasks(feature_dir: Path, by: str) -> Path | None:
+    """Append the missing plan/tasks boundaries in order, 1 ms apart, in one write."""
+    target = feature_dir / ".spec-context.json"
+    opened = _open_ctx_or_none(feature_dir, "the plan/tasks fold")
+    if opened is None:
+        return None
+    ctx, log, _branch = opened
+    if _is_more_advanced(ctx, "tasks"):
+        print(
+            f"[companion] {target} already at currentStep={ctx.get('currentStep')} / "
+            f"status={ctx.get('status')}; not folding plan and tasks.",
+            file=sys.stderr,
+        )
+        return None
+    present = [
+        _has_step_start(log, step) if kind == "start" else _has_complete(log, step)
+        for step, kind in FOLD_BOUNDARIES
+    ]
+    if present != sorted(present, reverse=True):
+        print(
+            f"[companion] {target} holds plan/tasks boundaries out of order; not folding.",
+            file=sys.stderr,
+        )
+        return None
+    missing = [b for b, there in zip(FOLD_BOUNDARIES, present) if not there]
+    if not missing and (ctx.get("currentStep"), ctx.get("status")) == ("tasks", "ready-to-implement"):
+        return target
+    if missing and missing[0][1] == "start":
+        _note_working_branch(ctx, feature_dir)
+    stamp = datetime.now(timezone.utc)
+    for step, kind in missing:
+        at = stamp.strftime("%Y-%m-%dT%H:%M:%S.") + f"{stamp.microsecond // 1000:03d}Z"
+        log.append({"step": step, "substep": None, "kind": kind, "by": by, "at": at})
+        stamp += timedelta(milliseconds=1)
+    ctx["currentStep"] = "tasks"
+    ctx["status"] = "ready-to-implement"
+    commit_log(ctx, log)
+    atomic_write(target, ctx)
+    return target
+
+
+def _complete_after_clean_converge(feature_dir: Path, by: str) -> Path | None:
+    """Complete a spec once converge leaves every task checked, including any task it added and built.
+
+    Auto allows one correction round, so a pass that appends work and builds it is the last pass:
+    waiting for a second clean pass would strand the spec at `implemented`. An appended task left
+    open still blocks, because then the spec is not 100%."""
+    if not _feature_tasks_at_100(feature_dir):
+        return None
+    return mark_spec_complete(feature_dir, by)
+
+
+def _open_converge_pass(ctx: dict) -> dict | None:
+    passes = ctx.get("convergePasses")
+    if isinstance(passes, list) and passes and isinstance(passes[-1], dict) and not passes[-1].get("finishedAt"):
+        return passes[-1]
+    return None
+
+
+def _record_converge_start(feature_dir: Path, by: str) -> Path | None:
+    target = feature_dir / ".spec-context.json"
+    branch = _git_branch(_repo_root_for(feature_dir)) or "main"
+    ctx = read_ctx(target)
+    fill_required(ctx, feature_dir, branch)
+    if _open_converge_pass(ctx) is not None:
+        return None
+    before, _done = parse_task_markers(feature_dir / "tasks.md")
+    passes = ctx.get("convergePasses")
+    ctx["convergePasses"] = (list(passes) if isinstance(passes, list) else []) + [
+        {"startedAt": _now_iso(), "by": by, "before": before}
+    ]
+    atomic_write(target, ctx)
+    return target
+
+
+def _record_converge_finish(feature_dir: Path, added: list[str] | None, completed: bool) -> Path | None:
+    target = feature_dir / ".spec-context.json"
+    ctx = read_ctx(target)
+    open_pass = _open_converge_pass(ctx)
+    if open_pass is None:
+        return None
+    open_pass["finishedAt"] = _now_iso()
+    open_pass.pop("before", None)
+    if added is not None:
+        open_pass["added"] = added
+    if completed:
+        open_pass["completed"] = True
+    atomic_write(target, ctx)
+    return target
+
+
+INFERRED_CONVERGE_START_MAX_SECONDS = 15 * 60
+
+
+def _open_pass_from_implement_close(feature_dir: Path, by: str) -> None:
+    """Open the converge pass at implement's close when no start was recorded, so the pass still has a duration."""
+    target = feature_dir / ".spec-context.json"
+    ctx = read_ctx(target)
+    if _open_converge_pass(ctx) is not None:
+        return
+    closes = [e for e in canonical_log(ctx)
+              if e.get("step") == "implement" and _is_step_level(e) and _entry_kind(e) == "complete"]
+    at = str(closes[-1].get("at") or "") if closes else ""
+    if not at:
+        return
+    # Only an auto run goes straight from implement into converge; a gap longer than this is
+    # someone pausing between steps, and back-dating would charge that pause to converge.
+    closed = _utc_stamp(at)
+    if closed is None or (datetime.now(timezone.utc).timestamp() - _epoch(closed)) > INFERRED_CONVERGE_START_MAX_SECONDS:
+        return
+    passes = ctx.get("convergePasses")
+    # A pass already finished after that close is this converge: a second close must not invent another.
+    if isinstance(passes, list) and any(
+            isinstance(p, dict) and str(p.get("finishedAt") or "") >= at for p in passes):
+        return
+    ctx["convergePasses"] = (list(passes) if isinstance(passes, list) else []) + [
+        {"startedAt": at, "by": by, "startInferred": True}
+    ]
+    atomic_write(target, ctx)
+
+
+def _after_converge(feature_dir: Path, by: str) -> None:
+    try:
+        _open_pass_from_implement_close(feature_dir, by)
+    except Exception as exc:  # noqa: BLE001 - timing is best effort
+        print(f"[companion] Warning: could not infer the converge start: {exc}", file=sys.stderr)
+    ctx = read_ctx(feature_dir / ".spec-context.json")
+    open_pass = _open_converge_pass(ctx)
+    added: list[str] | None = None
+    if open_pass is not None and isinstance(open_pass.get("before"), list):
+        before = set(open_pass["before"])
+        now_ids, _done = parse_task_markers(feature_dir / "tasks.md")
+        added = list(dict.fromkeys(i for i in now_ids if i not in before))
+    completed = False
+    try:
+        if ctx.get("status") != "completed":
+            completed = _complete_after_clean_converge(feature_dir, by) is not None
+        else:
+            all_ids, done_ids = parse_task_markers(feature_dir / "tasks.md")
+            open_count = len(all_ids) - len(done_ids)
+            if open_count > 0:
+                append_capture_entries(
+                    feature_dir, "concerns", "note",
+                    [f"converge appended {open_count} open task(s) after completion"],
+                )
+    finally:
+        try:
+            _record_converge_finish(feature_dir, added, completed)
+        except Exception as exc:  # noqa: BLE001 - the close already landed
+            print(f"[companion] Warning: skipped recording the converge pass: {exc}", file=sys.stderr)
+
+
 UNVERIFIED_NOTE = "finished, unverified"
 
 
@@ -319,9 +657,9 @@ def _has_entries(value) -> bool:
 def mark_spec_complete(feature_dir: Path, by: str) -> Path | None:
     """Promote a finished spec to the terminal `completed` status.
 
-    This is the only sanctioned writer of `status: completed`. The Companion
-    workflow's terminal `mark-complete` node dispatches the command that calls
-    this; the AI never hand-writes `completed`. `update_context` deliberately
+    This is the only sanctioned writer of `status: completed`. A pipeline run
+    reaches it from the after-converge hook; the manual mark-complete command
+    calls it too. The AI never hand-writes `completed`. `update_context` deliberately
     refuses to advance a spec whose status is already terminal (`implemented`),
     so the final promotion needs this dedicated path. `currentStep` stays at
     `implement` (the last real step), keeping the canonical invariant that the
@@ -447,6 +785,21 @@ def _main() -> int:
              "clarify/analyze record only the finish (no status change).",
     )
     parser.add_argument(
+        "--hook", default=None, choices=["start", "finish"],
+        help="A lifecycle hook's one call: the boundary of --step, with the status this "
+             "writer picks. A specify start waits outside the project for its folder.",
+    )
+    parser.add_argument(
+        "--event", default=None, choices=["user_prompt_submit", "stop"],
+        help="A spec-kit runtime event handler: reads the agent's payload on stdin, records "
+             "the boundary it stands for, prints nothing and always exits 0.",
+    )
+    parser.add_argument(
+        "--fold", default=None, metavar="plan,tasks",
+        help="A simple spec's fast path: record plan start, plan complete, tasks start and "
+             "tasks complete (ready-to-implement) in order, in one write. Idempotent.",
+    )
+    parser.add_argument(
         "--did", default=None,
         help="With --task: a one-line summary of what the task did, written to "
              "task_summaries.<id>.did (the Activity panel's Tasks card).",
@@ -462,31 +815,16 @@ def _main() -> int:
              "Repeatable. Lifecycle keys (history/status/currentStep) are refused.",
     )
     parser.add_argument(
-        "--living-specs", dest="living_specs", action="append", default=None, metavar="NAME",
-        help="Record a loaded living-specs capability name onto livingSpecs.loaded "
-             "(most-specific-first order, de-duped). Repeatable. Additive metadata; "
-             "never a lifecycle key.",
-    )
-    parser.add_argument(
-        "--living-spec-skip", dest="living_spec_skips", action="append", default=None,
-        metavar="NAME: REASON",
-        help="Record a loaded living-specs capability completion deliberately did NOT "
-             "fold, with a reason (onto livingSpecs.skipped as {name, reason}). This is "
-             "how completion accounts for a loaded capability the change didn't alter — "
-             "'correctly nothing' instead of 'silently nothing'. Additive metadata; "
-             "never a lifecycle key. Repeatable. Format: \"<name>: <reason>\".",
-    )
-    parser.add_argument(
-        "--fold-living-spec", dest="fold_living_spec", action="store_true",
-        help="Fold this feature spec's ADDED/MODIFIED/REMOVED/RENAMED requirement "
-             "deltas into the resolved capability's living spec (LS·3 archive-as-merge). "
-             "Opt-in (livingSpecs.enabled), best-effort, no-op without a delta block, "
-             "idempotent. Records synced names onto livingSpecs.synced.",
-    )
-    parser.add_argument(
         "--decision", dest="decisions", action="append", default=None, metavar="JSON|TEXT",
-        help="Append a decision to decisions[] (de-duped on the decision text). "
-             "JSON object with a 'decision' key (plus why/rejected), or bare text. Repeatable.",
+        help="Append a decision to decisions[], stamped with who answered (by, default "
+             "agent) and when (at). JSON object with a 'decision' key (plus why/rejected/id/by/at), "
+             "or bare text. A new answer under a stored id reopens it and keeps the old one in "
+             "earlier[]; without an id, de-duped on the text. Repeatable.",
+    )
+    parser.add_argument(
+        "--request", dest="request", default=None, metavar="PATH|-",
+        help="Store the request the run started from, word for word, read from PATH or stdin "
+             "(-). Written once: a stored request is never replaced.",
     )
     parser.add_argument(
         "--verified", dest="verified", action="append", default=None, metavar="JSON|TEXT",
@@ -511,7 +849,7 @@ def _main() -> int:
     parser.add_argument(
         "--context", dest="context_entries", action="append", default=None, metavar="TEXT",
         help="Append a context entry to context[] — what the run worked from (a loaded "
-             "living spec, an investigated area, a constraint). De-duped. Repeatable.",
+             "investigated area, a constraint). De-duped. Repeatable.",
     )
     parser.add_argument(
         "--coverage-req", dest="coverage_req", default=None, metavar="REQ_ID",
@@ -532,6 +870,26 @@ def _main() -> int:
              "are captured as readable content, not just ids.",
     )
     parser.add_argument(
+        "--assumes", dest="assumes", nargs=2, default=None, metavar=("REQ_ID", "TEXT"),
+        help="Record what a requirement relies on without a test (a library, the clock, "
+             "the database) on coverage.<REQ_ID>. Replaces an earlier assumption; keeps "
+             "its title, tasks and tests.",
+    )
+    parser.add_argument(
+        "--risk", dest="risk", action="store_true",
+        help="Compute the change's risk tier (low, normal, high) from the files it touches and "
+             "record it with the reasons; a standing raise above it is kept.",
+    )
+    parser.add_argument(
+        "--risk-raise", dest="risk_raise", nargs=2, default=None, metavar=("TIER", "REASON"),
+        help="Raise the risk tier with a reason. A lower or equal tier, or no reason, is refused.",
+    )
+    parser.add_argument(
+        "--mutation-report", dest="mutation_report", default=None, metavar="PATH",
+        help="Read a Stryker JSON report or a mutmut cicd-stats summary: record the caught count "
+             "under Verified and, for Stryker, mark requirements whose tests caught nothing as weak.",
+    )
+    parser.add_argument(
         "--step-summary", dest="step_summary", default=None, metavar="JSON|TEXT",
         help="Upsert step_summaries.<--step> from a JSON object with a 'summary' key "
              "(plus key_finding/risks) or bare text.",
@@ -539,7 +897,8 @@ def _main() -> int:
     parser.add_argument(
         "--batch", dest="batch", default=None, metavar="JSON",
         help="Apply the whole end-of-step capture volley in one call — a JSON object with "
-             "any of verified/decisions/concerns/expectations/context/coverage/step_summary/"
+             "any of verified/decisions/concerns/expectations/context/coverage (with tasks/tests/"
+             "title/assumes)/step_summary/"
              "last_action, written through the same additive writers. Collapses the volley "
              "to one invocation; each writer still performs its own atomic write.",
     )
@@ -555,19 +914,37 @@ def _main() -> int:
              "scopeSignal, verdict}; verdict (simple|normal|oversized) is required.",
     )
     args = parser.parse_args()
+    # `--batch -` reads the JSON from stdin, so a quoted heredoc carries apostrophes safely.
+    if args.batch == "-":
+        args.batch = "" if sys.stdin is None or sys.stdin.isatty() else sys.stdin.read()
+
+    if args.event:
+        handled = _apply_event(args)
+        if handled is not None:
+            return handled
+    elif args.hook:
+        handled = _apply_hook(args)
+        if handled is not None:
+            return handled
+
+    if args.fold is not None and args.fold != "plan,tasks":
+        msg = f"--fold takes exactly 'plan,tasks'; got {args.fold!r}."
+        print(f"[companion] {msg}", file=sys.stderr)
+        _record_outcome(False, msg)
+        return 2
 
     # Best-effort guard: a non-canonical step is a no-op, never a host failure.
     # Terminal state belongs in `status`, not `currentStep`. Skipped in task-sync
     # mode, which always operates on the implement step.
     capture_mode = bool(
         args.decisions or args.verified or args.verify_runs or args.concerns or args.expectations
-        or args.coverage_req or args.step_summary or args.classification or args.context_entries
-        or args.batch
+        or args.coverage_req or args.assumes or args.risk or args.risk_raise or args.mutation_report or args.step_summary or args.classification or args.context_entries
+        or args.batch or args.request
     )
     # `--feature-dir` if it was given; the resolved one is not bound until later,
     # and a project's own steps are discoverable from either.
     steps_here = known_steps(args.feature_dir)
-    if not args.tasks_file and not args.task and not args.close_task and not args.mark_complete and not args.set_pairs and not args.living_specs and not args.living_spec_skips and not args.fold_living_spec and not args.materialize and not args.finish and not args.advance and not capture_mode and (args.step == "done" or args.step not in steps_here):
+    if not args.tasks_file and not args.task and not args.close_task and not args.mark_complete and not args.set_pairs and not args.materialize and not args.finish and not args.advance and not args.fold and not capture_mode and (args.step == "done" or args.step not in steps_here):
         msg = (f"Skipping: '{args.step}' is not a step this project has "
                f"({', '.join(sorted(steps_here))}).")
         print(f"[companion] {msg}", file=sys.stderr)
@@ -631,7 +1008,7 @@ def _main() -> int:
 
     # `--kind` defaults to "start", so gating on it alone let every lifecycle
     # flag past: --advance --at wrote nothing but exited 0.
-    _lifecycle_other = bool(args.advance or args.finish or args.materialize
+    _lifecycle_other = bool(args.advance or args.finish or args.fold or args.materialize
                             or args.mark_complete or args.tasks_file or args.task
                             or args.close_task)
     if args.at and (args.kind != "start" or _lifecycle_other):
@@ -642,18 +1019,14 @@ def _main() -> int:
     if args.at:
         # An unparseable or tz-naive stamp is worse than no stamp: the doctor
         # reads None for it and the step's duration disappears.
-        try:
-            _parsed_at = datetime.fromisoformat(args.at.replace("Z", "+00:00"))
-        except ValueError:
-            _parsed_at = None
-        if _parsed_at is None or _parsed_at.tzinfo is None:
+        stamp = _utc_stamp(args.at)
+        if stamp is None:
             msg = (f"--at must be an ISO-8601 UTC stamp (e.g. 2026-09-06T10:00:00Z); "
                    f"got {args.at!r}.")
             print(f"[companion] {msg}", file=sys.stderr)
             _record_outcome(False, msg)
             return 2
-        utc = _parsed_at.astimezone(timezone.utc)
-        args.at = utc.strftime("%Y-%m-%dT%H:%M:%S.") + f"{utc.microsecond // 1000:03d}Z"
+        args.at = stamp
 
     if args.batch:
         try:
@@ -681,8 +1054,25 @@ def _main() -> int:
             target, landed = apply_batch(feature_dir, args.batch, args.step)
             if target is not None:
                 captured.append(f"[companion] Batched capture ({'; '.join(landed)}) in {target}")
+        if args.request:
+            try:
+                if args.request == "-":
+                    text = "" if sys.stdin is None or sys.stdin.isatty() else sys.stdin.read()
+                else:
+                    text = Path(args.request).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                text = None
+                declined.append(f"the request was not stored: {exc}")
+            if text is not None:
+                target, wrote = set_request(feature_dir, text)
+                if wrote:
+                    captured.append(f"[companion] Stored the request in {target}")
+                elif target is not None:
+                    captured.append(f"[companion] Kept the request already stored in {target}")
+                else:
+                    declined.append("the request was not stored: it is blank")
         if args.decisions:
-            target = append_capture_entries(feature_dir, "decisions", "decision", args.decisions)
+            target = append_decisions(feature_dir, args.decisions)
             captured.append(f"[companion] Recorded {len(args.decisions)} decision(s) in {target}")
         if args.verified:
             target = append_capture_entries(feature_dir, "verified", "what", args.verified)
@@ -721,59 +1111,52 @@ def _main() -> int:
                                 f"(no coverage entry could be resolved in {feature_dir})")
             else:
                 captured.append(f"[companion] Upserted coverage for {args.coverage_req} in {target}")
+        if args.mutation_report:
+            try:
+                target, report = apply_mutation_report(feature_dir, Path(args.mutation_report))
+                weak = f"; weak: {', '.join(report['weak'])}" if report["weak"] else ""
+                captured.append(f"[companion] Mutation check: {report['killed']} of {report['total']} caught{weak} in {target}")
+            except (ValueError, OSError) as exc:
+                declined.append(f"the mutation report was not read: {exc}")
+        if args.risk:
+            target, risk = set_risk(feature_dir)
+            captured.append(f"[companion] Review depth: {risk['tier']} ({'; '.join(risk['reasons'])}) in {target}")
+        if args.risk_raise:
+            tier, reason = args.risk_raise
+            target, refused = raise_risk(feature_dir, tier, reason)
+            if target is None:
+                declined.append(f"the risk tier was not raised: {refused}")
+            else:
+                captured.append(f"[companion] Raised the review depth to {tier.strip().lower()} in {target}")
+        if args.assumes:
+            req, text = args.assumes
+            target = upsert_coverage(feature_dir, req, None, None, None, text)
+            if target is None:
+                declined.append(f"the assumption for {req.strip() or 'a blank requirement'} was not "
+                                f"written: the requirement or the text is blank")
+            else:
+                captured.append(f"[companion] Recorded what {req.strip()} assumes in {target}")
         if args.step_summary:
             target = upsert_step_summary(feature_dir, args.step, args.step_summary)
             captured.append(f"[companion] Recorded {args.step} step summary in {target}")
-        if args.living_specs:
-            target = set_living_specs_loaded(feature_dir, args.living_specs)
-            captured.append(
-                f"[companion] Recorded loaded living specs ({', '.join(args.living_specs)}) in {target}")
-        if args.living_spec_skips:
-            entries = []
-            for raw in args.living_spec_skips:
-                name, sep, reason = str(raw).partition(":")
-                if name.strip() and not (sep and reason.strip()):
-                    print(
-                        f"[companion] Warning: --living-spec-skip \"{raw}\" has no reason and "
-                        "was NOT recorded — an unexplained skip isn't accountability. Use "
-                        "\"<name>: <reason>\"; the capability stays unaccounted until you fold a "
-                        "delta or record a reasoned skip.",
-                        file=sys.stderr,
-                    )
-                entries.append({"name": name.strip(), "reason": reason.strip()})
-            target = set_living_specs_skipped(feature_dir, entries)
-            if target is not None:
-                names = ", ".join(e["name"] for e in entries if e["name"])
-                captured.append(f"[companion] Recorded living-spec skip note(s) ({names}) in {target}")
-        if args.fold_living_spec:
-            target = fold_living_spec(feature_dir, args.by)
-            if target is not None:
-                ctx = read_ctx(target)
-                synced = ((ctx.get("livingSpecs") or {}).get("synced")) or []
-                captured.append(
-                    f"[companion] Folded feature deltas into living spec(s): {', '.join(synced)} ({target})")
     except Exception as exc:  # noqa: BLE001 - best-effort, swallow + report
         print(f"[companion] Warning: skipped .spec-context.json write: {exc}", file=sys.stderr)
         _record_outcome(False, f"skipped .spec-context.json write: {exc}")
         return 0
-
-    # A no-op fold already named its own exact reason on stderr (from
-    # fold_living_spec) — don't paper over it with a generic OR-string.
 
     # `--set` writes a plain field: no history entry, no status change, so it
     # cannot conflict with a lifecycle flag. Letting the two ride together is what
     # stops every handoff, and the call that completes the spec, paying a second
     # round-trip just to pin `workflow=companion`. Every OTHER capture flag still
     # wins, because those do write history and then the ordering would matter.
-    lifecycle = args.advance or args.finish or args.mark_complete
+    lifecycle = args.advance or args.finish or args.fold or args.mark_complete
     set_only = bool(args.set_pairs) and not (
-        capture_mode or args.living_specs
-        or args.living_spec_skips or args.fold_living_spec
+        capture_mode
     )
     if lifecycle and set_only:
         for line in captured:
             print(line)
-    elif captured or capture_mode or args.set_pairs or args.living_specs or args.living_spec_skips or args.fold_living_spec:
+    elif captured or capture_mode or args.set_pairs:
         for line in captured:
             print(line)
         skipped = [
@@ -781,7 +1164,7 @@ def _main() -> int:
                 ("--tasks-file", args.tasks_file), ("--task", args.task),
                 ("--close-task", args.close_task),
                 ("--materialize", args.materialize), ("--mark-complete", args.mark_complete),
-                ("--finish", args.finish), ("--advance", args.advance),
+                ("--finish", args.finish), ("--advance", args.advance), ("--fold", args.fold),
             ) if given
         ]
         if skipped:
@@ -832,6 +1215,8 @@ def _main() -> int:
             target = journal_finish(feature_dir, args.step, args.by, args.substep)
         elif args.advance:
             target = journal_advance(feature_dir, args.step, args.by)
+        elif args.fold:
+            target = fold_plan_tasks(feature_dir, args.by)
         elif args.materialize:
             target = materialize_log(feature_dir, args.by)
         elif args.close_task:
@@ -866,15 +1251,33 @@ def _main() -> int:
     # from the trace file afterwards, which is the trace file's whole job.
     _record_outcome(target is not None, _DECLINED)
 
-    closes_plan = args.step == "plan" and not args.substep and (
+    closes_plan = bool(args.fold) or (args.step == "plan" and not args.substep and (
         args.finish or args.advance
         or not (args.mark_complete or args.materialize or args.close_task or args.task or args.tasks_file)
-        and args.kind == "complete")
+        and args.kind == "complete"))
     if target is not None and closes_plan:
         try:
             record_plan_check(feature_dir)
         except Exception as exc:  # noqa: BLE001 - the close already landed
             print(f"[companion] Warning: skipped the plan blocks check: {exc}", file=sys.stderr)
+
+    if target is not None and args.hook == "start" and args.step == "converge":
+        # History keeps only the first converge start, so each run's own window is kept beside it.
+        try:
+            set_fields(feature_dir, [f"convergeStartedAt={_now_iso()}"])
+            _record_converge_start(feature_dir, args.by)
+        except Exception as exc:  # noqa: BLE001 - the converge start already landed
+            print(f"[companion] Warning: skipped noting this converge run's start: {exc}", file=sys.stderr)
+    # A model that closes converge itself (--advance, --finish, a complete) must complete the spec too,
+    # or a run whose after-converge hook never fires is stranded at `implemented`.
+    closes_converge = args.step == "converge" and not args.substep and (
+        args.hook == "finish" or args.advance or args.finish
+        or (args.kind == "complete" and not (args.task or args.close_task or args.tasks_file)))
+    if target is not None and closes_converge:
+        try:
+            _after_converge(feature_dir, args.by)
+        except Exception as exc:  # noqa: BLE001 - the converge close already landed
+            print(f"[companion] Warning: skipped completing after converge: {exc}", file=sys.stderr)
 
     if target is not None and not args.tasks_file:
         if args.mark_complete:
@@ -884,6 +1287,8 @@ def _main() -> int:
             print(f"[companion] Journaled {_label} finish in {target} (by={args.by})")
         elif args.advance:
             print(f"[companion] Advanced {args.step} in {target} (by={args.by})")
+        elif args.fold:
+            print(f"[companion] Folded plan and tasks in {target} (status=ready-to-implement, by={args.by})")
         elif args.materialize:
             print(f"[companion] Materialized append-log into {target}")
         elif args.close_task:
@@ -894,6 +1299,10 @@ def _main() -> int:
             print(f"[companion] Journaled finish for task {args.task} in {target} (by={args.by})")
         else:
             _shown = args.status if args.status is not None else "unchanged"
+            try:
+                _shown = json.loads(target.read_text(encoding="utf-8")).get("status") or _shown
+            except (OSError, ValueError, AttributeError):
+                pass
             print(f"[companion] Updated {target} (currentStep={args.step}, status={_shown}, kind={args.kind}, by={args.by})")
     return 0
 
@@ -913,16 +1322,18 @@ _OP_FLAGS = (
     ("--mark-complete", "mark-complete"),
     ("--materialize", "materialize"),
     ("--tasks-file", "tasks-sync"),
-    ("--fold-living-spec", "fold-living-spec"),
     ("--finish", "finish"),
     ("--advance", "advance"),
+    ("--fold", "fold"),
+    ("--hook", "hook"),
+    ("--event", "event"),
 )
 
 _CAPTURE_FLAGS = (
     "--batch",
     "--decision", "--verified", "--concern", "--expectation", "--context",
-    "--coverage-req", "--step-summary", "--classification", "--living-specs",
-    "--living-spec-skip",
+    "--coverage-req", "--step-summary", "--classification",
+    "--request", "--assumes", "--risk", "--risk-raise", "--mutation-report",
 )
 
 _OP_FILE = {
@@ -948,6 +1359,8 @@ def _classify_op(argv: list) -> str:
         return "capture"
     if _has_flag(argv, "--set"):
         return "set"
+    if _flag_value(argv, "--hook") == "finish" and _flag_value(argv, "--step") == "converge":
+        return "converge-finish"
     for flag, op in _OP_FLAGS:
         if _has_flag(argv, flag):
             return op
@@ -1040,14 +1453,31 @@ def main() -> int:
     started = time.monotonic()
     out_buf, err_buf = io.StringIO(), io.StringIO()
     real_out, real_err = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = _Tee(real_out, out_buf), _Tee(real_err, err_buf)
+    global _EVENT_NOOP
+    _EVENT_NOOP = False
+    event = _has_flag(argv, "--event")
+    hook = event or _has_flag(argv, "--hook")
+    # An event handler's stdout reaches the model and its stderr the person, so it keeps both to the trace.
+    sys.stdout, sys.stderr = ((out_buf, err_buf) if event
+                              else (_Tee(real_out, out_buf), _Tee(real_err, err_buf)))
     try:
         code = _main()
+    except SystemExit as exc:
+        if not hook:
+            raise
+        code = exc.code if isinstance(exc.code, int) else 2
+    except Exception as exc:  # noqa: BLE001 - only a hook call reaches here quietly
+        if not hook:
+            raise
+        print(f"[companion] Warning: the hook could not record its step: {exc}", file=sys.stderr)
+        code = 1
     finally:
         sys.stdout, sys.stderr = real_out, real_err
-        _trace_call(argv, out_buf.getvalue(), err_buf.getvalue(),
-                    int((time.monotonic() - started) * 1000))
-    return code
+        if not _EVENT_NOOP:
+            _trace_call(argv, out_buf.getvalue(), err_buf.getvalue(),
+                        int((time.monotonic() - started) * 1000))
+    # A lifecycle hook is bookkeeping: it never fails the spec-kit command that fired it.
+    return 0 if hook else code
 
 
 def _trace_call(argv: list, out: str, err: str, ms: int) -> None:
