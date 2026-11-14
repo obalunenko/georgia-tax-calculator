@@ -78,6 +78,7 @@ feature.
 ## Phase 6: User Story 4 - Test without the network (Priority: P3)
 
 - [x] T018 [US4] Implement `mock.NewClient` serving fixture rate sets through the real client in `pkg/nbggovge/mock/mock.go`
+- [x] T020 [US4] Select the fixture set by the requested date, filter by requested currencies, return an empty set like NBG, and leave fixtures unmodified in `pkg/nbggovge/mock/mock.go`; tests in `pkg/nbggovge/mock/mock_test.go`; run the `mocked:` case of `TestClient_Rates` without `INTEGRATION_TESTS` (fixes gaps 1 and 2, 2026-11-15)
 
 ---
 
@@ -92,16 +93,21 @@ feature.
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **`client.Rates` has no default-run test.** `TestClient_Rates` skips all
-   cases, including the `mocked:` one, unless `INTEGRATION_TESTS=true`
-   (`pkg/nbggovge/client_test.go:92`). URL building, GEL insertion, sorting,
-   and error statuses are only exercised indirectly through
-   `internal/converter` tests.
-2. **`mock.NewClient` defects** (`pkg/nbggovge/mock/mock.go`):
-   - reads the date from the `currencies` query parameter instead of `date`,
-     so it always uses today's date;
-   - honors only the first requested currency (`q.Get`);
-   - returns 404 when no currency is requested;
+1. **`client.Rates` has no default-run test.** Partly fixed by T020: the
+   `mocked:` case of `TestClient_Rates` and `mock/mock_test.go` now run by
+   default and cover the query parameters, GEL insertion, sorting, and empty
+   responses. Non-200 statuses, transport errors, and responses with more than
+   one rate set are still untested.
+2. **Fixed by T020 (2026-11-15).** `mock.NewClient` defects
+   (`pkg/nbggovge/mock/mock.go`, before the fix):
+   - reads the date from the `currencies` query parameter instead of `date`
+     (`mock.go:32`), so the response date becomes the first requested
+     currency code (e.g., `"EUR"`); today's date is used only when no
+     currency is requested, which already returns 404;
+   - does not filter by requested currencies: it always returns the whole
+     fixture and checks only the first code (`q.Get`) to decide on 404;
+   - returns 404 for an unknown code or no code, while NBG returns an empty
+     rate set with status 200 (`testdata/empty.json`);
    - mutates the fixture slice passed to `NewClient`.
 3. **Currency codes are regenerated manually.** No `//go:generate` directive
    or Makefile target runs the generator; `make codegen` only runs stringer.
@@ -116,6 +122,10 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    date or currency set.
 7. **Shared cached data.** Cached `Rates` are returned by value, but the
    `Currencies` slice is shared; a caller that mutates it changes the cache.
-8. **Generator error message.** When the live API returns no currencies,
-   `getInput` wraps a nil error (`fmt.Errorf("...: %w", err)`), producing an
-   unclear message.
+8. **Generator empty-response guard never fires.** `getInput`
+   (`pkg/nbggovge/currencies/generator/main.go:143`) checks
+   `len(rates.Currencies) == 0`, but with no requested codes the client always
+   appends GEL (FR-004), so an empty NBG response yields one currency and
+   `codes.gen.go` would be regenerated with GEL only, without an error. If
+   the guard did fire, it would wrap a nil error and produce an unclear
+   message.

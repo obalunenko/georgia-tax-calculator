@@ -50,7 +50,8 @@ CLI/bot parity (constitution II).
 
 - [x] I. Interfaces call `service.Calculate`; they use `internal/taxes` only
       for category lists and display.
-- [ ] II. Same data and order, but different restart scope on "No" at the
+- [ ] II. (002 BUG-001: amount parsing now follows the shared rule, see 002
+      plan decision 6.) Same data and order, but different restart scope on "No" at the
       final review, the CLI-only declarations link, and the bot's
       `fmt.Sscanf` amount parsing (see tasks Gaps).
 - [x] III. Tax and sums use `pkg/moneyutils`; `TaxType` has a generated
@@ -117,6 +118,13 @@ collection and output formatting.
    summing.
 5. **Year income**: entered by the user in GEL and reported as entered plus
    converted incomes; it does not affect the rate.
+
+Decisions 4 and 5 describe the current code. The 2026-11-15 clarifications
+in [spec.md](spec.md) change them (tax on the total, FR-004; limit warning,
+FR-013; one calendar year, FR-014); these changes are not implemented yet.
+
+**Bugfix**: 2026-11-15 — 002 BUG-001 Updated from bugfix patch (amount rules,
+FR-016; see 002 plan decision 6)
 
 ## Complexity Tracking
 

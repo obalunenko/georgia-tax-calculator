@@ -75,17 +75,38 @@ feature.
 
 ---
 
+## Phase B1: Bugfix BUG-001 - Stale callbacks
+
+- [x] T016 [US2] Add step IDs and `session.stepID` in `cmd/bot/session.go`; build keyboards with callback data `cb:<step>:<value>` from `stepOptions` (`stepKeyboard`, `keyboardOption`) in `cmd/bot/keyboards.go` (FR-012)
+- [x] T017 [US2] Accept a callback only through `callbackValue` (current step and one of its current options) in `handleCallback`, `cmd/bot/handlers.go`; tax type buttons send the type name, `taxTypeFromItem` removed (FR-015)
+- [x] T018 [P] [US2] Tests for callback parsing and validation, step keyboards (every button accepted, 64-byte limit), tax type and day options in `cmd/bot/keyboards_test.go`
+
+**Bugfix**: 2026-11-15 — BUG-001 Updated from bugfix patch
+
+---
+
+## Phase B2: Bugfix BUG-002 - Panics and concurrent updates
+
+- [x] T019 [US1] Register the `recoverPanics` middleware first in `registerHandlers` (`cmd/bot/bot.go`): log the panic with the stack and reply with `msgInternalError` (FR-016)
+- [x] T020 [US2] Add `sessionStore.lock` (one mutex per user) in `cmd/bot/session.go` and the `serializeMsg`/`serializeCallback` wrappers in `cmd/bot/bot.go`; `serializeMsg` drops messages without `From` (FR-017, FR-018)
+- [x] T021 [US2] Answer callback queries in the `answerCallback` wrapper before the per-user lock (`cmd/bot/handlers.go`) (FR-006, FR-017)
+- [x] T022 [P] [US2] Race test for one user's concurrent updates, per-user lock, `From == nil`, `updateChatID`, and step IDs in `cmd/bot/session_test.go`; removing the lock makes the test fail with `DATA RACE`
+
+**Bugfix**: 2026-11-15 — BUG-002 Updated from bugfix patch
+
+---
+
 ## Gaps Found During Migration
 
 Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 `/speckit-specify` feature.
 
-1. **Possible data race on sessions.** telegohandler runs each update in its
+1. **Fixed by T020 (BUG-002).** **Possible data race on sessions.** telegohandler runs each update in its
    own goroutine (`vendor/github.com/mymmrac/telego/telegohandler/bot_handler.go`),
    but `sessionStore` locks only the map; handlers mutate `*session` fields
    without a lock. Fast repeated presses by one user can race. Not verified
    with `-race` because there are no tests.
-2. **No panic recovery.** No `PanicRecovery` middleware is registered, so a
+2. **Fixed by T019 and T020 (BUG-002).** **No panic recovery.** No `PanicRecovery` middleware is registered, so a
    panic in any handler terminates the process. Handlers dereference
    `msg.From` without a nil check (`cmd/bot/handlers.go:25,47,70,84,109,129`),
    unlike `trackUserMsg`.
@@ -96,13 +117,26 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
 4. **Broadcast behavior.** Every start and stop messages all known chats,
    sequentially and without throttling for Telegram rate limits; chats that
    blocked the bot are never removed; there is no opt-out.
-5. **No tests in `cmd/bot`.** Routing, stores, keyboards, and formatting are
-   untested.
+5. **Partly fixed by T018 and T022.** **No tests in `cmd/bot`.** Callback
+   validation, keyboards, amount validation, and serialization are tested;
+   handlers that call Telegram, the user store, and formatting are not.
 6. **Unbounded sessions.** Sessions are never removed; one per user stays in
    memory until restart. Sessions are keyed by user ID while the store tracks
    chat IDs.
 7. **Sensitive data in debug logs.** At debug level, user input and outgoing
    messages (including amounts) are logged.
 8. **Container runs as root** (no `USER` in `build/docker/bot/Dockerfile`).
+   Fix together with gap 3: with a non-root `USER` and no writable
+   `WORKDIR` or volume, writing `/users.json` fails, and the error is
+   ignored, so chat tracking stops without any log.
 9. **Known deviation**: the binary is `ge-tax` in `.goreleaser.yml` but
    `ge-bot` in the Dockerfile and README.
+10. **Shutdown does not wait for handlers.** `bh.Start()` returns as soon as
+    the long-polling channel closes
+    (`vendor/github.com/mymmrac/telego/telegohandler/bot_handler.go:85`);
+    only `Stop`/`StopWithContext` wait for running handlers. `run` waits for
+    the maintenance broadcast but not for handlers, so a calculation in
+    progress during shutdown is cut off without a reply.
+11. **Fixed by T016–T018 (BUG-001).** **Stale callbacks.** Routing does not check which keyboard a callback
+    came from; the effects on the flows are described in 002 gap 4 and 003
+    gap 9. FR-012 (`cb:` prefix) will change to `cb:<step>:<value>`.

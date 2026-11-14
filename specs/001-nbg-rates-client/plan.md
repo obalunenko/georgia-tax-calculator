@@ -56,8 +56,10 @@ the client through `internal/converter`, never from `cmd/` (constitution I).
 - [x] IV. This package is the `nbggovge.Client`; production uses
       `NewCached`; the real-API test is gated by `INTEGRATION_TESTS`.
 - [x] V. No imports of `internal/` packages of the module.
-- [ ] VI. Cache, constructors, and response parsing are tested;
-      `client.Rates` is only tested under `INTEGRATION_TESTS` (see tasks Gaps).
+- [x] VI. Cache, constructors, and response parsing are tested;
+      `client.Rates` runs in default tests through `mock.NewClient`
+      (`mock/mock_test.go`) and the `mocked:` case of `TestClient_Rates`;
+      live-API cases need `INTEGRATION_TESTS`.
 - [x] VII. `codes.gen.go` is generated and regenerated manually with the
       currencies generator, as constitution VII describes (no automation; see
       tasks Gaps).

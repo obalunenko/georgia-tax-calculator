@@ -1,11 +1,14 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.1 → 1.0.2 (PATCH: correction from brownfield migrate)
-- Modified: VII. Do Not Hand-Edit Generated or Vendored Code (currency codes
-  are regenerated manually; `make codegen` runs only stringer)
-- Templates: plan-template.md ✅, tasks-template.md ✅, spec-template.md — no
-  change needed; AGENTS.md ✅
+- Version change: 1.0.2 → 1.0.3 (PATCH: factual correction after spec gap
+  fixes)
+- Modified: VI. Test Behavior Changes (`pkg/nbggovge/mock` now has its own
+  tests; `cmd/bot` is partly tested)
+- Templates: plan-template.md, tasks-template.md, spec-template.md — no
+  change needed; AGENTS.md — no change needed
 - Follow-up: none
+- Previous: 1.0.1 → 1.0.2 corrected VII (currency codes are regenerated
+  manually; `make codegen` runs only stringer)
 -->
 
 # Georgia Tax Calculator Constitution
@@ -87,11 +90,13 @@ Evidence: no `pkg/` package imports `internal/` today.
 ### VI. Test Behavior Changes
 
 - Behavior changes in `internal/` and `pkg/` MUST include or update tests.
-  Tests for `cmd/bot`, `pkg/moneyutils`, and `internal/spinner` (currently
-  untested) are encouraged but not required. The `pkg/nbggovge` support
-  packages `currencies`, `internal`, `mock`, and `option` have no tests of
-  their own and are exercised through `pkg/nbggovge` and `internal/converter`
-  tests; `pkg/nbggovge/currencies/generator` is a development tool.
+  Tests for `cmd/bot` (partly covered: callback and amount validation,
+  per-user serialization; Telegram I/O is untested), `pkg/moneyutils`, and
+  `internal/spinner` (both untested) are encouraged but not required. The
+  `pkg/nbggovge` support packages `currencies`, `internal`, and `option` have
+  no tests of their own and are exercised through `pkg/nbggovge` and
+  `internal/converter` tests; `pkg/nbggovge/mock` has its own tests;
+  `pkg/nbggovge/currencies/generator` is a development tool.
 - Tests live next to the code in `*_test.go` files, use
   `github.com/stretchr/testify` (`assert`/`require`), and prefer table-driven
   cases with `t.Run`. Fixtures go in the package's `testdata/` directory.
@@ -176,4 +181,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.2 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-14
+**Version**: 1.0.3 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15

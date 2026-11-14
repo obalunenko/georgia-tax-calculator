@@ -32,6 +32,23 @@
   with converted amount and rate, total converted income, tax.
 - **Release impact**: Adding a category requires `make codegen` (stringer).
 
+## Clarifications
+
+### Session 2026-11-15
+
+- Q: How must year income affect the tax for Small Business? → A: Only a
+  warning: the tax is still calculated at the category rate, and a warning is
+  shown when the annual turnover limit is exceeded.
+- Q: Can one calculation mix incomes from different calendar years? → A: No,
+  only one year: the year of the first income fixes the year of the
+  calculation.
+- Q: How must tax be rounded when there are several incomes? → A: Tax on the
+  total: each converted income is rounded to 2 places, then the tax is
+  `round(total × rate, 2)` once.
+- Q: What should happen to the Individual Entrepreneur 3% category? → A: Keep
+  it, and check all rates against the Tax Code before the next release,
+  recording the source.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Calculate tax for incomes in any currency (Priority: P1)
@@ -63,6 +80,9 @@ Georgian tax declaration).
 5. **Given** an income that cannot be converted, **When** the service
    calculates, **Then** it fails with `failed to convert income: ...` and no
    partial result is returned.
+6. **Given** incomes dated in two different calendar years, **When** the
+   service calculates, **Then** it fails with an error that the incomes span
+   more than one calendar year (FR-014, not implemented yet).
 
 ---
 
@@ -111,19 +131,31 @@ A user sends `/calculate` and follows the bot.
    flow restarts from the category.
 4. **Given** a calculation error, **When** the service fails, **Then** the bot
    replies "❌ Calculation error: ..." and suggests `/calculate`.
+5. **Given** the year income step, **When** the user sends `0` or `0.00`,
+   **Then** it is accepted; **When** the user sends `-1` or `12abc`, **Then**
+   the bot asks again with "❌ Invalid amount" (FR-016).
+6. **Given** the income amount step, **When** the user sends `0`, `-5`, or
+   `12abc`, **Then** the bot asks again with "❌ Invalid amount" (FR-016).
 
 ---
 
 ### Edge Cases
 
 - Year income is only added to the reported year income; it does not change
-  the tax.
-- Incomes from different calendar years can be mixed in one calculation.
-- Tax is rounded to 2 decimal places per income, then summed.
+  the tax. For Small Business, exceeding the annual turnover limit only adds
+  a warning (FR-013).
+- Incomes from different calendar years MUST NOT be mixed in one
+  calculation (FR-014); the current code still allows it.
+- Tax is calculated once on the total converted income and rounded to 2
+  decimal places (FR-004); the current code still rounds per income.
 - A category string is matched case-insensitively and trimmed.
 - Amount and date edge cases are inherited from
-  [002-currency-conversion](../002-currency-conversion/spec.md) (negative
-  amounts, bot `fmt.Sscanf` parsing, date validation only in interfaces).
+  [002-currency-conversion](../002-currency-conversion/spec.md) (~~negative
+  amounts, bot `fmt.Sscanf` parsing,~~ date validation only in interfaces).
+  Amounts follow FR-016 since BUG-001.
+- ~~Stale inline buttons in the bot are applied to the current step; at the
+  final review any button other than "No" starts the calculation.~~
+  Superseded by 004 BUG-001: such buttons are rejected (004 FR-015).
 
 ## Requirements *(mandatory)*
 
@@ -135,10 +167,12 @@ A user sends `/calculate` and follows the bot.
   case-insensitively; unknown names MUST return `ErrInvalidTaxType`.
 - **FR-003**: Each income MUST be converted to GEL at the NBG rate for its
   date using the currency conversion feature.
-- **FR-004**: Tax per income MUST be `converted amount × rate`, computed with
-  `pkg/moneyutils` and rounded to 2 decimal places.
-- **FR-005**: The total tax MUST be the sum of per-income taxes; the total
-  converted income MUST be the sum of converted incomes.
+- **FR-004**: The tax MUST be `total converted income × rate`, computed with
+  `pkg/moneyutils` and rounded once to 2 decimal places. [Current code
+  rounds the tax per income and sums the results; not changed yet.]
+- **FR-005**: Each converted income MUST be rounded to 2 decimal places
+  (002 FR-003); the total converted income MUST be the sum of the rounded
+  converted incomes.
 - **FR-006**: The reported year income MUST be the entered year income plus
   the total converted income, in GEL.
 - **FR-007**: Any parse, conversion, or calculation error MUST abort the
@@ -154,9 +188,26 @@ A user sends `/calculate` and follows the bot.
 - **FR-012**: Adding or changing a category MUST update `TaxType`, the rate
   table, `taxtype_string.go` (via `make codegen`), and tests together
   (constitution III).
-- **FR-013**: Whether year income must affect the rate or the category
-  [NEEDS CLARIFICATION: e.g., should a turnover limit for Small Business be
-  checked, and should incomes be restricted to one calendar year?].
+- **FR-013**: For Small Business, when the reported year income (FR-006)
+  exceeds the Small Business annual turnover limit, both interfaces MUST show
+  a warning with the result. The tax MUST still be calculated at the category
+  rate (FR-004). Year income MUST NOT change the rate or the category.
+  [Not implemented yet.]
+- **FR-014**: All incomes in one calculation MUST be in the same calendar
+  year, fixed by the year of the first income. After the first income, both
+  interfaces MUST offer only that year; the service MUST reject a request
+  whose incomes span more than one year. [Not implemented yet.]
+- **FR-015**: Before the next release, every rate in the rate table and the
+  Small Business turnover limit (FR-013) MUST be checked against the current
+  Tax Code of Georgia, and the source (article) and check date MUST be
+  recorded in Assumptions. [Not done yet.]
+- **FR-016**: Year income MUST be validated with `service.ParseYearIncome`
+  (0 or greater) and each income amount with `service.ParseAmount` (greater
+  than 0), in the service and in both interfaces (002 FR-014).
+
+**Bugfix**: 2026-11-15 — 002 BUG-001 Added FR-016 (year income ≥ 0, income
+amount greater than 0), acceptance scenarios US3.5 and US3.6, and updated
+Edge Cases.
 
 ### Key Entities
 
@@ -166,7 +217,8 @@ A user sends `/calculate` and follows the bot.
 - **Income**: Date (year, month name, day), currency, amount (strings).
 - **CalculateRequest**: Category name, year income (GEL string), incomes.
 - **CalculateResponse**: Tax rate, year income, converted incomes, total
-  converted income, tax (all `Money` in GEL except source amounts).
+  converted income, tax (all `Money` in GEL except source amounts), and a
+  turnover-limit warning when FR-013 applies.
 
 ## Success Criteria *(mandatory)*
 
@@ -181,6 +233,10 @@ A user sends `/calculate` and follows the bot.
 ## Assumptions
 
 - The three categories and their rates reflect the rules the tool targets;
-  rates are fixed in code.
+  rates are fixed in code. Their legal source is not recorded yet, and the
+  Individual Entrepreneur 3% rate in particular is unverified (FR-015).
 - The user enters year income already in GEL.
+- The Small Business annual turnover limit is assumed to be 500 000 GEL; the
+  value MUST be checked against the current Tax Code of Georgia before FR-013
+  is implemented.
 - Each income's tax is calculated independently of the others.

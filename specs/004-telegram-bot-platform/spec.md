@@ -85,6 +85,14 @@ A user discovers the bot, reads help, and cancels a flow.
 5. **Given** a flow step that expects a button, **When** the user sends text,
    **Then** the bot replies "⚠️ Unexpected input. Please follow the flow or
    use /cancel to start over."
+6. **Given** a button from an earlier step, another flow, or an older
+   keyboard of the same step whose value the current step does not offer
+   (e.g., day 31 while April is selected), **When** it is pressed, **Then**
+   the bot replies "⚠️ Unexpected input …" and the step does not change
+   (FR-015).
+7. **Given** a handler panics, **When** the update is processed, **Then** the
+   bot logs the panic, replies "❌ Something went wrong. Please use /cancel to
+   start over.", and keeps running (FR-016).
 
 ---
 
@@ -142,10 +150,17 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   failures are ignored.
 - Sessions are kept in memory only; a restart loses all in-progress flows.
 - Each update is handled in its own goroutine; one user can trigger concurrent
-  handlers by pressing buttons quickly.
+  handlers by pressing buttons quickly. Since BUG-002, updates of one user
+  wait for each other (FR-017); updates of different users still run in
+  parallel.
+- Buttons sent before the `cb:<step>:<value>` format (BUG-001) are rejected
+  as unexpected input after the upgrade.
 - In Docker, the user store file lives inside the container (no volume) and
   is lost when the container is recreated.
 - Chats that blocked the bot stay in the store and fail on every broadcast.
+- On shutdown, `bh.Start` returns when the updates channel closes without
+  waiting for running handlers; a calculation in progress is cut off when the
+  process exits after the maintenance broadcast.
 
 ## Requirements *(mandatory)*
 
@@ -172,13 +187,31 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   on shutdown, the maintenance message, bounded by a 30-second timeout.
 - **FR-011**: Broadcast failures for individual chats MUST be logged and MUST
   NOT stop the broadcast.
-- **FR-012**: Inline keyboards MUST prefix callback data with `cb:` and lay
-  out options in rows of a fixed width.
+- **FR-012**: Inline keyboards MUST ~~prefix callback data with `cb:`~~ set
+  callback data to `cb:<step>:<value>`, where `<step>` identifies the flow
+  and step, within Telegram's 64-byte limit (BUG-001), and lay out options in
+  rows of a fixed width.
 - **FR-013**: The Docker image MUST build a static (`CGO_ENABLED=0`) binary
   from vendored dependencies and run it as the entrypoint; compose MUST pass
   the three environment variables.
 - **FR-014**: Outgoing messages and user input MUST be logged at debug level
   with the chat ID.
+- **FR-015**: A callback MUST be accepted only when its step equals the
+  session's current step and its value is one of the options that step
+  offers at that moment; otherwise the bot MUST reply with the unexpected
+  input message and leave the session unchanged.
+- **FR-016**: A panic in a handler MUST NOT stop the process; it MUST be
+  logged with the stack, and the user MUST get a generic error reply.
+- **FR-017**: Updates of one user MUST be handled one at a time; callback
+  queries MUST still be answered before waiting (FR-006).
+- **FR-018**: Messages without a sender (`From` empty) MUST be ignored by the
+  handlers.
+
+**Bugfix**: 2026-11-15 — BUG-001 Changed FR-012 (step-tagged callback data),
+added FR-015 and acceptance scenario US2.6, updated Edge Cases.
+
+**Bugfix**: 2026-11-15 — BUG-002 Added FR-016, FR-017, FR-018, acceptance
+scenario US2.7, SC-005, and updated Edge Cases.
 
 ### Key Entities
 
@@ -198,6 +231,9 @@ builds the image in `.github/workflows/dockerfiles.yml`.
   every previously seen chat receives the welcome-back message.
 - **SC-003**: `/cancel` at any step returns the user to the idle state.
 - **SC-004**: The CI image build (`build-bot-image`) succeeds for every PR.
+- **SC-005**: `go test -race ./cmd/bot/...` passes and covers callback
+  validation (stale step, same-step invalid value, other flow) and concurrent
+  updates of one user.
 
 ## Assumptions
 

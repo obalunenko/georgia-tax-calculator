@@ -1,0 +1,108 @@
+---
+
+description: "Migrated task list for the CLI platform"
+---
+
+# Tasks: CLI Platform
+
+**Input**: Design documents from `/specs/005-cli-platform/`
+
+**Prerequisites**: plan.md, spec.md; hosts the flows from `specs/002-currency-conversion` and `specs/003-tax-calculation`
+
+**Status**: migrated — all tasks reflect code that already exists on `master`.
+Gaps found during migration are listed at the end without checkboxes; they are
+candidates for follow-up features or bug reports, not pending work for this
+feature.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+
+## Phase 1: Feature Preparation
+
+- [x] T001 Add `github.com/urfave/cli/v3`, `github.com/obalunenko/version`, and `github.com/briandowns/spinner` to `go.mod` and run `make sync-vendor`
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+- [x] T002 [P] Implement `spinner.Start` with a final message, hidden cursor, and stderr output in `internal/spinner/spinner.go`
+
+---
+
+## Phase 3: User Story 1 - Start the CLI and choose a command (Priority: P1) 🎯 MVP
+
+- [x] T003 [US1] Build the root command (name, description, usage, authors, hooks) and exit with `log.Fatal` on error in `cmd/ge-tax-calc/main.go`
+- [x] T004 [US1] Register `run` and `convert` in `cmd/ge-tax-calc/commands.go`
+- [x] T005 [US1] Implement `printHeader`, `notFound`, and `onExit` in `cmd/ge-tax-calc/handlers.go`
+
+**Checkpoint**: The CLI starts and routes to both flows.
+
+---
+
+## Phase 4: User Story 2 - Check the version (Priority: P2)
+
+- [x] T006 [US2] Render the version table from `github.com/obalunenko/version` in `cmd/ge-tax-calc/version.go`
+
+---
+
+## Phase 5: User Story 3 - See progress during a request (Priority: P3)
+
+- [x] T007 [US3] Start the spinner around each conversion in `service.Convert` (`internal/service/service.go`); see the known deviation in the constitution
+
+---
+
+## Phase 6: User Story 4 - Release CLI binaries (Priority: P3)
+
+- [x] T008 [P] [US4] Configure the `cli` build, universal binary, `cli` archive, checksum, changelog groups, and milestones in `.goreleaser.yml`
+- [x] T009 [P] [US4] Add the tag-triggered release workflow (build, regression tests, lint, release) in `.github/workflows/release.yml`
+- [x] T010 [P] [US4] Add `scripts/build/app.sh`, `scripts/release/*.sh`, and Makefile targets `build`, `compile-app`, `release`, `release-local-snapshot`, `new-version`
+
+---
+
+## Phase N: Polish & Cross-Cutting Concerns
+
+- [x] T011 [P] Document installation, commands, and global options in the README "Usage" section
+
+---
+
+## Gaps Found During Migration
+
+Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
+`/speckit-specify` feature.
+
+1. **Unknown command exits with status 0.** `notFound`
+   (`cmd/ge-tax-calc/handlers.go`) only prints a message; `ge-tax-calc foo`
+   returns 0 (checked on 2026-11-15), so scripts cannot detect the error.
+2. **`+CHANGES` on clean builds.** `github.com/obalunenko/version` sets
+   `modified = true` whenever build info has a `vcs.modified` key
+   (`vendor/github.com/obalunenko/version/version.go`, `init`), including
+   `vcs.modified=false`. A build from a clean worktree of `0bafe32` printed
+   `short_commit: 0bafe32+CHANGES` (checked on 2026-11-15). The fix belongs
+   in the library (same author), then `make sync-vendor`.
+3. **No tests for the platform.** Root command, hooks, unknown command, and
+   version output are untested; so is `internal/spinner`.
+4. **Output noise.** The banner is printed before every command, including
+   the help and unknown commands, and "Exit..." is printed with
+   `fmt.Println` to stdout instead of `cmd.Writer`, so it cannot be
+   redirected or tested through the command's writer.
+5. **Stale README help.** The help block in README "Usage" comes from
+   urfave/cli v2 (for example, `--help, -h  show help (default: false)`); v3
+   prints `--help, -h  show help` and a different layout. The description
+   also has a typo ("It get income amount") in both `main.go` and README.
+6. **Release workflow leftovers.** The `regression_test` job of
+   `.github/workflows/release.yml` passes `AOC_SESSION`, a secret not used by
+   this project; `.goreleaser.yml` `gomod.env` contains the placeholder
+   `GOPRIVATE=example.com/blah` (inactive because `proxy: false`).
+7. **`make build` with two goreleaser builds.** `scripts/build/app.sh` runs
+   `goreleaser build --single-target --output bin/${APP_NAME}` without
+   `--id`, while `.goreleaser.yml` has two builds (`cli`, `bot`). Which
+   binary ends up in `bin/` was not verified.
+8. **Spinner and signals.** The CLI context has no signal handling; the
+   spinner hides the cursor, and whether the cursor is restored when Ctrl+C
+   ends the process during a request was not verified. The spinner also
+   runs in the bot process (known deviation).
+9. **SC-002 not verified.** Whether a release binary reports the tag as
+   `version` (module version from build info with `-trimpath` and
+   `mod: vendor`) was not checked against a published release.
