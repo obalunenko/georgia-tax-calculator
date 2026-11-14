@@ -148,7 +148,7 @@ func TestCallbackValue(t *testing.T) {
 }
 
 func TestCallbackValueRejectsFutureMonth(t *testing.T) {
-	now := time.Now()
+	now := service.Now()
 	if now.Month() == time.December {
 		t.Skip("no future month in the current year")
 	}

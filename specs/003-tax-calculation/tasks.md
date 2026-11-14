@@ -122,9 +122,10 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    bot does not show it.
 7. **Error text for invalid categories in `taxes.Calc`** uses the stringer
    fallback (`TaxType(N): tax type not supported`).
-8. **Inherited from 002**: spinner in the service, unused `survey` tags,
-   negative and zero amounts accepted, date validation only in the
-   interfaces, no time zone for "today" (002 gaps 2, 3, 7, 8, 10).
+8. **Inherited from 002**: ~~spinner in the service,~~ unused `survey` tags,
+   ~~negative and zero amounts accepted, date validation only in the
+   interfaces, no time zone for "today"~~ (002 gaps 2, 3, 7, 8, 10). As of
+   2026-11-15 only the unused `survey` tags (002 gap 8) remain.
 9. **Fixed by 004 T016–T018 (BUG-001).** **Stale inline buttons in `/calculate`.** `handleCalcCallback` applies
    callback data to the current step without checking its origin:
    - at `calcStepAddMore` (`cmd/bot/handlers.go:364`) any data other than

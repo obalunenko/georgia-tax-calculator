@@ -91,6 +91,13 @@ feature.
 
 ---
 
+## Phase F: Follow-up for migration gaps 3 and 10 (2026-11-15)
+
+- [x] T022 [US1] Add `FirstYear`, `ErrInvalidDate`, and `newDate` (rejects dates that do not exist, are before 2016, or are after today in Georgia) in `internal/service/date.go` and use it in `Convert` (`internal/service/service.go`); tests in `internal/service/date_test.go` (gap 3, FR-015)
+- [x] T023 [US2] Add `service.Now()` (fixed UTC+4 zone, no tzdata needed in the Alpine image) and use it with `service.FirstYear` for the date options in `cmd/ge-tax-calc/prompts.go` and `cmd/bot/keyboards.go` (gap 10, FR-016)
+
+---
+
 ## Phase N: Polish & Cross-Cutting Concerns
 
 - [x] T017 [P] Document the `convert` command and bot `/convert` in `README.md`
@@ -112,7 +119,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    service. Decision (2026-11-15): income and conversion amounts MUST be
    greater than 0; year income in 003 MUST be 0 or greater (0 is valid for
    the first income of the year). Implemented by T018–T021 and 003 T017.
-3. **Date validation lives only in the interfaces.** `dateutils.ParseDay`
+3. **Fixed by T022.** **Date validation lives only in the interfaces.** `dateutils.ParseDay`
    accepts 0 (its message says "should be >0") and does not check the number
    of days in the month; `service.Convert` passes such values to `time.Date`,
    which normalizes them (e.g., February 31 becomes March 2 or 3). Future
@@ -141,7 +148,7 @@ Not tasks of this feature. Track them with `/speckit-bugfix-report` or a new
    `Income` remain from the survey library used before Bubble Tea.
 9. **Unwrapped errors.** Date and amount parsing errors in `service.Convert`
    are returned without context; only converter errors are wrapped.
-10. **No time zone for "today".** Year, month, and day options in both
+10. **Fixed by T023.** **No time zone for "today".** Year, month, and day options in both
     interfaces are limited by `time.Now()` in the process time zone
     (`cmd/ge-tax-calc/prompts.go`, `cmd/bot/keyboards.go`). The bot image
     runs in UTC, so from 00:00 to 04:00 Tbilisi time the current Georgian

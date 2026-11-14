@@ -173,7 +173,10 @@ func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertRespons
 		return nil, err
 	}
 
-	date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	date, err := newDate(year, month, day)
+	if err != nil {
+		return nil, err
+	}
 
 	mv, err := ParseAmount(p.Amount)
 	if err != nil {

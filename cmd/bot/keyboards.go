@@ -7,10 +7,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mymmrac/telego"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -192,12 +192,10 @@ func taxTypeOptions() ([]keyboardOption, error) {
 
 // yearOptions returns years from the current one down to 2016.
 func yearOptions() []keyboardOption {
-	const begin = 2016
-
-	now := time.Now()
+	now := service.Now()
 	var years []string
 
-	for i := now.Year(); i >= begin; i-- {
+	for i := now.Year(); i >= service.FirstYear; i-- {
 		years = append(years, strconv.Itoa(i))
 	}
 
@@ -211,7 +209,7 @@ func monthOptions(year string) ([]keyboardOption, error) {
 		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
-	return optionsFromValues(dateutils.GetMonthsInYearTillDate(y, time.Now())), nil
+	return optionsFromValues(dateutils.GetMonthsInYearTillDate(y, service.Now())), nil
 }
 
 // dayOptions returns days of the given year and month up to today.
@@ -226,7 +224,7 @@ func dayOptions(year, month string) ([]keyboardOption, error) {
 		return nil, fmt.Errorf("parse month: %w", err)
 	}
 
-	return optionsFromValues(dateutils.DaysList(dateutils.DaysInMonthTillDate(m, y, time.Now()))), nil
+	return optionsFromValues(dateutils.DaysList(dateutils.DaysInMonthTillDate(m, y, service.Now()))), nil
 }
 
 // currencyOptions returns all supported currencies, sorted.

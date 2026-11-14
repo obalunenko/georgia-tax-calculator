@@ -127,11 +127,13 @@ A user sends `/convert` and follows inline keyboards.
 
 - Selectable years are 2016 through the current year; months and days are
   limited to dates up to today in both interfaces.
-- "Today" is the local date of the process (`time.Now()`). In the Docker
+- ~~"Today" is the local date of the process (`time.Now()`). In the Docker
   image this is UTC, so from 00:00 to 04:00 Tbilisi time (UTC+4) the current
-  Georgian date cannot be selected.
-- The service itself does not reject future dates, day 0, or day 31 in a
-  30-day month; `time.Date` normalizes such dates.
+  Georgian date cannot be selected.~~ Since 2026-11-15 "today" is the date in
+  Georgia (UTC+4) in both interfaces and the service (FR-016).
+- ~~The service itself does not reject future dates, day 0, or day 31 in a
+  30-day month; `time.Date` normalizes such dates.~~ Since 2026-11-15 the
+  service rejects them, and dates before 2016 (FR-015).
 - ~~Negative and zero amounts are accepted by both interfaces.~~ Superseded
   by BUG-001: amounts ≤ 0 MUST be rejected by the service and both
   interfaces (FR-014).
@@ -159,7 +161,7 @@ A user sends `/convert` and follows inline keyboards.
   rate to 4.
 - **FR-004**: Empty source or target currency MUST return `ErrCurrencyNotSet`.
 - **FR-005**: The service MUST accept the date as year, month name, and day
-  strings and build a UTC date.
+  strings and build a UTC date, validated by FR-015.
 - **FR-006**: The service MUST parse the amount with `moneyutils.Parse` and
   return an error for invalid input, using the rule in FR-014.
 - **FR-007**: The response MUST contain the date, the source amount, the
@@ -183,6 +185,14 @@ A user sends `/convert` and follows inline keyboards.
 - **FR-014**: One amount rule in `internal/service` MUST be used by the
   service, the CLI, and the bot: trim spaces, parse with `moneyutils.Parse`,
   and require a value greater than 0.
+- **FR-015**: The service MUST reject, with `ErrInvalidDate`, a date that does
+  not exist (day 0, 31 April, 29 February in a common year), is before
+  `service.FirstYear` (2016), or is after today in Georgia. (Added
+  2026-11-15, T022.)
+- **FR-016**: "Today" for year, month, and day options in both interfaces and
+  for FR-015 MUST be the date in Georgia (`service.Now()`, UTC+4), and both
+  interfaces MUST take the first selectable year from `service.FirstYear`.
+  (Added 2026-11-15, T023.)
 
 **Bugfix**: 2026-11-15 — BUG-001 Added FR-014 (shared amount rule, amount
 greater than 0), updated FR-006, FR-010, FR-011, Edge Cases, and acceptance
