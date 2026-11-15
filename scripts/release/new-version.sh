@@ -15,11 +15,11 @@ RELEASE_BRANCH=${RELEASE_BRANCH:-"release"}
 
 echo "${SCRIPT_NAME} is running fo ${APP}... "
 
-checkInstalled 'svu'
+check_installed 'svu'
 
 echo "${SCRIPT_NAME} is running... "
 
-function requireReleaseBranch() {
+function require_release_branch() {
   err=0
   branch=$(git branch --show-current)
 
@@ -99,7 +99,7 @@ function menu() {
 }
 
 ## Check if release branch
-requireReleaseBranch
+require_release_branch
 
 ## Check if git is clean
 require_clean_work_tree "create new version"

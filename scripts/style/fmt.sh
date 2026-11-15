@@ -11,7 +11,7 @@ source "${SCRIPTS_DIR}/helpers-source.sh"
 
 echo "${SCRIPT_NAME} is running... "
 
-checkInstalled 'gofmt'
+check_installed 'gofmt'
 
 cd "${REPO_ROOT}"
 

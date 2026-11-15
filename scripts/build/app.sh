@@ -13,7 +13,7 @@ mkdir -p "${BIN_DIR}"
 
 echo "${SCRIPT_NAME} is running... "
 
-checkInstalled 'goreleaser'
+check_installed 'goreleaser'
 
 goreleaser healthcheck
 
