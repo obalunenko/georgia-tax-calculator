@@ -9,6 +9,7 @@ import (
 	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
+	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 )
 
 const (
@@ -219,6 +220,12 @@ func handleCallback(store *sessionStore, svc service.Service) telegohandler.Call
 			return err
 		}
 
+		// Only the latest keyboard is accepted, so a button of an earlier income's message
+		// cannot answer the same step of a later income.
+		if query.Message.GetMessageID() != sess.keyboardMsgID {
+			return sendUnexpectedInput(ctx, chatID)
+		}
+
 		data, ok, err := callbackValue(sess, query.Data)
 		if err != nil {
 			return fmt.Errorf("check callback data: %w", err)
@@ -255,10 +262,7 @@ func handleCalcCallback(
 
 		_, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 			ChatID: telego.ChatID{ID: chatID},
-			Text: fmt.Sprintf(
-				"✅ Tax type: %s\n\n💰 Enter your income from the beginning of the calendar year in GEL:\n(e.g. 0.00 if this is your first income)",
-				data,
-			),
+			Text:   fmt.Sprintf("✅ Tax type: %s\n\n%s", data, yearIncomeQuestion(data)),
 		})
 
 		return err
@@ -291,14 +295,19 @@ func handleCalcCallback(
 
 	case calcStepCurrency:
 		sess.currentInc.Currency = data
-		sess.incomes = append(sess.incomes, sess.currentInc)
-		sess.currentInc = service.Income{}
-		sess.calcStep = calcStepAddMore
 
-		incomeList := formatIncomeList(sess.incomes)
+		if isSmallBusiness(sess.calcReq.TaxType) {
+			sess.calcStep = calcStepIncomeType
 
-		return sendStep(ctx, chatID, sess,
-			fmt.Sprintf("✅ Currency: %s\n\n%s\n➕ Add another income entry?", data, incomeList))
+			return sendStep(ctx, chatID, sess, fmt.Sprintf("✅ Currency: %s\n\n%s", data, incomeTypeQuestion()))
+		}
+
+		return addIncome(ctx, chatID, sess, "✅ Currency: "+data)
+
+	case calcStepIncomeType:
+		sess.currentInc.Type = data
+
+		return addIncome(ctx, chatID, sess, "✅ Income type: "+taxes.IncomeTypeLabel(data))
 
 	case calcStepAddMore:
 		if data == confirmYes {
@@ -328,6 +337,40 @@ func handleCalcCallback(
 	}
 }
 
+// yearIncomeQuestion asks for the income since the start of the year. The Small Business categories enter
+// field (15) of the previous month's declaration, so this month's incomes are not counted twice.
+func yearIncomeQuestion(taxType string) string {
+	if isSmallBusiness(taxType) {
+		return "💰 Enter field (15) of your previous month's declaration: income since the start of the year in GEL:\n" +
+			"(0.00 for your first declaration of the year)"
+	}
+
+	return "💰 Enter your income from the beginning of the calendar year in GEL:\n(e.g. 0.00 if this is your first income)"
+}
+
+// addIncome captures the current income and asks whether to add another one.
+func addIncome(ctx *telegohandler.Context, chatID int64, sess *session, confirmation string) error {
+	sess.incomes = append(sess.incomes, sess.currentInc)
+	sess.currentInc = service.Income{}
+	sess.calcStep = calcStepAddMore
+
+	return sendStep(ctx, chatID, sess,
+		fmt.Sprintf("%s\n\n%s\n➕ Add another income entry?", confirmation, formatIncomeList(sess.incomes)))
+}
+
+// incomeTypeQuestion asks for the income type and explains each type, as the CLI options do.
+func incomeTypeQuestion() string {
+	var b strings.Builder
+
+	b.WriteString("🧾 Select the income type (declaration field):")
+
+	for _, t := range taxes.AllIncomeTypes() {
+		fmt.Fprintf(&b, "\n• %s — %s", t.Label(), t.Description())
+	}
+
+	return b.String()
+}
+
 // runCalculation calculates taxes for the confirmed inputs and ends the flow.
 func runCalculation(ctx *telegohandler.Context, chatID int64, sess *session, svc service.Service) error {
 	sess.calcReq.Income = sess.incomes
@@ -352,9 +395,12 @@ func runCalculation(ctx *telegohandler.Context, chatID int64, sess *session, svc
 		return sendErr
 	}
 
+	text, entities := formatCalcResult(resp)
+
 	_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
-		ChatID: telego.ChatID{ID: chatID},
-		Text:   formatCalcResult(resp),
+		ChatID:   telego.ChatID{ID: chatID},
+		Text:     text,
+		Entities: entities,
 	})
 
 	return err
@@ -462,13 +508,18 @@ func sendStep(ctx *telegohandler.Context, chatID int64, sess *session, text stri
 		return fmt.Errorf("build keyboard: %w", err)
 	}
 
-	_, err = sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
+	msg, err := sendMessage(ctx, ctx.Bot(), &telego.SendMessageParams{
 		ChatID:      telego.ChatID{ID: chatID},
 		Text:        text,
 		ReplyMarkup: kb,
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	sess.keyboardMsgID = msg.MessageID
+
+	return nil
 }
 
 func sendUnexpectedInput(ctx *telegohandler.Context, chatID int64) error {
@@ -510,11 +561,21 @@ func formatIncomeList(incomes []service.Income) string {
 	b.WriteString("Captured incomes:\n")
 
 	for i, inc := range incomes {
-		b.WriteString(fmt.Sprintf("  %d) %s-%s-%s — %s %s\n",
-			i+1, inc.Year, inc.Month, inc.Day, inc.Amount, inc.Currency))
+		b.WriteString(formatIncomeLine(i+1, inc))
 	}
 
 	return b.String()
+}
+
+// formatIncomeLine formats one captured income, with its type when it has one.
+func formatIncomeLine(n int, inc service.Income) string {
+	line := fmt.Sprintf("  %d) %s-%s-%s — %s %s", n, inc.Year, inc.Month, inc.Day, inc.Amount, inc.Currency)
+
+	if label := taxes.IncomeTypeLabel(inc.Type); label != "" {
+		line += " — " + label
+	}
+
+	return line + "\n"
 }
 
 // formatCalcSummary formats the calculation request summary.
@@ -526,15 +587,15 @@ func formatCalcSummary(sess *session) string {
 	b.WriteString("\nIncomes:\n")
 
 	for i, inc := range sess.incomes {
-		b.WriteString(fmt.Sprintf("  %d) %s-%s-%s — %s %s\n",
-			i+1, inc.Year, inc.Month, inc.Day, inc.Amount, inc.Currency))
+		b.WriteString(formatIncomeLine(i+1, inc))
 	}
 
 	return b.String()
 }
 
-// formatCalcResult formats the calculation response.
-func formatCalcResult(resp *service.CalculateResponse) string {
+// formatCalcResult formats the calculation response. Each declaration value gets a code entity,
+// so Telegram copies it with a tap; the rest of the text stays plain.
+func formatCalcResult(resp *service.CalculateResponse) (string, []telego.MessageEntity) {
 	var b strings.Builder
 
 	b.WriteString("🧾 Tax Calculation Result\n\n")
@@ -545,24 +606,55 @@ func formatCalcResult(resp *service.CalculateResponse) string {
 		b.WriteString("\nIncomes converted to GEL:\n")
 
 		for i, inc := range resp.Incomes {
-			b.WriteString(fmt.Sprintf("  %d) %s → %s (rate: %s)\n",
+			fmt.Fprintf(&b, "  %d) %s → %s (rate: %s)",
 				i+1,
 				inc.Amount.String(),
 				inc.Converted.String(),
 				inc.Rate.String(),
-			))
+			)
+
+			if inc.Type.Valid() {
+				b.WriteString(" — " + inc.Type.Label())
+			}
+
+			b.WriteByte('\n')
 		}
 	}
 
 	b.WriteString(fmt.Sprintf("\nTotal Income (GEL): %s\n", resp.TotalIncomeConverted.String()))
 	b.WriteString(fmt.Sprintf("Taxes to Pay: %s", resp.Tax.String()))
 
+	var entities []telego.MessageEntity
+
+	if resp.Declaration != nil {
+		b.WriteString("\n\n")
+		b.WriteString(service.DeclarationHeader)
+
+		offset := utf16Len(b.String())
+
+		for _, f := range resp.Declaration.Fields {
+			prefix, value := "\n"+f.Prefix(), f.Formatted()
+			offset += utf16Len(prefix)
+
+			entities = append(entities, telego.MessageEntity{
+				Type:   telego.EntityTypeCode,
+				Offset: offset,
+				Length: utf16Len(value),
+			})
+
+			offset += utf16Len(value)
+
+			b.WriteString(prefix)
+			b.WriteString(value)
+		}
+	}
+
 	if resp.LimitWarning != nil {
 		b.WriteString("\n⚠️ ")
 		b.WriteString(resp.LimitWarning.String())
 	}
 
-	return b.String()
+	return b.String(), entities
 }
 
 // formatConvertSummary formats the convert request for display.

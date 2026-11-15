@@ -13,7 +13,9 @@ Result line for the rate (both): `Tax Rate: Small Business (over limit) 3 %`.
 
 ## Limit warning line
 
-Printed after the tax line, identical text in both interfaces:
+Printed after the tax line, identical text in both interfaces. Since 007 the
+warning has a second line and follows the declaration block; see
+`specs/007-income-type-declaration-fields/contracts/calculation-output.md`.
 
 ```text
 ⚠️ Year income <YearIncome> GEL exceeds the Small Business limit of <Limit> GEL by <Excess> GEL. Under Article 90(2) of the Tax Code, income from the start of the month the limit was exceeded until the end of the year is taxed at <over-limit rate>: calculate it with Small Business (over limit). The tax above is calculated at <Small Business rate>.
@@ -34,6 +36,8 @@ thousands separator). Example for US1.1:
   Pay".
 
 ## Year choice after the first income
+
+Since 007, the Small Business categories also keep the first income's month.
 
 | Interface | Behavior |
 |-----------|----------|

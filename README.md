@@ -49,7 +49,44 @@ Tax calculation rules:
   calculated at 1%. By the Tax Code (Article 90(2)), income from the start
   of the month in which the limit is exceeded until the end of the year is
   taxed at 3%; use Small Business (over limit) for those incomes. Rates and
-  the limit follow the Tax Code as of 30.10.2026.
+  the limit follow the Tax Code as of 30.10.2026. The warning also tells you to
+  recalculate the month's declaration with Small Business (over limit), where
+  field (16) is 3.00.
+
+Small Business monthly declaration (both Small Business categories):
+
+- One calculation covers one month, as the declaration does: after the first
+  income, only its month can be chosen. Run one calculation per month.
+- For income since the start of the year, enter field (15) of your previous
+  month's declaration (0 for your first declaration of the year). It is rounded
+  to the tetri.
+- Each income gets a type, which selects its declaration field:
+
+  | Type | Field | Covers |
+  |------|-------|--------|
+  | Cash | (18) | cash payments (cash register turnover) |
+  | POS terminal | (19) | card payments through a POS terminal |
+  | Non-cash | (20) | bank transfers and other non-cash payments (not POS) |
+  | Other | (21) | services not taxed at source, barter, and other income |
+  | Unpaid supply | (22) | goods or services supplied, not paid for this month |
+
+- The result lists the values to enter in the declaration, with two decimals.
+  The Telegram bot shows each value in monospace, so a tap copies it.
+
+  ```text
+  Declaration fields (Small Business monthly declaration):
+  (15) Income since the start of the year: 35942.00
+  (16) Tax rate, %: 1.00
+  (17) Taxable income for the month: 4150.00
+  (18) Cash: 3950.00
+  (19) POS terminal: 0.00
+  (20) Non-cash: 200.00
+  (21) Other: 0.00
+  (22) Unpaid supply: 0.00
+  ```
+
+Employment calculations do not ask for the type or limit the month, and show
+no declaration fields.
 
 All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
 section with the build information of your binary is omitted here, see
@@ -160,7 +197,7 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 - `/cancel` — Cancel the current operation
 - `/help` — Show available commands
 
-Only the buttons of the latest step are accepted: pressing a button from an
+Only the buttons of the latest message are accepted: pressing a button from an
 earlier message replies with "Unexpected input" and keeps the current step.
 
 ## For Developers

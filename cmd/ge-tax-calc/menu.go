@@ -27,7 +27,7 @@ func menuCalcTaxes(ctx context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to collect tax details: %w", err)
 	}
 
-	incomes, err := runIncomeMenu()
+	incomes, err := runIncomeMenu(req.TaxType)
 	if err != nil {
 		return fmt.Errorf("failed to collect incomes: %w", err)
 	}

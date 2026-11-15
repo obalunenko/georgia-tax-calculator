@@ -1,0 +1,785 @@
+{
+  "workflow": "companion",
+  "specName": "Income Type and Declaration Field Numbers",
+  "branch": "develop",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T23:22:16.868Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-14T23:28:53.851Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T23:34:46.249Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-14T23:39:27.640Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T23:40:05.686Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-14T23:43:01.811Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T23:50:22.460Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:51:38.174Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:51:38.175Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:51:38.175Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:52:13.921Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:53:01.993Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:53:01.993Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:54:39.358Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:56:16.573Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:56:50.605Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:56:50.606Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:56:50.606Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:59:11.391Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T23:59:11.391Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:57.958Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:57.959Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:57.959Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:57.959Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:58.040Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:00:58.041Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:01:24.272Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:01:24.272Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:04:03.176Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:04:03.176Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:04:03.176Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:04:16.860Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:05:00.851Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T00:05:00.871Z"
+    },
+    {
+      "step": "converge",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T00:06:13.099Z"
+    },
+    {
+      "step": "converge",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-15T00:06:56.112Z"
+    }
+  ],
+  "telemetryInstanceId": "f351db39-4ad1-48a5-9147-e5f133de5221",
+  "currentTask": null,
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "moneyutils.ToStringFixed, taxes.IncomeType with field table, TaxType.IsSmallBusiness, with tests",
+      "files": [
+        "pkg/moneyutils/moneyutils.go",
+        "pkg/moneyutils/moneyutils_test.go",
+        "internal/taxes/income_type.go",
+        "internal/taxes/income_type_test.go",
+        "internal/taxes/calculator.go",
+        "internal/taxes/calculator_test.go"
+      ],
+      "wave": "T001-T003"
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "moneyutils.ToStringFixed, taxes.IncomeType with field table, TaxType.IsSmallBusiness, with tests",
+      "files": [
+        "pkg/moneyutils/moneyutils.go",
+        "pkg/moneyutils/moneyutils_test.go",
+        "internal/taxes/income_type.go",
+        "internal/taxes/income_type_test.go",
+        "internal/taxes/calculator.go",
+        "internal/taxes/calculator_test.go"
+      ],
+      "wave": "T001-T003"
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "moneyutils.ToStringFixed, taxes.IncomeType with field table, TaxType.IsSmallBusiness, with tests",
+      "files": [
+        "pkg/moneyutils/moneyutils.go",
+        "pkg/moneyutils/moneyutils_test.go",
+        "internal/taxes/income_type.go",
+        "internal/taxes/income_type_test.go",
+        "internal/taxes/calculator.go",
+        "internal/taxes/calculator_test.go"
+      ],
+      "wave": "T001-T003"
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Income.Type and IncomeResponse (embeds ConvertResponse, adds Type line); CalculateResponse.Incomes as []IncomeResponse",
+      "files": [
+        "internal/service/service.go",
+        "internal/service/service_test.go"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Service validates income types for Small Business before conversion and sets IncomeResponse.Type; tests",
+      "files": [
+        "internal/service/declaration.go",
+        "internal/service/declaration_test.go",
+        "internal/service/service.go",
+        "internal/service/service_test.go",
+        "internal/service/year_income_test.go",
+        "internal/service/amount_test.go"
+      ],
+      "wave": "T005-T006"
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Service validates income types for Small Business before conversion and sets IncomeResponse.Type; tests",
+      "files": [
+        "internal/service/declaration.go",
+        "internal/service/declaration_test.go",
+        "internal/service/service.go",
+        "internal/service/service_test.go",
+        "internal/service/year_income_test.go",
+        "internal/service/amount_test.go"
+      ],
+      "wave": "T005-T006"
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "CLI income model takes the tax type; type step after currency for Small Business with previous type preselected; type in list and review",
+      "files": [
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/prompts.go",
+        "cmd/ge-tax-calc/menu.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/ge-tax-calc/prompts_test.go"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Bot type step calc_inc_type after currency for Small Business, keyboard one per row, descriptions in the message, type in list and summary; tests",
+      "files": [
+        "cmd/bot/session.go",
+        "cmd/bot/keyboards.go",
+        "cmd/bot/handlers.go",
+        "cmd/bot/keyboards_test.go",
+        "cmd/bot/flows_test.go"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Service returns Declaration (fields 15-22, two decimals) for Small Business, printed after the tax line; warning gains the recalculation line; tests for US1.1-US1.3 and the CLI contract output",
+      "files": [
+        "internal/service/declaration.go",
+        "internal/service/declaration_test.go",
+        "internal/service/service.go",
+        "internal/service/year_income.go",
+        "internal/service/year_income_test.go"
+      ],
+      "wave": "T009-T011"
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Service returns Declaration (fields 15-22, two decimals) for Small Business, printed after the tax line; warning gains the recalculation line; tests for US1.1-US1.3 and the CLI contract output",
+      "files": [
+        "internal/service/declaration.go",
+        "internal/service/declaration_test.go",
+        "internal/service/service.go",
+        "internal/service/year_income.go",
+        "internal/service/year_income_test.go"
+      ],
+      "wave": "T009-T011"
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Service returns Declaration (fields 15-22, two decimals) for Small Business, printed after the tax line; warning gains the recalculation line; tests for US1.1-US1.3 and the CLI contract output",
+      "files": [
+        "internal/service/declaration.go",
+        "internal/service/declaration_test.go",
+        "internal/service/service.go",
+        "internal/service/year_income.go",
+        "internal/service/year_income_test.go"
+      ],
+      "wave": "T009-T011"
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Year-income prompt asks for field (15) for Small Business in CLI and bot; bot result prints the service block with code entities (UTF-16 offsets); tests",
+      "files": [
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/handlers.go",
+        "cmd/bot/send_message.go",
+        "cmd/bot/handlers_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T012-T013"
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Year-income prompt asks for field (15) for Small Business in CLI and bot; bot result prints the service block with code entities (UTF-16 offsets); tests",
+      "files": [
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/handlers.go",
+        "cmd/bot/send_message.go",
+        "cmd/bot/handlers_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T012-T013"
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "One-month rule for Small Business: service ErrIncomesSpanMonths before conversion, CLI monthPrompt and bot month keyboard keep the first income's month; tests incl. /cancel and restart",
+      "files": [
+        "internal/service/year_income.go",
+        "internal/service/service.go",
+        "internal/service/year_income_test.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/keyboards.go",
+        "cmd/bot/keyboards_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T014-T017"
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "One-month rule for Small Business: service ErrIncomesSpanMonths before conversion, CLI monthPrompt and bot month keyboard keep the first income's month; tests incl. /cancel and restart",
+      "files": [
+        "internal/service/year_income.go",
+        "internal/service/service.go",
+        "internal/service/year_income_test.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/keyboards.go",
+        "cmd/bot/keyboards_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T014-T017"
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "One-month rule for Small Business: service ErrIncomesSpanMonths before conversion, CLI monthPrompt and bot month keyboard keep the first income's month; tests incl. /cancel and restart",
+      "files": [
+        "internal/service/year_income.go",
+        "internal/service/service.go",
+        "internal/service/year_income_test.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/keyboards.go",
+        "cmd/bot/keyboards_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T014-T017"
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "One-month rule for Small Business: service ErrIncomesSpanMonths before conversion, CLI monthPrompt and bot month keyboard keep the first income's month; tests incl. /cancel and restart",
+      "files": [
+        "internal/service/year_income.go",
+        "internal/service/service.go",
+        "internal/service/year_income_test.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "cmd/ge-tax-calc/tax_menus_test.go",
+        "cmd/bot/keyboards.go",
+        "cmd/bot/keyboards_test.go",
+        "cmd/bot/flows_test.go"
+      ],
+      "wave": "T014-T017"
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Employment regression: no declaration, no types, pre-feature text in service and bot",
+      "files": [
+        "internal/service/year_income_test.go",
+        "cmd/bot/handlers_test.go"
+      ],
+      "wave": "T018-T019"
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Employment regression: no declaration, no types, pre-feature text in service and bot",
+      "files": [
+        "internal/service/year_income_test.go",
+        "cmd/bot/handlers_test.go"
+      ],
+      "wave": "T018-T019"
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "README documents income types, fields, one-month rule, field (15) prompt and the block; 006 spec and contract point to 007",
+      "files": [
+        "README.md",
+        "specs/006-year-income-rules/spec.md",
+        "specs/006-year-income-rules/contracts/calculation-output.md"
+      ],
+      "wave": "T020-T021"
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "README documents income types, fields, one-month rule, field (15) prompt and the block; 006 spec and contract point to 007",
+      "files": [
+        "README.md",
+        "specs/006-year-income-rules/spec.md",
+        "specs/006-year-income-rules/contracts/calculation-output.md"
+      ],
+      "wave": "T020-T021"
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "make format-project, make vet, go test -race, make test, make lint-pipeline (0 issues), make build all pass; QF1012 and mnd fixed",
+      "files": [
+        "cmd/bot/handlers.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "internal/taxes/income_type.go"
+      ],
+      "wave": "T022-T024"
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "make format-project, make vet, go test -race, make test, make lint-pipeline (0 issues), make build all pass; QF1012 and mnd fixed",
+      "files": [
+        "cmd/bot/handlers.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "internal/taxes/income_type.go"
+      ],
+      "wave": "T022-T024"
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "make format-project, make vet, go test -race, make test, make lint-pipeline (0 issues), make build all pass; QF1012 and mnd fixed",
+      "files": [
+        "cmd/bot/handlers.go",
+        "cmd/ge-tax-calc/tax_menus.go",
+        "internal/taxes/income_type.go"
+      ],
+      "wave": "T022-T024"
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "Quickstart scenarios 1, 2, 4, 5 and both rejections run through service.New() with the live NBG client; output matches the contract; spec status Implemented",
+      "files": [
+        "specs/007-income-type-declaration-fields/spec.md"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Constitution PATCH 1.0.7: VI lists pkg/moneyutils as partly tested; Sync Impact Report updated",
+      "files": [
+        ".specify/memory/constitution.md"
+      ]
+    }
+  },
+  "decisions": [
+    {
+      "decision": "Built every phase inline instead of dispatching Foundational workers",
+      "why": "dispatch-briefs grouped T004 with T002 although T004 depends on it (tasks.md has no wait or Files lines), and each task was a few lines",
+      "rejected": "four cold workers for wave 1",
+      "by": "agent",
+      "at": "2026-11-15T00:05:25.473Z"
+    },
+    {
+      "decision": "IncomeType as a descriptor table in internal/taxes, no stringer",
+      "why": "needs field number and description; no new generated file; interfaces may import internal/taxes",
+      "rejected": "stringer with side maps; a new internal/declaration package",
+      "by": "agent",
+      "at": "2026-11-15T00:05:25.473Z"
+    },
+    {
+      "decision": "Bot monospace via code MessageEntity with UTF-16 offsets",
+      "why": "rest of the message stays plain text, nothing to escape",
+      "rejected": "HTML or MarkdownV2 parse mode",
+      "by": "agent",
+      "at": "2026-11-15T00:05:25.473Z"
+    },
+    {
+      "decision": "Field (15)-(22) text comes from service Declaration.String(); bot rebuilds the same lines to place entities",
+      "why": "one text source keeps CLI and bot identical",
+      "rejected": "formatting the block in each interface",
+      "by": "agent",
+      "at": "2026-11-15T00:05:25.473Z"
+    }
+  ],
+  "verified": [
+    {
+      "what": "Quickstart scenarios 1, 2, 4, 5 and both Small Business rejections through service.New() with the live NBG client",
+      "result": "output matches contracts/calculation-output.md; USD income converted at the live rate lands in field (20)"
+    },
+    {
+      "what": "Interactive TUI and test-bot runs (quickstart CLI 3/6, bot 1-5)",
+      "result": "not run by hand; covered by Bubble Tea model tests and bot flow tests over the fake Telegram API"
+    },
+    {
+      "what": "unit tests with race detector",
+      "command": "go test -race ./...",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.2,
+      "result": "?   \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal\t[no test files] · ok  \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/mock\t(cached) · ?   \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option\t[no test files]",
+      "commit": "70c4419",
+      "tree": "78f4c5efde042485135531f9af52543f085ed821"
+    },
+    {
+      "what": "vet",
+      "command": "go vet ./...",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.2,
+      "result": "no output",
+      "commit": "70c4419",
+      "tree": "df341136910410f294634bac74ed48c120060a6e"
+    },
+    {
+      "what": "lint pipeline",
+      "command": "make lint-pipeline",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.3,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-lint-pipeline-1 Stopping  ·  Container docker-compose-lint-pipeline-1 Stopped",
+      "commit": "70c4419",
+      "tree": "78f4c5efde042485135531f9af52543f085ed821"
+    },
+    {
+      "what": "build",
+      "command": "make build",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 7.1,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-build-1 Stopping  ·  Container docker-compose-build-1 Stopped",
+      "commit": "70c4419",
+      "tree": "df341136910410f294634bac74ed48c120060a6e"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "Full .golangci.yml reports goconst only in new table-driven tests (as in 006); pipeline config reports 0 issues",
+      "step": "implement"
+    },
+    {
+      "note": "Telegram rendering of code entities was checked through recorded API params and UTF-16 offset tests, not in a real Telegram client (no test bot token)",
+      "step": "implement"
+    }
+  ],
+  "coverage": {
+    "FR-001": {
+      "tests": [
+        "cmd/ge-tax-calc/tax_menus_test.go::TestIncomeModelAsksIncomeTypeForSmallBusiness; cmd/bot/flows_test.go::TestBotCalculateFlow; cmd/bot/keyboards_test.go::TestIncomeTypeKeyboard"
+      ]
+    },
+    "FR-002": {
+      "tests": [
+        "cmd/ge-tax-calc/tax_menus_test.go::TestIncomeModelEmploymentHasNoIncomeType; cmd/bot/handlers_test.go::TestFormatCalcResultEmployment; internal/service/declaration_test.go::TestCalculateEmploymentHasNoDeclaration"
+      ]
+    },
+    "FR-003": {
+      "tests": [
+        "internal/service/declaration_test.go::TestCheckIncomeTypes",
+        "TestCalculateRejectsInvalidIncomeTypeBeforeConversion"
+      ]
+    },
+    "FR-004": {
+      "tests": [
+        "internal/service/declaration_test.go::TestCalculateDeclaration"
+      ]
+    },
+    "FR-005": {
+      "tests": [
+        "internal/service/declaration_test.go::TestCalculateDeclaration (invariants)"
+      ]
+    },
+    "FR-006": {
+      "tests": [
+        "internal/service/declaration_test.go::TestCalculateResponseStringWithDeclaration; cmd/bot/handlers_test.go::TestFormatCalcResultDeclaration"
+      ]
+    },
+    "FR-007": {
+      "tests": [
+        "cmd/ge-tax-calc/tax_menus_test.go::TestIncomeModelAsksIncomeTypeForSmallBusiness; cmd/bot/flows_test.go::TestBotCalculateFlow; internal/service/declaration_test.go::TestCalculateSetsIncomeTypes"
+      ]
+    },
+    "FR-008": {
+      "tests": [
+        "internal/service/year_income_test.go::TestCalculateYearIncomeRules; internal/service/service_test.go::Test_service_Calculate"
+      ]
+    },
+    "FR-009": {
+      "tests": [
+        "cmd/bot/handlers_test.go::TestFormatCalcResultDeclaration (bot block equals Declaration.String())"
+      ]
+    },
+    "FR-010": {
+      "tests": [
+        "internal/service/year_income_test.go::TestCheckSingleMonth",
+        "TestCalculateMonthRule; cmd/ge-tax-calc/tax_menus_test.go::TestIncomeModelMonthAfterFirstIncome; cmd/bot/flows_test.go::TestBotCalculateKeepsFirstIncomeMonth"
+      ]
+    },
+    "FR-011": {
+      "assumes": "README.md section reviewed by reading"
+    },
+    "FR-012": {
+      "tests": [
+        "internal/service/year_income_test.go::TestLimitWarningString",
+        "TestCalculateYearIncomeRules"
+      ]
+    },
+    "FR-013": {
+      "tests": [
+        "cmd/ge-tax-calc/tax_menus_test.go::TestTaxDetailsModelFlow",
+        "TestTaxDetailsModelEmploymentYearIncomePrompt; cmd/bot/flows_test.go::TestBotCalculateFlow"
+      ]
+    },
+    "FR-014": {
+      "tests": [
+        "cmd/bot/handlers_test.go::TestFormatCalcResultDeclaration",
+        "TestUTF16Len; cmd/bot/flows_test.go::TestBotCalculateFlow (entities",
+        "no parse_mode)"
+      ]
+    }
+  },
+  "step_summaries": {
+    "implement": {
+      "summary": "Income types (fields 18-22), declaration block (15)-(22) with two decimals in CLI and bot (tap-to-copy), one-month rule and field (15) prompt for Small Business, warning recalculation line; Employment unchanged"
+    }
+  },
+  "last_action": "All 26 tasks closed; checks recorded",
+  "risk": {
+    "tier": "high",
+    "computed": "high",
+    "reasons": [
+      "touches .github/workflows/release.yml"
+    ]
+  },
+  "convergeStartedAt": "2026-11-15T00:08:07.744Z",
+  "convergePasses": [
+    {
+      "startedAt": "2026-11-15T00:06:13.155Z",
+      "by": "extension",
+      "finishedAt": "2026-11-15T00:06:56.163Z",
+      "added": [],
+      "completed": true
+    },
+    {
+      "startedAt": "2026-11-15T00:08:07.774Z",
+      "by": "extension",
+      "finishedAt": "2026-11-15T00:08:33.986Z",
+      "added": []
+    }
+  ]
+}

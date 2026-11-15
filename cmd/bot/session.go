@@ -27,6 +27,7 @@ const (
 	calcStepDay                        // select income day
 	calcStepAmount                     // enter income amount
 	calcStepCurrency                   // select income currency
+	calcStepIncomeType                 // select income type (Small Business categories)
 	calcStepAddMore                    // ask to add another income
 	calcStepConfirm                    // confirm all inputs
 	calcStepDone                       // flow complete
@@ -54,6 +55,7 @@ const (
 	stepCalcMonth       = "calc_month"
 	stepCalcDay         = "calc_day"
 	stepCalcCurrency    = "calc_cur"
+	stepCalcIncomeType  = "calc_inc_type"
 	stepCalcAddMore     = "calc_more"
 	stepCalcConfirm     = "calc_ok"
 	stepConvertYear     = "conv_year"
@@ -66,13 +68,14 @@ const (
 )
 
 var calcStepIDs = map[calcStep]string{
-	calcStepTaxType:  stepCalcTaxType,
-	calcStepYear:     stepCalcYear,
-	calcStepMonth:    stepCalcMonth,
-	calcStepDay:      stepCalcDay,
-	calcStepCurrency: stepCalcCurrency,
-	calcStepAddMore:  stepCalcAddMore,
-	calcStepConfirm:  stepCalcConfirm,
+	calcStepTaxType:    stepCalcTaxType,
+	calcStepYear:       stepCalcYear,
+	calcStepMonth:      stepCalcMonth,
+	calcStepDay:        stepCalcDay,
+	calcStepCurrency:   stepCalcCurrency,
+	calcStepIncomeType: stepCalcIncomeType,
+	calcStepAddMore:    stepCalcAddMore,
+	calcStepConfirm:    stepCalcConfirm,
 }
 
 var convertStepIDs = map[convertStep]string{
@@ -97,6 +100,9 @@ type session struct {
 	// convert state
 	convertStep convertStep
 	convertReq  service.ConvertRequest
+
+	// keyboardMsgID is the message with the current step's keyboard; buttons of other messages are rejected.
+	keyboardMsgID int
 }
 
 // stepID returns the ID of the current step, or stepWithoutKeyboard when the step expects text.

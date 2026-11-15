@@ -191,6 +191,8 @@ the labels and rates.
   and the amount above the limit, in GEL, and that by Article 90(2) income
   from the start of the month the limit was exceeded until year-end is taxed
   at the over-limit rate (added on 2026-11-15 after the Tax Code check).
+  Extended by 007 FR-012: the warning adds a line to recalculate the month's
+  declaration with Small Business (over limit).
 - **FR-002**: The warning MUST NOT change the tax: the tax is still
   calculated at the selected category's rate.
 - **FR-003**: No limit warning MUST be shown for other categories or when the
@@ -199,7 +201,9 @@ the labels and rates.
   88(3), 89(2)(a), 90(2); confirmed on 2026-11-15, 003 FR-015).
 - **FR-005**: After the first income of a calculation, both interfaces MUST
   offer only the year of that income for later incomes; restarting income
-  entry or the flow MUST clear this restriction.
+  entry or the flow MUST clear this restriction. Narrowed by 007 FR-010: in
+  the Small Business categories only the first income's month is offered,
+  and the service rejects incomes from more than one month.
 - **FR-006**: The service MUST reject a calculation whose incomes are dated
   in more than one calendar year, with an error that says so.
 - **FR-007**: The tax MUST be calculated once as the total converted income

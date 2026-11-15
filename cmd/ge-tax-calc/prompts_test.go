@@ -11,6 +11,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 )
 
 const (
@@ -365,7 +367,7 @@ func TestPromptInheritHeight(t *testing.T) {
 func TestModelsAbortOnCtrlC(t *testing.T) {
 	convert := newConvertModel()
 	details := newTaxDetailsModel()
-	income := newIncomeModel()
+	income := newIncomeModel(taxes.TaxTypeSmallBusiness.String())
 
 	tests := []struct {
 		name  string

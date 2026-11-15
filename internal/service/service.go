@@ -35,6 +35,9 @@ type Income struct {
 	DateRequest
 	Currency string
 	Amount   string
+	// Type is the income type name (see taxes.ParseIncomeType): required for the Small Business categories,
+	// ignored for Employment.
+	Type string
 }
 
 // DateRequest model.
@@ -52,11 +55,13 @@ func (d DateRequest) String() string {
 type CalculateResponse struct {
 	TaxRate              taxes.TaxRate
 	YearIncome           models.Money
-	Incomes              []ConvertResponse
+	Incomes              []IncomeResponse
 	TotalIncomeConverted models.Money
 	Tax                  models.Money
 	// LimitWarning is set when the Small Business turnover limit is exceeded.
 	LimitWarning *LimitWarning
+	// Declaration holds the Small Business declaration field values; nil for other categories.
+	Declaration *Declaration
 }
 
 func (c CalculateResponse) String() string {
@@ -94,12 +99,35 @@ func (c CalculateResponse) String() string {
 
 	resp.WriteString(fmt.Sprintf("Taxes: %s", c.Tax.String()))
 
+	if c.Declaration != nil {
+		resp.WriteString("\n\n")
+		resp.WriteString(c.Declaration.String())
+	}
+
 	if c.LimitWarning != nil {
 		resp.WriteString("\n⚠️ ")
 		resp.WriteString(c.LimitWarning.String())
 	}
 
 	return resp.String()
+}
+
+// IncomeResponse is one converted income of a calculation.
+type IncomeResponse struct {
+	ConvertResponse
+	// Type is the income type; zero for Employment.
+	Type taxes.IncomeType
+}
+
+// String returns the converted income lines, with a "Type:" line when the income has a type.
+func (r IncomeResponse) String() string {
+	resp := r.ConvertResponse.String()
+
+	if r.Type.Valid() {
+		resp += fmt.Sprintf("\nType: %s", r.Type.Label())
+	}
+
+	return resp
 }
 
 // ConvertRequest model.
@@ -224,16 +252,31 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		return nil, fmt.Errorf("failed to parse year income: %w", err)
 	}
 
+	// GEL has two decimal places, like the converted incomes, so the Year Income line,
+	// the limit check, and declaration field (15) all use the same amount.
+	yi = moneyutils.Round(yi, declarationPlaces)
+
 	// Checked before any conversion, so an invalid request makes no NBG calls.
 	if err = checkSingleYear(req.Income); err != nil {
 		return nil, fmt.Errorf("failed to check incomes: %w", err)
 	}
 
+	if tt.IsSmallBusiness() {
+		if err = checkSingleMonth(req.Income); err != nil {
+			return nil, fmt.Errorf("failed to check incomes: %w", err)
+		}
+	}
+
+	incomeTypes, err := checkIncomeTypes(tt, req.Income)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check incomes: %w", err)
+	}
+
 	var inc float64
 
-	incomes := make([]ConvertResponse, 0, len(req.Income))
+	incomes := make([]IncomeResponse, 0, len(req.Income))
 
-	for _, p := range req.Income {
+	for i, p := range req.Income {
 		r := ConvertRequest{
 			DateRequest: DateRequest{
 				Year:  p.Year,
@@ -250,12 +293,7 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 			return nil, fmt.Errorf("failed to convert income: %w", err)
 		}
 
-		incomes = append(incomes, ConvertResponse{
-			Date:      convertResp.Date,
-			Amount:    convertResp.Amount,
-			Converted: convertResp.Converted,
-			Rate:      convertResp.Rate,
-		})
+		incomes = append(incomes, IncomeResponse{ConvertResponse: *convertResp, Type: incomeTypes[i]})
 
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
 		inc = moneyutils.Add(inc, convertResp.Converted.Amount)
@@ -267,14 +305,20 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		return nil, fmt.Errorf("failed to calculate taxes: %w", err)
 	}
 
-	return &CalculateResponse{
+	resp := &CalculateResponse{
 		TaxRate:              tr,
 		YearIncome:           models.NewMoney(yi, currencies.GEL),
 		Incomes:              incomes,
 		TotalIncomeConverted: models.NewMoney(inc, currencies.GEL),
 		Tax:                  tax.Money,
 		LimitWarning:         newLimitWarning(tt, yi),
-	}, nil
+	}
+
+	if tt.IsSmallBusiness() {
+		resp.Declaration = newDeclaration(tr, yi, inc, incomes)
+	}
+
+	return resp, nil
 }
 
 type convertParams struct {

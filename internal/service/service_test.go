@@ -195,8 +195,8 @@ func Test_service_Calculate(t *testing.T) {
 					Amount:   1067.99,
 					Currency: currencies.GEL,
 				},
-				Incomes: []ConvertResponse{
-					{
+				Incomes: []IncomeResponse{
+					{ConvertResponse: ConvertResponse{
 						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
 						Amount: models.Money{
 							Amount:   1000,
@@ -207,7 +207,7 @@ func Test_service_Calculate(t *testing.T) {
 							Currency: currencies.GEL,
 						},
 						Rate: models.NewMoney(1, ""),
-					},
+					}},
 				},
 				TotalIncomeConverted: models.Money{
 					Amount:   1000,
@@ -261,8 +261,8 @@ func Test_service_Calculate(t *testing.T) {
 					Amount:   1267.99,
 					Currency: currencies.GEL,
 				},
-				Incomes: []ConvertResponse{
-					{
+				Incomes: []IncomeResponse{
+					{ConvertResponse: ConvertResponse{
 						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
 						Amount: models.Money{
 							Amount:   1000,
@@ -273,8 +273,8 @@ func Test_service_Calculate(t *testing.T) {
 							Currency: currencies.GEL,
 						},
 						Rate: models.NewMoney(1, ""),
-					},
-					{
+					}},
+					{ConvertResponse: ConvertResponse{
 						Date: time.Date(2022, time.June, 8, 0, 0, 0, 0, time.UTC),
 						Amount: models.Money{
 							Amount:   200,
@@ -285,7 +285,7 @@ func Test_service_Calculate(t *testing.T) {
 							Currency: currencies.GEL,
 						},
 						Rate: models.NewMoney(1, ""),
-					},
+					}},
 				},
 				TotalIncomeConverted: models.Money{
 					Amount:   1200,
@@ -315,6 +315,7 @@ func Test_service_Calculate(t *testing.T) {
 							},
 							Currency: currencies.GEL,
 							Amount:   "568",
+							Type:     nonCash,
 						},
 					},
 
@@ -387,8 +388,8 @@ func TestCalculateResponse_String(t *testing.T) {
 					Amount:   1267.99,
 					Currency: currencies.GEL,
 				},
-				Incomes: []ConvertResponse{
-					{
+				Incomes: []IncomeResponse{
+					{ConvertResponse: ConvertResponse{
 						Date: time.Date(2022, time.December, 8, 0, 0, 0, 0, time.UTC),
 						Amount: models.Money{
 							Amount:   568.99,
@@ -399,7 +400,7 @@ func TestCalculateResponse_String(t *testing.T) {
 							Currency: currencies.GEL,
 						},
 						Rate: models.NewMoney(1.39, ""),
-					},
+					}},
 				},
 				TotalIncomeConverted: models.Money{
 					Amount:   789.99,

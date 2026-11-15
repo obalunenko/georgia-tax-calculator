@@ -29,6 +29,7 @@ func TestParseAmount(t *testing.T) {
 		{name: "zero", raw: "0", wantErr: "invalid amount: must be greater than 0"},
 		{name: "zero with decimals", raw: "0.00", wantErr: "invalid amount: must be greater than 0"},
 		{name: "negative", raw: "-5", wantErr: "invalid amount: must be greater than 0"},
+		{name: "beyond float64", raw: "1e309", wantErr: `invalid amount: "1e309" is too large`},
 	}
 
 	for _, tt := range tests {
@@ -63,7 +64,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 
 	t.Run("calculate negative year income", func(t *testing.T) {
 		_, err := s.Calculate(context.Background(), CalculateRequest{
-			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100"}},
+			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "-1",
 		})
@@ -72,7 +73,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 
 	t.Run("calculate zero year income", func(t *testing.T) {
 		_, err := s.Calculate(context.Background(), CalculateRequest{
-			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100"}},
+			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "0",
 		})
@@ -81,7 +82,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 
 	t.Run("calculate negative income amount", func(t *testing.T) {
 		_, err := s.Calculate(context.Background(), CalculateRequest{
-			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "-100"}},
+			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "-100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "0",
 		})
@@ -102,6 +103,7 @@ func TestParseYearIncome(t *testing.T) {
 		{name: "negative", raw: "-1", wantErr: "invalid amount: must be 0 or greater"},
 		{name: "empty", raw: "", wantErr: "invalid amount: value is required"},
 		{name: "trailing text", raw: "12abc", wantErr: `invalid amount: "12abc" is not a number`},
+		{name: "beyond float64", raw: "1e400", wantErr: `invalid amount: "1e400" is too large`},
 	}
 
 	for _, tt := range tests {
@@ -118,4 +120,17 @@ func TestParseYearIncome(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestCalculateRejectsYearIncomeBeyondFloat64(t *testing.T) {
+	s := service{c: failingConverter{t: t}}
+
+	require.NotPanics(t, func() {
+		_, err := s.Calculate(context.Background(), CalculateRequest{
+			Income:     []Income{gelIncome("October", "05", "100", nonCash)},
+			TaxType:    taxes.TaxTypeSmallBusiness.String(),
+			YearIncome: "1e400",
+		})
+		assert.ErrorIs(t, err, ErrInvalidAmount)
+	})
 }

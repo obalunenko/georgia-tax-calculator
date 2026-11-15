@@ -217,7 +217,9 @@ builds the image in `.github/workflows/dockerfiles.yml`.
 - **FR-015**: A callback MUST be accepted only when its step equals the
   session's current step and its value is one of the options that step
   offers at that moment; otherwise the bot MUST reply with the unexpected
-  input message and leave the session unchanged.
+  input message and leave the session unchanged. Since 007, the callback
+  MUST also come from the message that carries the current keyboard, so a
+  button of the same step on an earlier message is rejected too.
 - **FR-016**: A panic in a handler MUST NOT stop the process; it MUST be
   logged with the stack, and the user MUST get a generic error reply.
 - **FR-017**: Updates of one user MUST be handled one at a time; callback

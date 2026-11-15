@@ -127,6 +127,7 @@ func TestBotCalculateFlow(t *testing.T) {
 		YearIncome:           models.NewMoney(270, currencies.GEL),
 		TotalIncomeConverted: models.NewMoney(270, currencies.GEL),
 		Tax:                  models.NewMoney(2.7, currencies.GEL),
+		Declaration:          testDeclaration(),
 	}}
 	h := newBotHarness(t, svc)
 
@@ -135,7 +136,9 @@ func TestBotCalculateFlow(t *testing.T) {
 	assert.Contains(t, h.api.lastButtons(t), "cb:calc_tax:"+taxes.TaxTypeSmallBusiness.String())
 
 	h.press("cb:calc_tax:" + taxes.TaxTypeSmallBusiness.String())
-	assert.Contains(t, h.api.lastText(t), "Enter your income from the beginning of the calendar year")
+	assert.Contains(t, h.api.lastText(t),
+		"💰 Enter field (15) of your previous month's declaration: income since the start of the year in GEL:\n"+
+			"(0.00 for your first declaration of the year)")
 
 	h.text("-1")
 	assert.Contains(t, h.api.lastText(t), "❌ Invalid amount")
@@ -148,9 +151,29 @@ func TestBotCalculateFlow(t *testing.T) {
 		h.press("cb:calc_day:15")
 		h.text(amount)
 		h.press("cb:calc_cur:" + currencies.USD)
+		h.press("cb:calc_inc_type:" + taxes.IncomeTypeNonCash.String())
 	}
 
-	addIncome("100")
+	h.press("cb:calc_year:2024")
+	h.press("cb:calc_month:March")
+	h.press("cb:calc_day:15")
+	h.text("100")
+	h.press("cb:calc_cur:" + currencies.USD)
+	assert.Contains(t, h.api.lastText(t), "🧾 Select the income type (declaration field):\n• Cash (18) — ")
+	assert.Equal(t, []string{
+		"cb:calc_inc_type:Cash",
+		"cb:calc_inc_type:POS terminal",
+		"cb:calc_inc_type:Non-cash",
+		"cb:calc_inc_type:Other",
+		"cb:calc_inc_type:Unpaid supply",
+	}, h.api.lastButtons(t))
+
+	h.text("Non-cash")
+	assert.Contains(t, h.api.lastText(t), "Unexpected input", "the type is chosen with a button")
+
+	h.press("cb:calc_inc_type:" + taxes.IncomeTypeNonCash.String())
+	assert.Contains(t, h.api.lastText(t), "✅ Income type: Non-cash (20)")
+	assert.Contains(t, h.api.lastText(t), "  1) 2024-March-15 — 100 USD — Non-cash (20)\n")
 	assert.Contains(t, h.api.lastText(t), "Add another income entry?")
 
 	h.press("cb:calc_more:yes")
@@ -162,6 +185,7 @@ func TestBotCalculateFlow(t *testing.T) {
 	addIncome("50")
 	h.press("cb:calc_more:no")
 	assert.Contains(t, h.api.lastText(t), "Review your inputs")
+	assert.Contains(t, h.api.lastText(t), "  2) 2024-March-15 — 50 USD — Non-cash (20)\n")
 
 	h.press("cb:calc_ok:no")
 	assert.Contains(t, h.api.lastText(t), "Restarting income entry")
@@ -175,16 +199,87 @@ func TestBotCalculateFlow(t *testing.T) {
 	assert.Contains(t, texts[len(texts)-2], "⏳ Calculating taxes...")
 	assert.Contains(t, h.api.lastText(t), "Taxes to Pay: 2.7 GEL")
 
+	sent := h.api.callsOf("sendMessage")
+	result := sent[len(sent)-1].params
+
+	assert.Nil(t, result["parse_mode"], "the result is plain text with entities")
+
+	entities := asSlice(result["entities"])
+	require.Len(t, entities, 8)
+
+	for _, e := range entities {
+		assert.Equal(t, telego.EntityTypeCode, asString(asMap(e)["type"]))
+	}
+
 	require.Len(t, svc.calcReqs, 1)
 	assert.Equal(t, service.CalculateRequest{
 		Income: []service.Income{{
 			DateRequest: service.DateRequest{Year: "2024", Month: "March", Day: "15"},
 			Currency:    currencies.USD,
 			Amount:      "100",
+			Type:        taxes.IncomeTypeNonCash.String(),
 		}},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",
 	}, svc.calcReqs[0])
+}
+
+func TestBotCalculateKeepsFirstIncomeMonth(t *testing.T) {
+	h := newBotHarness(t, &fakeService{calcResp: &service.CalculateResponse{}})
+
+	start := func() {
+		h.text("/calculate")
+		h.press("cb:calc_tax:" + taxes.TaxTypeSmallBusiness.String())
+		h.text("0")
+		h.press("cb:calc_year:2024")
+	}
+
+	var firstTypeMessage int
+
+	addFirstIncome := func() {
+		start()
+		require.Len(t, h.api.lastButtons(t), 12, "the first income can be in any month")
+		h.press("cb:calc_month:March")
+		h.press("cb:calc_day:15")
+		h.text("100")
+		h.press("cb:calc_cur:" + currencies.USD)
+		firstTypeMessage = h.api.lastKeyboardMessageID()
+		h.press("cb:calc_inc_type:" + taxes.IncomeTypeNonCash.String())
+		h.press("cb:calc_more:yes")
+		h.press("cb:calc_year:2024")
+	}
+
+	addFirstIncome()
+	assert.Equal(t, []string{"cb:calc_month:March"}, h.api.lastButtons(t), "later incomes use the first income's month")
+
+	h.press("cb:calc_month:April")
+	assert.Contains(t, h.api.lastText(t), "Unexpected input")
+
+	h.press("cb:calc_month:March")
+	h.press("cb:calc_day:15")
+	h.text("50")
+	h.press("cb:calc_cur:" + currencies.USD)
+	require.Equal(t, calcStepIncomeType, h.store.get(testUserID).calcStep)
+
+	h.pressOn(firstTypeMessage, "cb:calc_inc_type:"+taxes.IncomeTypeCash.String())
+	assert.Contains(t, h.api.lastText(t), "Unexpected input", "a type button of the first income's message is rejected")
+	assert.Equal(t, calcStepIncomeType, h.store.get(testUserID).calcStep)
+
+	h.text("/cancel")
+	start()
+	assert.Len(t, h.api.lastButtons(t), 12, "/cancel at the type step clears the fixed month")
+
+	h.text("/cancel")
+	addFirstIncome()
+	h.press("cb:calc_month:March")
+	h.press("cb:calc_day:15")
+	h.text("50")
+	h.press("cb:calc_cur:" + currencies.USD)
+	h.press("cb:calc_inc_type:" + taxes.IncomeTypeCash.String())
+	h.press("cb:calc_more:no")
+	h.press("cb:calc_ok:no")
+	h.press("cb:calc_year:2024")
+	assert.Len(t, h.api.lastButtons(t), 12, "restarting income entry offers all months again")
 }
 
 func TestBotCalculateFailedAndPanicked(t *testing.T) {
