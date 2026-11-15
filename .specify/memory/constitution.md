@@ -1,15 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.6 → 1.0.7 (PATCH: factual correction)
-- Modified: VI. Test Behavior Changes (`pkg/moneyutils` is partly tested since
-  feature 007 added `pkg/moneyutils/moneyutils_test.go`; `internal/spinner`
-  stays untested; tests for both remain encouraged, not required)
+- Version change: 1.0.7 → 1.0.8 (PATCH: factual correction)
+- Modified: Quality Gates and Development Tools (tools are pinned in
+  `tools/<name>/go.mod` and run with `go tool` instead of the go-tools Docker
+  image; CI installs golangci-lint and goreleaser with their official actions
+  at the same versions)
 - Added sections: none; Removed sections: none
-- Templates: plan-template.md, tasks-template.md, spec-template.md — no
-  change needed (tasks-template.md only says tests for `pkg/moneyutils` are
-  encouraged, which still holds); AGENTS.md — no change needed
+- Templates: plan-template.md — validation no longer runs in Docker and the
+  structure lists `tools/` instead of the go-tools image; tasks-template.md,
+  spec-template.md — no change needed; AGENTS.md — validation no longer runs
+  in Docker, tooling work includes `tools/`
 - Follow-up: none
-- Previous: 1.0.5 → 1.0.6 corrected VI (`cmd/bot` handlers are tested against
+- Previous: 1.0.6 → 1.0.7 corrected VI (`pkg/moneyutils` is partly tested;
+  `internal/spinner` stays untested); 1.0.5 → 1.0.6 corrected VI (`cmd/bot` handlers are tested against
   a fake Telegram API); 1.0.4 → 1.0.5 removed the bot binary name deviation;
   1.0.3 → 1.0.4 removed the spinner deviation and allowed the CLI
   to use `internal/spinner`; 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
@@ -146,13 +149,12 @@ Evidence: `//go:generate` in `internal/taxes/calculator.go`,
 
 ## Quality Gates and Development Tools
 
-- Tooling runs in Docker through the Makefile and
-  `deployments/docker-compose/go-tools-docker-compose.yml`
-  (`ghcr.io/obalunenko/go-tools`).
+- Tools are pinned in `tools/<name>/go.mod` with a `tool` directive and run
+  through the Makefile with `go tool`; no Docker is needed.
 - Before merge, these MUST pass: `make vet`, `make test`, `make lint-pipeline`,
-  and `make build`. CI (`.github/workflows/go.yml`) runs the same targets.
-  Without Docker, `go vet ./...` and `go test -race ./...` are the local
-  equivalents.
+  and `make build`. CI (`.github/workflows/go.yml`) runs the same checks; its
+  golangci-lint and goreleaser come from their official actions, at the
+  versions pinned in `tools/`.
 - Code is formatted with gofmt and goimports
   (`make format-project`). New code MUST respect the limits in
   `.golangci.yml` (funlen 100 lines / 50 statements, gocyclo 15, lll 140, mnd,
@@ -185,4 +187,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.7 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
+**Version**: 1.0.8 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15

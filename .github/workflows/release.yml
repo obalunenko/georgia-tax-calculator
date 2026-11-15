@@ -17,6 +17,9 @@ jobs:
         go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Build
+    env:
+      # The scripts run the goreleaser installed below instead of building it.
+      GORELEASER_BIN: goreleaser
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -27,15 +30,26 @@ jobs:
         uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: |
+            go.sum
+            tools/*/go.sum
 
       - run: |
           go version
         shell: bash
 
-      - name: Install tools
+      # Dependabot bumps goreleaser in tools/goreleaser/go.mod; CI follows it.
+      - name: Get goreleaser version
+        id: goreleaser
         run: |
-          make install-tools
+          echo "version=$(awk '$1 == "github.com/goreleaser/goreleaser/v2" { print $2 }' tools/goreleaser/go.mod)" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: ${{ steps.goreleaser.outputs.version }}
+          install-only: true
 
       - name: Build
         run: |
@@ -60,14 +74,12 @@ jobs:
         uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: |
+            go.sum
+            tools/*/go.sum
 
       - run: |
           go version
-        shell: bash
-
-      - name: Install tools
-        run: |
-          make install-tools
         shell: bash
 
       - name: Run regression tests
@@ -94,14 +106,12 @@ jobs:
         uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: |
+            go.sum
+            tools/*/go.sum
 
       - run: |
           go version
-        shell: bash
-
-      - name: Install tools
-        run: |
-          make install-tools
         shell: bash
 
       - name: Vet
@@ -109,10 +119,18 @@ jobs:
           make vet
         shell: bash
 
-      - name: Lint
+      # Dependabot bumps golangci-lint in tools/golangci-lint/go.mod; CI follows it.
+      - name: Get golangci-lint version
+        id: golangci-lint
         run: |
-          make lint-pipeline
+          echo "version=$(awk '$1 == "github.com/golangci/golangci-lint/v2" { print $2 }' tools/golangci-lint/go.mod)" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: ${{ steps.golangci-lint.outputs.version }}
+          args: --config .golangci.pipe.yml
 
   release:
     needs: [ build, regression_test, linting ]
@@ -124,6 +142,8 @@ jobs:
         go-version: [1.27.x]
     runs-on: ${{ matrix.os }}
     name: Release
+    env:
+      GORELEASER_BIN: goreleaser
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -134,10 +154,25 @@ jobs:
         uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: |
+            go.sum
+            tools/*/go.sum
 
       - run: |
           go version
         shell: bash
+
+      - name: Get goreleaser version
+        id: goreleaser
+        run: |
+          echo "version=$(awk '$1 == "github.com/goreleaser/goreleaser/v2" { print $2 }' tools/goreleaser/go.mod)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: ${{ steps.goreleaser.outputs.version }}
+          install-only: true
 
       - name: Run GoReleaser
         if: success()

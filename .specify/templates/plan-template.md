@@ -106,16 +106,17 @@ pkg/
 ├── nbggovge/           # NBG API client, cache, option/, mock/, currencies/
 ├── moneyutils/         # Decimal-backed money arithmetic
 └── dateutils/          # Date parsing and formatting
-build/docker/           # Bot and go-tools images
+build/docker/           # Bot image
 deployments/docker-compose/
 scripts/                # Build, test, lint, codegen, release scripts
+tools/                  # Pinned tools, one go.mod per tool (go tool)
 ```
 
 **Structure Decision**: [Name the affected packages and files, and explain any
 new package or cross-package dependency.]
 
-**Validation**: `make vet`, `make test`, `make lint-pipeline`, `make build`
-(Docker); locally `go vet ./...` and `go test -race ./...`. Add
+**Validation**: `make vet`, `make test`, `make lint-pipeline`, `make build`.
+Add
 `make codegen` when `TaxType` changes, the currencies generator (constitution
 VII) when currency codes change, `make sync-vendor` when dependencies change,
 and `make test-integration` when NBG client behavior changes.

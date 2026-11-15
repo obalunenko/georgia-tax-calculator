@@ -15,11 +15,9 @@ RELEASE_BRANCH=${RELEASE_BRANCH:-"release"}
 
 echo "${SCRIPT_NAME} is running fo ${APP}... "
 
-checkInstalled 'svu'
-
 echo "${SCRIPT_NAME} is running... "
 
-function requireReleaseBranch() {
+function require_release_branch() {
   err=0
   branch=$(git branch --show-current)
 
@@ -61,7 +59,7 @@ function require_clean_work_tree() {
 }
 
 function menu() {
-  PREV_VERSION=$(svu current)
+  PREV_VERSION=$(go_tool svu current)
   clear
 
   echo "Current version: ${PREV_VERSION}"
@@ -75,15 +73,15 @@ function menu() {
   case "$selection" in
   1)
     printf "Major updates......\n"
-    NEW_VERSION=$(svu major)
+    NEW_VERSION=$(go_tool svu major)
     ;;
   2)
     printf "Run Minor update.........\n"
-    NEW_VERSION=$(svu minor)
+    NEW_VERSION=$(go_tool svu minor)
     ;;
   3)
     printf "Patch update.........\n"
-    NEW_VERSION=$(svu patch)
+    NEW_VERSION=$(go_tool svu patch)
     ;;
   4)
     printf "Exit................................\n"
@@ -99,7 +97,7 @@ function menu() {
 }
 
 ## Check if release branch
-requireReleaseBranch
+require_release_branch
 
 ## Check if git is clean
 require_clean_work_tree "create new version"
