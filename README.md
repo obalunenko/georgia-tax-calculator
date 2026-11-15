@@ -197,6 +197,10 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 - `/cancel` — Cancel the current operation
 - `/help` — Show available commands
 
+The bot sets this list, except `/start`, as its Telegram command menu at every
+start, so Telegram suggests the commands when you type `/`. You do not need
+BotFather's `/setcommands`; a list set there is replaced on the next start.
+
 Only the buttons of the latest message are accepted: pressing a button from an
 earlier message replies with "Unexpected input" and keeps the current step.
 

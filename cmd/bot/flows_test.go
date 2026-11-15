@@ -90,7 +90,7 @@ func TestBotConvertFlow(t *testing.T) {
 
 	require.Len(t, svc.convertReqs, 1)
 	assert.Equal(t, service.ConvertRequest{
-		DateRequest:  service.DateRequest{Year: "2024", Month: "March", Day: "15"},
+		Year: "2024", Month: time.March.String(), Day: "15",
 		CurrencyFrom: currencies.USD,
 		CurrencyTo:   currencies.GEL,
 		Amount:       "100",
@@ -214,10 +214,10 @@ func TestBotCalculateFlow(t *testing.T) {
 	require.Len(t, svc.calcReqs, 1)
 	assert.Equal(t, service.CalculateRequest{
 		Income: []service.Income{{
-			DateRequest: service.DateRequest{Year: "2024", Month: "March", Day: "15"},
-			Currency:    currencies.USD,
-			Amount:      "100",
-			Type:        taxes.IncomeTypeNonCash.String(),
+			Year: "2024", Month: time.March.String(), Day: "15",
+			Currency: currencies.USD,
+			Amount:   "100",
+			Type:     taxes.IncomeTypeNonCash.String(),
 		}},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",

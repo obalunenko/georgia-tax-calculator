@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestNewAppUnknownCommandExitsNonZero(t *testing.T) {
 
 	cli.ErrWriter = &stderr
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	app := newApp(ctx)
 	app.Writer = io.Discard
@@ -38,7 +37,7 @@ func TestNewAppUnknownCommandExitsNonZero(t *testing.T) {
 }
 
 func TestNewAppCommands(t *testing.T) {
-	app := newApp(context.Background())
+	app := newApp(t.Context())
 
 	names := make([]string, 0, len(app.Commands))
 	for _, c := range app.Commands {
@@ -52,7 +51,7 @@ func TestNewAppCommands(t *testing.T) {
 func TestNewAppHelpHasNoBannerOrExitLine(t *testing.T) {
 	var out bytes.Buffer
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	app := newApp(ctx)
 	app.Writer = &out
@@ -74,7 +73,7 @@ func TestCommandsHaveBannerAndExitLine(t *testing.T) {
 func TestOnExitWritesToCommandWriter(t *testing.T) {
 	var out bytes.Buffer
 
-	require.NoError(t, onExit(context.Background(), &cli.Command{Writer: &out}))
+	require.NoError(t, onExit(t.Context(), &cli.Command{Writer: &out}))
 
 	assert.Equal(t, "Exit...\n", out.String())
 }

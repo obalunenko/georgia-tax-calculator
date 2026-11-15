@@ -44,6 +44,8 @@ func run(ctx context.Context, token string, opts ...telego.BotOption) error {
 
 	log.FromContext(ctx).WithField("username", me.Username).Info("Bot started")
 
+	setCommandMenu(ctx, bot)
+
 	users := newUserStore(ctx, userStorePath())
 
 	updates, err := bot.UpdatesViaLongPolling(ctx, nil)
@@ -269,12 +271,13 @@ func registerHandlers(bh *telegohandler.BotHandler, store *sessionStore, svc ser
 		return trackUserMsg(users, serializeMsg(store, h))
 	}
 
-	// Command handlers.
+	// Command handlers: /start, which is not in the command menu because Telegram's Start button sends it,
+	// and the menu commands. No other command gets a handler of its own.
 	bh.HandleMessage(msgHandler(handleStart(store)), telegohandler.CommandEqual(cmdStart))
-	bh.HandleMessage(msgHandler(handleHelp(store)), telegohandler.CommandEqual(cmdHelp))
-	bh.HandleMessage(msgHandler(handleCancel(store)), telegohandler.CommandEqual(cmdCancel))
-	bh.HandleMessage(msgHandler(handleCalculate(store)), telegohandler.CommandEqual(cmdCalculate))
-	bh.HandleMessage(msgHandler(handleConvert(store)), telegohandler.CommandEqual(cmdConvert))
+
+	for _, c := range menuCommands {
+		bh.HandleMessage(msgHandler(c.handler(store)), telegohandler.CommandEqual(c.name))
+	}
 
 	// Text input handler (for amount fields).
 	bh.HandleMessage(msgHandler(handleTextInput(store)), telegohandler.AnyMessageWithText())

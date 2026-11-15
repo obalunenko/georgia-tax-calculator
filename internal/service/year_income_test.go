@@ -64,7 +64,7 @@ func TestLimitWarningString(t *testing.T) {
 
 func TestCheckSingleYear(t *testing.T) {
 	income := func(year string) Income {
-		return Income{DateRequest: DateRequest{Year: year, Month: "June", Day: "08"}, Currency: currencies.GEL, Amount: "1"}
+		return Income{Year: year, Month: time.June.String(), Day: testDay, Currency: currencies.GEL, Amount: "1"}
 	}
 
 	tests := []struct {
@@ -109,10 +109,10 @@ func (c failingConverter) Convert(context.Context, models.Money, string, time.Ti
 func TestCalculateRejectsMixedYearsBeforeConversion(t *testing.T) {
 	s := service{c: failingConverter{t: t}}
 
-	_, err := s.Calculate(context.Background(), CalculateRequest{
+	_, err := s.Calculate(t.Context(), CalculateRequest{
 		Income: []Income{
-			{DateRequest: DateRequest{Year: "2024", Month: "June", Day: "08"}, Currency: currencies.EUR, Amount: "100"},
-			{DateRequest: DateRequest{Year: "2025", Month: "June", Day: "08"}, Currency: currencies.EUR, Amount: "100"},
+			{Year: "2024", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
+			{Year: "2025", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
 		},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",
@@ -126,10 +126,10 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 		incomes := make([]Income, 0, len(amounts))
 		for _, a := range amounts {
 			incomes = append(incomes, Income{
-				DateRequest: DateRequest{Year: "2025", Month: "June", Day: "08"},
-				Currency:    currencies.GEL,
-				Amount:      a,
-				Type:        nonCash,
+				Year: "2025", Month: time.June.String(), Day: testDay,
+				Currency: currencies.GEL,
+				Amount:   a,
+				Type:     nonCash,
 			})
 		}
 
@@ -179,7 +179,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service{c: mockConverter{}}
 
-			got, err := s.Calculate(context.Background(), CalculateRequest{
+			got, err := s.Calculate(t.Context(), CalculateRequest{
 				Income:     tt.incomes,
 				TaxType:    tt.taxType.String(),
 				YearIncome: tt.yearIncome,
@@ -197,7 +197,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 
 func TestCheckSingleMonth(t *testing.T) {
 	inc := func(month string) Income {
-		return Income{DateRequest: DateRequest{Year: "2026", Month: month, Day: "05"}}
+		return Income{Year: "2026", Month: month, Day: "05"}
 	}
 
 	tests := []struct {
@@ -207,10 +207,10 @@ func TestCheckSingleMonth(t *testing.T) {
 		wantMonth bool
 	}{
 		{name: "no incomes"},
-		{name: "one month", incomes: []Income{inc("October"), inc("October")}},
+		{name: "one month", incomes: []Income{inc(time.October.String()), inc(time.October.String())}},
 		{
 			name:      "two months",
-			incomes:   []Income{inc("September"), inc("October")},
+			incomes:   []Income{inc(time.September.String()), inc(time.October.String())},
 			wantErr:   "September and October: incomes span more than one calendar month",
 			wantMonth: true,
 		},
@@ -235,14 +235,14 @@ func TestCheckSingleMonth(t *testing.T) {
 
 func TestCalculateMonthRule(t *testing.T) {
 	incomes := []Income{
-		gelIncome("September", "05", "100", nonCash),
-		gelIncome("October", "05", "100", nonCash),
+		gelIncome(time.September.String(), "05", "100", nonCash),
+		gelIncome(time.October.String(), "05", "100", nonCash),
 	}
 
 	t.Run("small business rejects two months before conversion", func(t *testing.T) {
 		s := service{c: failingConverter{t: t}}
 
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     incomes,
 			TaxType:    taxes.TaxTypeSmallBusinessOverLimit.String(),
 			YearIncome: "0",
@@ -255,7 +255,7 @@ func TestCalculateMonthRule(t *testing.T) {
 	t.Run("employment allows two months of one year", func(t *testing.T) {
 		s := service{c: mockConverter{}}
 
-		got, err := s.Calculate(context.Background(), CalculateRequest{
+		got, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     incomes,
 			TaxType:    taxes.TaxTypeEmployment.String(),
 			YearIncome: "0",

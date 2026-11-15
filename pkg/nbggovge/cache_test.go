@@ -60,7 +60,7 @@ func TestCachedClient_Rates_CacheMiss(t *testing.T) {
 	}
 	cachedClient := NewCachedClient(mockCli, time.Hour)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// First call should hit the API
@@ -84,7 +84,7 @@ func TestCachedClient_Rates_CacheHit(t *testing.T) {
 	}
 	cachedClient := NewCachedClient(mockCli, time.Hour)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// First call should hit the API
@@ -115,7 +115,7 @@ func TestCachedClient_Rates_CacheExpired(t *testing.T) {
 	// Very short TTL for testing
 	cachedClient := NewCachedClient(mockCli, time.Millisecond)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// First call should hit the API
@@ -171,7 +171,7 @@ func TestCachedClient_ReturnsCopies(t *testing.T) {
 	}}
 	cachedClient := NewCachedClient(mockCli, time.Hour)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	first, err := cachedClient.Rates(ctx, opts...)
@@ -195,7 +195,7 @@ func TestCachedClient_EvictsExpiredOnWrite(t *testing.T) {
 	mockCli := &mockClient{returnRates: Rates{Date: "2023-12-01"}}
 	cachedClient := NewCachedClient(mockCli, time.Millisecond)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	_, err := cachedClient.Rates(ctx, option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)))
 	require.NoError(t, err)
@@ -223,7 +223,7 @@ func TestCachedClient_ClearCache(t *testing.T) {
 	}
 	cachedClient := NewCachedClient(mockCli, time.Hour)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// Populate cache
@@ -262,7 +262,7 @@ func TestCachedClient_ClearExpired(t *testing.T) {
 	}
 	cachedClient := NewCachedClient(mockCli, time.Millisecond)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// Populate cache
@@ -303,7 +303,7 @@ func TestCachedClient_GetCacheStats(t *testing.T) {
 	mockCli.returnRates = expectedRates
 	mockCli.returnError = nil
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// Populate cache
@@ -339,7 +339,7 @@ func TestCachedClient_NoTTL(t *testing.T) {
 	// TTL = 0 means no expiration
 	cachedClient := NewCachedClient(mockCli, 0)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opts := []option.RatesOption{option.WithDate(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC))}
 
 	// First call should hit the API

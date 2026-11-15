@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -13,6 +15,7 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoapi"
 	"github.com/mymmrac/telego/telegohandler"
+	log "github.com/obalunenko/logger"
 	"github.com/stretchr/testify/require"
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/service"
@@ -22,6 +25,8 @@ const (
 	testToken  = "123456:abcdefghijklmnopqrstuvwxyz012345678"
 	testChatID = int64(100)
 	testUserID = int64(100)
+	// testDay is a day of month as the day keyboard sends it.
+	testDay = "08"
 )
 
 // apiCall is one Bot API call received by fakeTelegram.
@@ -36,6 +41,8 @@ type fakeTelegram struct {
 	calls []apiCall
 	// sendErrors makes sendMessage to these chats fail with the given Bot API error code.
 	sendErrors map[int64]int
+	// methodErrors makes these methods fail with the given Bot API error code.
+	methodErrors map[string]int
 }
 
 func (f *fakeTelegram) Call(ctx context.Context, url string, data *telegoapi.RequestData) (*telegoapi.Response, error) {
@@ -51,6 +58,10 @@ func (f *fakeTelegram) Call(ctx context.Context, url string, data *telegoapi.Req
 	// Each sent message gets its call number as its ID, so messages can be told apart.
 	messageID := len(f.calls)
 	f.mu.Unlock()
+
+	if code, ok := f.methodErrors[method]; ok {
+		return &telegoapi.Response{Ok: false, Error: &telegoapi.Error{ErrorCode: code, Description: "Bad Request"}}, nil
+	}
 
 	switch method {
 	case "getMe":
@@ -158,6 +169,20 @@ func (f *fakeTelegram) callsOf(method string) []apiCall {
 	return out
 }
 
+// methods returns the methods of all recorded calls, in call order.
+func (f *fakeTelegram) methods() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	out := make([]string, 0, len(f.calls))
+
+	for _, c := range f.calls {
+		out = append(out, c.method)
+	}
+
+	return out
+}
+
 // texts returns the texts of all sent messages.
 func (f *fakeTelegram) texts() []string {
 	var out []string
@@ -184,8 +209,8 @@ func (f *fakeTelegram) lastKeyboardMessageID() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	for i := len(f.calls) - 1; i >= 0; i-- {
-		if f.calls[i].method == "sendMessage" && f.calls[i].params["reply_markup"] != nil {
+	for i, v := range slices.Backward(f.calls) {
+		if v.method == "sendMessage" && v.params["reply_markup"] != nil {
 			return i + 1
 		}
 	}
@@ -350,4 +375,82 @@ func (h *botHarness) pressOn(messageID int, data string) {
 		Message: &telego.Message{MessageID: messageID, Chat: telego.Chat{ID: testChatID, Type: telego.ChatTypePrivate}},
 		Data:    data,
 	}})
+}
+
+// logEntry is one line logged through a recordingLogger.
+type logEntry struct {
+	level  string
+	msg    string
+	err    error
+	fields map[string]any
+}
+
+// logRecorder collects the lines of all loggers derived from one recordingLogger.
+type logRecorder struct {
+	mu    sync.Mutex
+	lines []logEntry
+}
+
+// entries returns the recorded lines with message msg.
+func (r *logRecorder) entries(msg string) []logEntry {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var out []logEntry
+
+	for _, e := range r.lines {
+		if e.msg == msg {
+			out = append(out, e)
+		}
+	}
+
+	return out
+}
+
+// recordingLogger is a log.Logger that records lines instead of writing them.
+// Tests put it into the context: log.Init would replace the package-global logger.
+type recordingLogger struct {
+	rec    *logRecorder
+	err    error
+	fields map[string]any
+}
+
+// newLogContext returns t.Context() with a logger that records into the returned recorder.
+func newLogContext(t *testing.T) (context.Context, *logRecorder) {
+	rec := &logRecorder{}
+
+	return log.ContextWithLogger(t.Context(), recordingLogger{rec: rec}), rec
+}
+
+func (l recordingLogger) record(level, msg string) {
+	l.rec.mu.Lock()
+	defer l.rec.mu.Unlock()
+
+	l.rec.lines = append(l.rec.lines, logEntry{level: level, msg: msg, err: l.err, fields: l.fields})
+}
+
+func (l recordingLogger) Debug(msg string) { l.record("debug", msg) }
+func (l recordingLogger) Info(msg string)  { l.record("info", msg) }
+func (l recordingLogger) Warn(msg string)  { l.record("warn", msg) }
+func (l recordingLogger) Error(msg string) { l.record("error", msg) }
+func (l recordingLogger) Fatal(msg string) { l.record("fatal", msg) }
+
+func (l recordingLogger) WithError(err error) log.Logger {
+	l.err = err
+
+	return l
+}
+
+func (l recordingLogger) WithField(key string, value any) log.Logger {
+	return l.WithFields(log.Fields{key: value})
+}
+
+func (l recordingLogger) WithFields(fields log.Fields) log.Logger {
+	merged := make(map[string]any, len(l.fields)+len(fields))
+	maps.Copy(merged, l.fields)
+	maps.Copy(merged, fields)
+
+	l.fields = merged
+
+	return l
 }

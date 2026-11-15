@@ -278,11 +278,9 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 
 	for i, p := range req.Income {
 		r := ConvertRequest{
-			DateRequest: DateRequest{
-				Year:  p.Year,
-				Month: p.Month,
-				Day:   p.Day,
-			},
+			Year:         p.Year,
+			Month:        p.Month,
+			Day:          p.Day,
 			CurrencyFrom: p.Currency,
 			CurrencyTo:   currencies.GEL,
 			Amount:       p.Amount,
