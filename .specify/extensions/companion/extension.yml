@@ -1,0 +1,141 @@
+schema_version: "1.0"
+
+extension:
+  id: companion
+  name: "SpecKit Companion"
+  version: "0.27.0"
+  description: "Records your spec-kit runs live: status, resume, and a health check for what actually happened."
+  author: alfredoperez
+  repository: https://github.com/alfredoperez/speckit-companion
+  homepage: https://github.com/alfredoperez/speckit-companion/tree/main/apps/speckit-extension
+  license: MIT
+
+requires:
+  # The floor is the highest minimum among the CLI features this extension uses:
+  #   workflow engine (run/resume, command/gate/switch steps): 0.9.5
+  #   `specify init --extension`: 0.15.2
+  #   template stack and resolver: 0.16.2
+  #   `capture`: 1.2.1
+  #   top-level `defaults`: 1.2.5
+  # `.dev0` keeps a dev build of that line installable; dev builds sort below the final.
+  speckit_version: ">=1.2.5.dev0"
+  tools:
+    - name: python3
+      required: false
+
+provides:
+  commands:
+    - name: speckit.companion.before-step
+      file: commands/speckit.companion.before-step.md
+      description: "Capture a spec-kit step's start into .spec-context.json for the Companion GUI"
+    - name: speckit.companion.after-specify
+      file: commands/speckit.companion.after-specify.md
+      description: "Capture the current spec-kit step into .spec-context.json for the Companion GUI"
+    - name: speckit.companion.after-plan
+      file: commands/speckit.companion.after-plan.md
+      description: "Record the plan finish in .spec-context.json for the Companion GUI"
+    - name: speckit.companion.after-tasks
+      file: commands/speckit.companion.after-tasks.md
+      description: "Record the tasks finish in .spec-context.json for the Companion GUI"
+    - name: speckit.companion.after-implement
+      file: commands/speckit.companion.after-implement.md
+      description: "Record implement progress from tasks.md in .spec-context.json for the Companion GUI"
+    - name: speckit.companion.before-converge
+      file: commands/speckit.companion.before-converge.md
+      description: "Record the converge start in .spec-context.json for the Companion GUI"
+    - name: speckit.companion.after-converge
+      file: commands/speckit.companion.after-converge.md
+      description: "Record the converge finish in .spec-context.json for the Companion GUI"
+    - name: speckit.companion.status
+      file: commands/speckit.companion.status.md
+      description: "Report where the active spec stands — current step, status, recorded decisions, and the next action — from .spec-context.json"
+    - name: speckit.companion.resume
+      file: commands/speckit.companion.resume.md
+      description: "Continue the spec-driven pipeline from the last completed step, carrying recorded decisions into scope, and dispatch the next command"
+    - name: speckit.companion.specify
+      file: commands/speckit.companion.specify.md
+      description: "Companion specify — a feature spec with prioritized user stories"
+    - name: speckit.companion.plan
+      file: commands/speckit.companion.plan.md
+      description: "Companion plan — implementation plan with research & design artifacts"
+    - name: speckit.companion.tasks
+      file: commands/speckit.companion.tasks.md
+      description: "Companion tasks — user-story phased task list"
+    - name: speckit.companion.implement
+      file: commands/speckit.companion.implement.md
+      description: "Companion implement — execute tasks.md in dependency order, then converge"
+    - name: speckit.companion.classify
+      file: commands/speckit.companion.classify.md
+      description: "Classify the change size (simple | normal | oversized) so the Companion workflow can right-size the pipeline"
+    - name: speckit.companion.mark-complete
+      file: commands/speckit.companion.mark-complete.md
+      description: "Mark the active spec completed by hand (writes status: completed)"
+    - name: speckit.companion.auto
+      file: commands/speckit.companion.auto.md
+      description: "Companion auto — run the whole pipeline hands-off (specify → plan → tasks → implement → converge), no pauses"
+    - name: speckit.companion.doctor
+      file: commands/speckit.companion.doctor.md
+      description: "Report on a spec's run health — unfinished steps, unjournaled tasks, step bleed, a step that closed having verified nothing, a step that closed without the file it promised, and why completion did not land (read-only, retroactive, never halts)"
+    - name: speckit.companion.on-prompt
+      file: commands/speckit.companion.on-prompt.md
+      description: "Record a step's start from spec-kit's prompt-submitted event"
+    - name: speckit.companion.on-stop
+      file: commands/speckit.companion.on-stop.md
+      description: "Record a step's finish from spec-kit's turn-ended event"
+
+hooks:
+  before_specify:
+    command: speckit.companion.before-step
+    optional: false
+    description: "Save the specify start time until its folder exists"
+  before_plan:
+    command: speckit.companion.before-step
+    optional: false
+    description: "Record the plan start"
+  before_tasks:
+    command: speckit.companion.before-step
+    optional: false
+    description: "Record the tasks start"
+  before_implement:
+    command: speckit.companion.before-step
+    optional: false
+    description: "Record the implement start"
+  after_specify:
+    command: speckit.companion.after-specify
+    optional: false
+    description: "Record the specify start and finish"
+  after_plan:
+    command: speckit.companion.after-plan
+    optional: false
+    description: "Record the plan finish"
+  after_tasks:
+    command: speckit.companion.after-tasks
+    optional: false
+    description: "Record the tasks finish"
+  after_implement:
+    command: speckit.companion.after-implement
+    optional: false
+    description: "Sync implement progress from tasks.md"
+  before_converge:
+    command: speckit.companion.before-converge
+    optional: false
+    description: "Record the converge start"
+  after_converge:
+    command: speckit.companion.after-converge
+    optional: false
+    description: "Record the converge finish"
+
+events:
+  user_prompt_submit:
+    command: speckit.companion.on-prompt
+    timeout: 10
+  stop:
+    command: speckit.companion.on-stop
+    timeout: 10
+
+# Catalog `category` (process) and `effect` (read-write) live only in the
+# community catalog entry — there is no field for them here.
+tags:
+  - "vscode"
+  - "progress"
+  - "hooks"

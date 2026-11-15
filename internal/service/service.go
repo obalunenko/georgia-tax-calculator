@@ -9,7 +9,6 @@ import (
 
 	"github.com/obalunenko/georgia-tax-calculator/internal/converter"
 	"github.com/obalunenko/georgia-tax-calculator/internal/models"
-	"github.com/obalunenko/georgia-tax-calculator/internal/spinner"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -21,25 +20,31 @@ const (
 	layout = "2006-01-02"
 )
 
+// DeclarationsURL is the Revenue Service portal where tax declarations are filed.
+const DeclarationsURL = "https://decl.rs.ge/decls.aspx"
+
 // CalculateRequest model.
 type CalculateRequest struct {
 	Income     []Income
-	TaxType    string `survey:"tax_type"`
-	YearIncome string `survey:"year_income"`
+	TaxType    string
+	YearIncome string
 }
 
 // Income model.
 type Income struct {
 	DateRequest
-	Currency string `survey:"currency"`
-	Amount   string `survey:"amount"`
+	Currency string
+	Amount   string
+	// Type is the income type name (see taxes.ParseIncomeType): required for the Small Business categories,
+	// ignored for Employment.
+	Type string
 }
 
 // DateRequest model.
 type DateRequest struct {
-	Year  string `survey:"year"`
-	Month string `survey:"month"`
-	Day   string `survey:"day"`
+	Year  string
+	Month string
+	Day   string
 }
 
 func (d DateRequest) String() string {
@@ -50,9 +55,13 @@ func (d DateRequest) String() string {
 type CalculateResponse struct {
 	TaxRate              taxes.TaxRate
 	YearIncome           models.Money
-	Incomes              []ConvertResponse
+	Incomes              []IncomeResponse
 	TotalIncomeConverted models.Money
 	Tax                  models.Money
+	// LimitWarning is set when the Small Business turnover limit is exceeded.
+	LimitWarning *LimitWarning
+	// Declaration holds the Small Business declaration field values; nil for other categories.
+	Declaration *Declaration
 }
 
 func (c CalculateResponse) String() string {
@@ -90,15 +99,43 @@ func (c CalculateResponse) String() string {
 
 	resp.WriteString(fmt.Sprintf("Taxes: %s", c.Tax.String()))
 
+	if c.Declaration != nil {
+		resp.WriteString("\n\n")
+		resp.WriteString(c.Declaration.String())
+	}
+
+	if c.LimitWarning != nil {
+		resp.WriteString("\n⚠️ ")
+		resp.WriteString(c.LimitWarning.String())
+	}
+
 	return resp.String()
+}
+
+// IncomeResponse is one converted income of a calculation.
+type IncomeResponse struct {
+	ConvertResponse
+	// Type is the income type; zero for Employment.
+	Type taxes.IncomeType
+}
+
+// String returns the converted income lines, with a "Type:" line when the income has a type.
+func (r IncomeResponse) String() string {
+	resp := r.ConvertResponse.String()
+
+	if r.Type.Valid() {
+		resp += fmt.Sprintf("\nType: %s", r.Type.Label())
+	}
+
+	return resp
 }
 
 // ConvertRequest model.
 type ConvertRequest struct {
 	DateRequest
-	CurrencyFrom string `survey:"currency_from"`
-	CurrencyTo   string `survey:"currency_to"`
-	Amount       string `survey:"amount"`
+	CurrencyFrom string
+	CurrencyTo   string
+	Amount       string
 }
 
 // ConvertResponse model.
@@ -152,32 +189,29 @@ func New() Service {
 }
 
 func (s service) Convert(ctx context.Context, p ConvertRequest) (*ConvertResponse, error) {
-	name := fmt.Sprintf("Converting %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
-	finalMsg := fmt.Sprintf("Converted %s%s to %s", p.Amount, p.CurrencyFrom, p.CurrencyTo)
-
-	stop := spinner.Start(name, finalMsg)
-	defer stop()
-
 	year, err := dateutils.ParseYear(p.Year)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse year: %w", err)
 	}
 
 	month, err := dateutils.ParseMonth(p.Month)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse month: %w", err)
 	}
 
 	day, err := dateutils.ParseDay(p.Day)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse day: %w", err)
 	}
 
-	date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-
-	mv, err := moneyutils.Parse(p.Amount)
+	date, err := newDate(year, month, day)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check date: %w", err)
+	}
+
+	mv, err := ParseAmount(p.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse amount: %w", err)
 	}
 
 	amount := models.NewMoney(mv, p.CurrencyFrom)
@@ -213,25 +247,40 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 		return nil, fmt.Errorf("failed to get tax rate: %w", err)
 	}
 
-	yi, err := moneyutils.Parse(req.YearIncome)
+	yi, err := ParseYearIncome(req.YearIncome)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse year income: %w", err)
 	}
 
-	var (
-		inc float64
-		txs float64
-	)
+	// GEL has two decimal places, like the converted incomes, so the Year Income line,
+	// the limit check, and declaration field (15) all use the same amount.
+	yi = moneyutils.Round(yi, declarationPlaces)
 
-	incomes := make([]ConvertResponse, 0, len(req.Income))
+	// Checked before any conversion, so an invalid request makes no NBG calls.
+	if err = checkSingleYear(req.Income); err != nil {
+		return nil, fmt.Errorf("failed to check incomes: %w", err)
+	}
 
-	for _, p := range req.Income {
+	if tt.IsSmallBusiness() {
+		if err = checkSingleMonth(req.Income); err != nil {
+			return nil, fmt.Errorf("failed to check incomes: %w", err)
+		}
+	}
+
+	incomeTypes, err := checkIncomeTypes(tt, req.Income)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check incomes: %w", err)
+	}
+
+	var inc float64
+
+	incomes := make([]IncomeResponse, 0, len(req.Income))
+
+	for i, p := range req.Income {
 		r := ConvertRequest{
-			DateRequest: DateRequest{
-				Year:  p.Year,
-				Month: p.Month,
-				Day:   p.Day,
-			},
+			Year:         p.Year,
+			Month:        p.Month,
+			Day:          p.Day,
 			CurrencyFrom: p.Currency,
 			CurrencyTo:   currencies.GEL,
 			Amount:       p.Amount,
@@ -242,30 +291,32 @@ func (s service) Calculate(ctx context.Context, req CalculateRequest) (*Calculat
 			return nil, fmt.Errorf("failed to convert income: %w", err)
 		}
 
-		incomes = append(incomes, ConvertResponse{
-			Date:      convertResp.Date,
-			Amount:    convertResp.Amount,
-			Converted: convertResp.Converted,
-			Rate:      convertResp.Rate,
-		})
-
-		tax, err := taxes.Calc(convertResp.Converted, tt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate taxes: %w", err)
-		}
+		incomes = append(incomes, IncomeResponse{ConvertResponse: *convertResp, Type: incomeTypes[i]})
 
 		yi = moneyutils.Add(yi, convertResp.Converted.Amount)
 		inc = moneyutils.Add(inc, convertResp.Converted.Amount)
-		txs = moneyutils.Add(txs, tax.Money.Amount)
 	}
 
-	return &CalculateResponse{
+	// The tax is calculated once on the total, as the declaration does.
+	tax, err := taxes.Calc(models.NewMoney(inc, currencies.GEL), tt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate taxes: %w", err)
+	}
+
+	resp := &CalculateResponse{
 		TaxRate:              tr,
 		YearIncome:           models.NewMoney(yi, currencies.GEL),
 		Incomes:              incomes,
 		TotalIncomeConverted: models.NewMoney(inc, currencies.GEL),
-		Tax:                  models.NewMoney(txs, currencies.GEL),
-	}, nil
+		Tax:                  tax.Money,
+		LimitWarning:         newLimitWarning(tt, yi),
+	}
+
+	if tt.IsSmallBusiness() {
+		resp.Declaration = newDeclaration(tr, yi, inc, incomes)
+	}
+
+	return resp, nil
 }
 
 type convertParams struct {

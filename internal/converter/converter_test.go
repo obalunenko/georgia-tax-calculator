@@ -19,18 +19,32 @@ import (
 )
 
 func newMockRatesClient(t testing.TB) nbggovge.Client {
-	b, err := os.ReadFile(filepath.Join("testdata", "2023-09-09-all.json"))
-	require.NoError(t, err)
+	var data []nbggovge.Rates
 
-	var resp []nbggovge.Rates
+	for _, name := range []string{"2022-11-25-all.json", "2023-09-09-all.json"} {
+		b, err := os.ReadFile(filepath.Join("testdata", name))
+		require.NoError(t, err)
 
-	require.NoError(t, json.Unmarshal(b, &resp))
+		var resp []nbggovge.Rates
 
-	return mock.NewClient(resp)
+		require.NoError(t, json.Unmarshal(b, &resp))
+
+		data = append(data, resp...)
+	}
+
+	return mock.NewClient(data)
+}
+
+func errorIs(target error) assert.ErrorAssertionFunc {
+	return func(t assert.TestingT, err error, msgAndArgs ...any) bool {
+		return assert.ErrorIs(t, err, target, msgAndArgs...)
+	}
 }
 
 func TestConverter_Convert(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
+
+	rateDate := time.Date(2023, time.September, 9, 0, 0, 0, 0, time.UTC)
 
 	type fields struct {
 		client nbggovge.Client
@@ -62,7 +76,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.EUR,
 				},
 				to:   currencies.GEL,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -85,7 +99,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.EUR,
 				},
 				to:   currencies.EUR,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -108,7 +122,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.EUR,
 				},
 				to:   currencies.GBP,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -131,7 +145,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: "",
 				},
 				to:   currencies.GBP,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want:    Response{},
 			wantErr: assert.Error,
@@ -148,7 +162,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.EUR,
 				},
 				to:   "",
-				date: time.Now(),
+				date: rateDate,
 			},
 			want:    Response{},
 			wantErr: assert.Error,
@@ -165,7 +179,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.GEL,
 				},
 				to:   currencies.GEL,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -188,7 +202,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.PLN,
 				},
 				to:   currencies.GEL,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -211,7 +225,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.BYN,
 				},
 				to:   currencies.GEL,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -234,7 +248,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.BYN,
 				},
 				to:   currencies.PLN,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -257,7 +271,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.PLN,
 				},
 				to:   currencies.BYN,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -280,7 +294,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.RUB,
 				},
 				to:   currencies.EUR,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -303,7 +317,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.EUR,
 				},
 				to:   currencies.RUB,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -326,7 +340,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.RUB,
 				},
 				to:   currencies.GEL,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -349,7 +363,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.RUB,
 				},
 				to:   currencies.TMT,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -372,7 +386,7 @@ func TestConverter_Convert(t *testing.T) {
 					Currency: currencies.TMT,
 				},
 				to:   currencies.RUB,
-				date: time.Now(),
+				date: rateDate,
 			},
 			want: Response{
 				Money: models.Money{
@@ -382,6 +396,63 @@ func TestConverter_Convert(t *testing.T) {
 				Rate: 27.9518,
 			},
 			wantErr: assert.NoError,
+		},
+		{
+			name: "EUR - GEL uses the rate of the requested date",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   1_000,
+					Currency: currencies.EUR,
+				},
+				to:   currencies.GEL,
+				date: time.Date(2022, time.November, 25, 0, 0, 0, 0, time.UTC),
+			},
+			want: Response{
+				Money: models.Money{
+					Amount:   2_821.8,
+					Currency: currencies.GEL,
+				},
+				Rate: 2.8218,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "no rates for the date - error",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   1_000,
+					Currency: currencies.EUR,
+				},
+				to:   currencies.GEL,
+				date: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+			want:    Response{},
+			wantErr: errorIs(nbggovge.ErrCodeNotFound),
+		},
+		{
+			name: "unknown currency - error",
+			fields: fields{
+				client: newMockRatesClient(t),
+			},
+			args: args{
+				ctx: ctx,
+				m: models.Money{
+					Amount:   1_000,
+					Currency: "NOT_EXIST",
+				},
+				to:   currencies.GEL,
+				date: rateDate,
+			},
+			want:    Response{},
+			wantErr: errorIs(nbggovge.ErrCodeNotFound),
 		},
 	}
 

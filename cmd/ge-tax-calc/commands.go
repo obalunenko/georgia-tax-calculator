@@ -15,11 +15,15 @@ func commands() []*cli.Command {
 			Name:   cmdRun,
 			Usage:  "Runs taxes calculations",
 			Action: menuCalcTaxes,
+			Before: printHeader,
+			After:  onExit,
 		},
 		{
 			Name:   cmdConvert,
 			Usage:  "Runs currency converter",
 			Action: menuConvert,
+			Before: printHeader,
+			After:  onExit,
 		},
 	}
 

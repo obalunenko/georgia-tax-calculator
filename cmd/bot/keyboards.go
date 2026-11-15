@@ -1,13 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/mymmrac/telego"
 
+	"github.com/obalunenko/georgia-tax-calculator/internal/service"
 	"github.com/obalunenko/georgia-tax-calculator/internal/taxes"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/dateutils"
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -20,17 +23,35 @@ const (
 	confirmNo      = "no"
 )
 
-// buildInlineKeyboard builds an inline keyboard with a list of string options.
+// errNoKeyboard returned when the current step expects text instead of a button.
+var errNoKeyboard = errors.New("step has no keyboard")
+
+// keyboardOption is one inline keyboard button: the text shown and the value sent back.
+type keyboardOption struct {
+	text  string
+	value string
+}
+
+func optionsFromValues(values []string) []keyboardOption {
+	opts := make([]keyboardOption, len(values))
+	for i, v := range values {
+		opts[i] = keyboardOption{text: v, value: v}
+	}
+
+	return opts
+}
+
+// buildInlineKeyboard builds an inline keyboard for step.
 // Items are laid out in rows of maxPerRow columns.
-func buildInlineKeyboard(items []string, maxPerRow int) telego.InlineKeyboardMarkup {
+func buildInlineKeyboard(step string, opts []keyboardOption, maxPerRow int) telego.InlineKeyboardMarkup {
 	var rows [][]telego.InlineKeyboardButton
 
 	var row []telego.InlineKeyboardButton
 
-	for _, item := range items {
+	for _, opt := range opts {
 		row = append(row, telego.InlineKeyboardButton{
-			Text:         item,
-			CallbackData: callbackPrefix + item,
+			Text:         opt.text,
+			CallbackData: callbackPrefix + step + ":" + opt.value,
 		})
 
 		if len(row) == maxPerRow {
@@ -46,108 +67,194 @@ func buildInlineKeyboard(items []string, maxPerRow int) telego.InlineKeyboardMar
 	return telego.InlineKeyboardMarkup{InlineKeyboard: rows}
 }
 
-// buildConfirmKeyboard builds a Yes/No inline keyboard.
-func buildConfirmKeyboard() telego.InlineKeyboardMarkup {
-	return telego.InlineKeyboardMarkup{
-		InlineKeyboard: [][]telego.InlineKeyboardButton{
-			{
-				{Text: "✅ Yes", CallbackData: callbackPrefix + confirmYes},
-				{Text: "❌ No", CallbackData: callbackPrefix + confirmNo},
-			},
-		},
+// parseCallbackData splits callback data built by buildInlineKeyboard into step and value.
+func parseCallbackData(data string) (step, value string, ok bool) {
+	rest, ok := strings.CutPrefix(data, callbackPrefix)
+	if !ok {
+		return "", "", false
+	}
+
+	return strings.Cut(rest, ":")
+}
+
+// callbackValue returns the value of callback data when it was sent by the keyboard of the current step
+// and is one of the options this step offers now. Buttons of old keyboards are rejected this way.
+func callbackValue(sess *session, data string) (value string, ok bool, err error) {
+	step, value, ok := parseCallbackData(data)
+	if !ok || step == stepWithoutKeyboard || step != sess.stepID() {
+		return "", false, nil
+	}
+
+	opts, _, err := stepOptions(sess)
+	if err != nil {
+		return "", false, err
+	}
+
+	ok = slices.ContainsFunc(opts, func(o keyboardOption) bool {
+		return o.value == value
+	})
+
+	return value, ok, nil
+}
+
+// stepKeyboard builds the keyboard of the current step.
+func stepKeyboard(sess *session) (*telego.InlineKeyboardMarkup, error) {
+	opts, maxPerRow, err := stepOptions(sess)
+	if err != nil {
+		return nil, err
+	}
+
+	kb := buildInlineKeyboard(sess.stepID(), opts, maxPerRow)
+
+	return &kb, nil
+}
+
+// stepOptions returns the buttons of the current step and how many fit in one row.
+func stepOptions(sess *session) ([]keyboardOption, int, error) {
+	const (
+		oneColumn      = 1
+		confirmPerRow  = 2
+		defaultPerRow  = 4
+		weekDaysPerRow = 7
+	)
+
+	switch sess.stepID() {
+	case stepCalcTaxType:
+		opts, err := taxTypeOptions()
+
+		return opts, oneColumn, err
+	case stepCalcYear:
+		// One calculation covers one calendar year, fixed by the first income.
+		if len(sess.incomes) > 0 {
+			return optionsFromValues([]string{sess.incomes[0].Year}), defaultPerRow, nil
+		}
+
+		return yearOptions(), defaultPerRow, nil
+	case stepConvertYear:
+		return yearOptions(), defaultPerRow, nil
+	case stepCalcMonth:
+		// The Small Business declaration is monthly, so its calculation keeps the first income's month.
+		if isSmallBusiness(sess.calcReq.TaxType) && len(sess.incomes) > 0 {
+			return optionsFromValues([]string{sess.incomes[0].Month}), defaultPerRow, nil
+		}
+
+		opts, err := monthOptions(sess.currentInc.Year)
+
+		return opts, defaultPerRow, err
+	case stepConvertMonth:
+		opts, err := monthOptions(sess.convertReq.Year)
+
+		return opts, defaultPerRow, err
+	case stepCalcDay:
+		opts, err := dayOptions(sess.currentInc.Year, sess.currentInc.Month)
+
+		return opts, weekDaysPerRow, err
+	case stepConvertDay:
+		opts, err := dayOptions(sess.convertReq.Year, sess.convertReq.Month)
+
+		return opts, weekDaysPerRow, err
+	case stepCalcCurrency, stepConvertFrom, stepConvertTo:
+		return currencyOptions(), defaultPerRow, nil
+	case stepCalcIncomeType:
+		return incomeTypeOptions(), oneColumn, nil
+	case stepCalcAddMore, stepCalcConfirm, stepConvertConfirm:
+		return confirmOptions(), confirmPerRow, nil
+	default:
+		return nil, 0, errNoKeyboard
 	}
 }
 
-// taxTypeKeyboard builds the keyboard for tax type selection.
-func taxTypeKeyboard() (telego.InlineKeyboardMarkup, error) {
+// confirmOptions returns Yes/No buttons.
+func confirmOptions() []keyboardOption {
+	return []keyboardOption{
+		{text: "✅ Yes", value: confirmYes},
+		{text: "❌ No", value: confirmNo},
+	}
+}
+
+// taxTypeOptions returns tax type buttons; the text shows the rate, the value is the tax type name.
+func taxTypeOptions() ([]keyboardOption, error) {
 	rates, err := taxes.AllTaxRates()
 	if err != nil {
-		return telego.InlineKeyboardMarkup{}, fmt.Errorf("get tax rates: %w", err)
+		return nil, fmt.Errorf("get tax rates: %w", err)
 	}
 
 	sort.Slice(rates, func(i, j int) bool {
 		return rates[i].Type > rates[j].Type
 	})
 
-	const toPercentage float64 = 100
-
-	items := make([]string, len(rates))
+	opts := make([]keyboardOption, len(rates))
 	for i, r := range rates {
-		pct := moneyutils.Multiply(r.Rate, toPercentage)
-		items[i] = fmt.Sprintf("%s (%s%%)", r.Type.String(), moneyutils.ToString(pct))
-	}
-
-	return buildInlineKeyboard(items, 1), nil
-}
-
-// taxTypeFromCallback extracts the tax type string from an item string like "Small Business (1%)".
-func taxTypeFromItem(item string) string {
-	// The item is in the format "TaxType (X%)" - we need just the type name.
-	for _, tt := range taxes.AllTaxTypes() {
-		if len(item) >= len(tt.String()) && item[:len(tt.String())] == tt.String() {
-			return tt.String()
+		opts[i] = keyboardOption{
+			text:  fmt.Sprintf("%s (%s%%)", r.Type.String(), moneyutils.ToString(r.Percent())),
+			value: r.Type.String(),
 		}
 	}
 
-	return item
+	return opts, nil
 }
 
-// yearKeyboard builds the year selection keyboard.
-func yearKeyboard() telego.InlineKeyboardMarkup {
-	const (
-		begin     = 2016
-		maxPerRow = 4
-	)
-
-	now := time.Now()
+// yearOptions returns years from the current one down to 2016.
+func yearOptions() []keyboardOption {
+	now := service.Now()
 	var years []string
 
-	for i := now.Year(); i >= begin; i-- {
+	for i := now.Year(); i >= service.FirstYear; i-- {
 		years = append(years, strconv.Itoa(i))
 	}
 
-	return buildInlineKeyboard(years, maxPerRow)
+	return optionsFromValues(years)
 }
 
-// monthKeyboard builds the month selection keyboard for the given year.
-func monthKeyboard(year string) (telego.InlineKeyboardMarkup, error) {
+// monthOptions returns months of the given year up to today.
+func monthOptions(year string) ([]keyboardOption, error) {
 	y, err := dateutils.ParseYear(year)
 	if err != nil {
-		return telego.InlineKeyboardMarkup{}, fmt.Errorf("parse year: %w", err)
+		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
-	months := dateutils.GetMonthsInYearTillDate(y, time.Now())
-
-	const maxPerRow = 4
-
-	return buildInlineKeyboard(months, maxPerRow), nil
+	return optionsFromValues(dateutils.GetMonthsInYearTillDate(y, service.Now())), nil
 }
 
-// dayKeyboard builds the day selection keyboard for the given year and month.
-func dayKeyboard(year, month string) (telego.InlineKeyboardMarkup, error) {
+// dayOptions returns days of the given year and month up to today.
+func dayOptions(year, month string) ([]keyboardOption, error) {
 	y, err := dateutils.ParseYear(year)
 	if err != nil {
-		return telego.InlineKeyboardMarkup{}, fmt.Errorf("parse year: %w", err)
+		return nil, fmt.Errorf("parse year: %w", err)
 	}
 
 	m, err := dateutils.ParseMonth(month)
 	if err != nil {
-		return telego.InlineKeyboardMarkup{}, fmt.Errorf("parse month: %w", err)
+		return nil, fmt.Errorf("parse month: %w", err)
 	}
 
-	days := dateutils.DaysList(dateutils.DaysInMonthTillDate(m, y, time.Now()))
-
-	const maxPerRow = 7
-
-	return buildInlineKeyboard(days, maxPerRow), nil
+	return optionsFromValues(dateutils.DaysList(dateutils.DaysInMonthTillDate(m, y, service.Now()))), nil
 }
 
-// currencyKeyboard builds the currency selection keyboard.
-func currencyKeyboard() telego.InlineKeyboardMarkup {
+// incomeTypeOptions returns income type buttons in declaration field order; the text shows the field number,
+// the value is the income type name.
+func incomeTypeOptions() []keyboardOption {
+	types := taxes.AllIncomeTypes()
+
+	opts := make([]keyboardOption, len(types))
+	for i, t := range types {
+		opts[i] = keyboardOption{text: t.Label(), value: t.String()}
+	}
+
+	return opts
+}
+
+// isSmallBusiness reports whether taxType is declared on the Small Business monthly declaration.
+func isSmallBusiness(taxType string) bool {
+	tt, err := taxes.ParseTaxType(taxType)
+
+	return err == nil && tt.IsSmallBusiness()
+}
+
+// currencyOptions returns all supported currencies, sorted.
+func currencyOptions() []keyboardOption {
 	currs := currencies.All()
 	sort.Strings(currs)
 
-	const maxPerRow = 4
-
-	return buildInlineKeyboard(currs, maxPerRow)
+	return optionsFromValues(currs)
 }

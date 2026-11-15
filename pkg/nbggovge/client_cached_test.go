@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
 func TestNewCached(t *testing.T) {
@@ -46,4 +49,17 @@ func TestNewCachedWithHTTPClientAndTTL(t *testing.T) {
 	assert.Equal(t, ttl, client.ttl)
 	assert.NotNil(t, client.client)
 	assert.NotNil(t, client.cache)
+}
+
+func TestNew_HTTPTimeout(t *testing.T) {
+	c, ok := New().(client)
+	require.True(t, ok)
+
+	httpClient, ok := c.HTTPClient.(*http.Client)
+	require.True(t, ok)
+	assert.Equal(t, defaultHTTPTimeout, httpClient.Timeout)
+}
+
+func TestGELCodeMatchesGeneratedCode(t *testing.T) {
+	assert.Equal(t, currencies.GEL, GELCode)
 }

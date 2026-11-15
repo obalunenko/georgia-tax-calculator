@@ -33,20 +33,77 @@ Calculates income taxes in Georgia.
 
 2. Run `ge-tax-calc run` and follow instructions
 
-All available flags, commands and usage:
+Amounts are plain numbers with a dot as the decimal separator (e.g. `1500.50`).
+Income and conversion amounts must be greater than 0; income since the start
+of the year can be `0`. The CLI and the bot apply the same rules.
+
+Tax calculation rules:
+
+- Tax categories: Employment (20%), Small Business (1%), and Small Business
+  (over limit) (3%, formerly "Individual Entrepreneur").
+- One calculation covers one calendar year: after the first income, only its
+  year can be chosen.
+- The tax is calculated once on the total income converted to GEL.
+- For Small Business, if income since the start of the year plus the new
+  incomes exceeds 500 000 GEL, the result shows a warning; the tax is still
+  calculated at 1%. By the Tax Code (Article 90(2)), income from the start
+  of the month in which the limit is exceeded until the end of the year is
+  taxed at 3%; use Small Business (over limit) for those incomes. Rates and
+  the limit follow the Tax Code as of 30.10.2026. The warning also tells you to
+  recalculate the month's declaration with Small Business (over limit), where
+  field (16) is 3.00.
+
+Small Business monthly declaration (both Small Business categories):
+
+- One calculation covers one month, as the declaration does: after the first
+  income, only its month can be chosen. Run one calculation per month.
+- For income since the start of the year, enter field (15) of your previous
+  month's declaration (0 for your first declaration of the year). It is rounded
+  to the tetri.
+- Each income gets a type, which selects its declaration field:
+
+  | Type | Field | Covers |
+  |------|-------|--------|
+  | Cash | (18) | cash payments (cash register turnover) |
+  | POS terminal | (19) | card payments through a POS terminal |
+  | Non-cash | (20) | bank transfers and other non-cash payments (not POS) |
+  | Other | (21) | services not taxed at source, barter, and other income |
+  | Unpaid supply | (22) | goods or services supplied, not paid for this month |
+
+- The result lists the values to enter in the declaration, with two decimals.
+  The Telegram bot shows each value in monospace, so a tap copies it.
+
+  ```text
+  Declaration fields (Small Business monthly declaration):
+  (15) Income since the start of the year: 35942.00
+  (16) Tax rate, %: 1.00
+  (17) Taxable income for the month: 4150.00
+  (18) Cash: 3950.00
+  (19) POS terminal: 0.00
+  (20) Non-cash: 200.00
+  (21) Other: 0.00
+  (22) Unpaid supply: 0.00
+  ```
+
+Employment calculations do not ask for the type or limit the month, and show
+no declaration fields.
+
+All available flags, commands and usage (`ge-tax-calc --help`; the `VERSION`
+section with the build information of your binary is omitted here, see
+`ge-tax-calc --version`):
 
 ```text
 NAME:
    ge-tax-calc - A command line tool helper for preparing tax declaration in Georgia 
 
 USAGE:
-   ge-tax-calc [global options] command [command options] [arguments...]
+   ge-tax-calc [global options] [command [command options]]
 
 DESCRIPTION:
    Helper tool for preparing tax declarations in Georgia.
-   It get income amount in received currency, converts it to GEL according to
-   official rates on date of income and calculates tax amount
-   according to selected taxes category.
+   It gets the income amount in the received currency, converts it to GEL at the
+   official NBG rate on the date of income, and calculates the tax amount for the
+   selected tax category.
 
 AUTHOR:
    Oleg Balunenko <oleg.balunenko@gmail.com>
@@ -57,9 +114,12 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
+   --help, -h     show help
+   --version, -v  print the version
 ```
+
+An unknown command prints `No help topic for '<command>'` and exits with
+status 3.
 
 ### Demo
 
@@ -125,6 +185,10 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
    | `make bot-down` | Stop and remove the bot container |
    | `make bot-logs` | Follow the bot's log output |
 
+   The container runs as a non-root user (UID 10001). Known chats are stored in
+   the `bot-data` volume mounted at `/data`, so they survive `make bot-down` and
+   image rebuilds; `docker compose down -v` removes them.
+
 ### Bot Commands
 
 - `/start` — Welcome message and command overview
@@ -132,6 +196,13 @@ The `ge-bot` binary provides a Telegram bot interface with the same functionalit
 - `/convert` — Start the currency conversion flow (guided step-by-step)
 - `/cancel` — Cancel the current operation
 - `/help` — Show available commands
+
+The bot sets this list, except `/start`, as its Telegram command menu at every
+start, so Telegram suggests the commands when you type `/`. You do not need
+BotFather's `/setcommands`; a list set there is replaced on the next start.
+
+Only the buttons of the latest message are accepted: pressing a button from an
+earlier message replies with "Unexpected input" and keeps the current step.
 
 ## For Developers
 

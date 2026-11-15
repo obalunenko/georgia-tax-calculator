@@ -1,0 +1,32 @@
+schema_version: "1.0"
+
+extension:
+  id: feature-numbering
+  name: "Sequential Feature Naming"
+  version: "1.0.0"
+  description: "Assign new specs an exact NNN-feature-name directory before specify runs."
+  author: fallout-terminal
+  license: MIT
+
+requires:
+  speckit_version: ">=0.16.0"
+  tools:
+    - name: python3
+      required: true
+
+provides:
+  commands:
+    - name: speckit.feature-numbering.before-specify
+      file: commands/speckit.feature-numbering.before-specify.md
+      description: "Resolve the next exact NNN-feature-name directory for specify"
+
+hooks:
+  before_specify:
+    command: speckit.feature-numbering.before-specify
+    optional: false
+    priority: 5
+    description: "Bind specify to the next NNN-feature-name directory"
+
+tags:
+  - "spec-driven-development"
+  - "feature-numbering"

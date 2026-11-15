@@ -9,15 +9,15 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[taxTypeUnknown-0]
-	_ = x[TaxTypeIndividualEntrepreneur-1]
+	_ = x[TaxTypeSmallBusinessOverLimit-1]
 	_ = x[TaxTypeSmallBusiness-2]
 	_ = x[TaxTypeEmployment-3]
 	_ = x[taxTypeSentinel-4]
 }
 
-const _TaxType_name = "taxTypeUnknownIndividual EntrepreneurSmall BusinessEmploymenttaxTypeSentinel"
+const _TaxType_name = "taxTypeUnknownSmall Business (over limit)Small BusinessEmploymenttaxTypeSentinel"
 
-var _TaxType_index = [...]uint8{0, 14, 37, 51, 61, 76}
+var _TaxType_index = [...]uint8{0, 14, 41, 55, 65, 80}
 
 func (i TaxType) String() string {
 	idx := int(i) - 0

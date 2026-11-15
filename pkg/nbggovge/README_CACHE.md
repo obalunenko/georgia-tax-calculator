@@ -127,7 +127,7 @@ The cached client is thread-safe and can be used concurrently from multiple goro
   - Real-time trading: short TTL (minutes)
   - Daily reports: longer TTL (hours)
   - Historical analysis: no expiration (TTL = 0)
-- **Cache Cleanup**: Call `ClearExpired()` periodically in long-running applications
+- **Cache Cleanup**: Expired entries are removed whenever a new entry is stored; `ClearExpired()` removes them on demand
 
 ## Migration from Regular Client
 
@@ -145,7 +145,9 @@ All other code remains the same as the cached client implements the same `Client
 
 ## Implementation Details
 
-- Uses MD5 hashing for cache keys to ensure consistent key length
+- Cache keys are the date and the sorted currency codes (`2023-12-01:EUR,USD`), so different requests never share a key
 - Cache entries include timestamp for TTL calculations
+- Results are copied in and out of the cache, so changing a returned `Rates` does not change the cached one
 - Read-write mutex ensures thread safety without blocking reads
-- Expired entries can be manually cleared or will be overwritten when accessed
+- Expired entries are removed when a new entry is stored, can be cleared with `ClearExpired()`, or are refreshed when accessed
+- `New()` (and the `NewCached*` constructors without an `HTTPClient`) use an HTTP client with a 30-second timeout
