@@ -284,6 +284,8 @@ For running multiple bots from a single server, see [this](examples/multi_bot_we
 > It's as simple as `ngrok http 8080`.
 > Or follow [Telego + Ngrok example](examples/ngrok/main.go) using [ngrok/ngrok-go](https://github.com/ngrok/ngrok-go)
 > for most convenient bot testing.
+> Or, with nothing to install and no account, use [tunnl.gg](https://tunnl.gg) over SSH:
+> `ssh -t -R 80:localhost:8080 proxy.tunnl.gg`.
 
 > Tip: You may wish to use [Let's Encrypt](https://letsencrypt.org) in order to generate your free TLS certificate.
 
@@ -650,6 +652,6 @@ Telego is distributed under [MIT licence](LICENSE).
 
 [TelegramBotAPI]: https://core.telegram.org/bots/api
 
-[TelegramVersionBadge]: https://img.shields.io/static/v1?label=Supported%20Telegram%20Bot%20API&color=29a1d4&logo=telegram&message=v10.3
+[TelegramVersionBadge]: https://img.shields.io/static/v1?label=Supported%20Telegram%20Bot%20API&color=29a1d4&logo=telegram&message=v10.4
 
-[TelegramLastVersion]: https://core.telegram.org/bots/api#august-24-2026
+[TelegramLastVersion]: https://core.telegram.org/bots/api#november-9-2026
