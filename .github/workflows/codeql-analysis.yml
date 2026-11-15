@@ -66,3 +66,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.39.3
+        with:
+          # Keep the category independent of the Go version so a Go upgrade
+          # does not leave a stale code scanning configuration on master.
+          category: "/language:${{ matrix.language }}"
