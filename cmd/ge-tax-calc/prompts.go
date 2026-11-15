@@ -389,19 +389,32 @@ func taxTypeOptions() ([]option, error) {
 		return rates[i].Type > rates[j].Type
 	})
 
-	const toPercentage float64 = 100
-
 	opts := make([]option, len(rates))
 	for i := range rates {
-		m := moneyutils.Multiply(rates[i].Rate, toPercentage)
 		opts[i] = option{
 			Label:       rates[i].Type.String(),
 			Value:       rates[i].Type.String(),
-			Description: fmt.Sprintf("%s %%", moneyutils.ToString(m)),
+			Description: fmt.Sprintf("%s %%", moneyutils.ToString(rates[i].Percent())),
 		}
 	}
 
 	return opts, nil
+}
+
+// incomeTypeOptions returns the income types in declaration field order.
+func incomeTypeOptions() []option {
+	types := taxes.AllIncomeTypes()
+
+	opts := make([]option, len(types))
+	for i, t := range types {
+		opts[i] = option{
+			Label:       t.Label(),
+			Value:       t.String(),
+			Description: t.Description(),
+		}
+	}
+
+	return opts
 }
 
 func currencyOptions() []option {

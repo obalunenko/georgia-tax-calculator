@@ -60,6 +60,11 @@ func (i TaxType) Valid() bool {
 	return i > taxTypeUnknown && i < taxTypeSentinel
 }
 
+// IsSmallBusiness reports whether income of this tax type is declared on the Small Business monthly declaration.
+func (i TaxType) IsSmallBusiness() bool {
+	return i == TaxTypeSmallBusiness || i == TaxTypeSmallBusinessOverLimit
+}
+
 const (
 	onePercent     = 0.01
 	threePercents  = onePercent * 3
@@ -87,9 +92,14 @@ type TaxRate struct {
 }
 
 func (t TaxRate) String() string {
+	return fmt.Sprintf("%s %s %%", t.Type.String(), moneyutils.ToString(t.Percent()))
+}
+
+// Percent returns the rate in percent, e.g. 1 for the 1% rate.
+func (t TaxRate) Percent() float64 {
 	const toPercentage float64 = 100
 
-	return fmt.Sprintf("%s %s %%", t.Type.String(), moneyutils.ToString(moneyutils.Multiply(t.Rate, toPercentage)))
+	return moneyutils.Multiply(t.Rate, toPercentage)
 }
 
 func newTaxRate(tt TaxType, rate float64) TaxRate {

@@ -118,6 +118,24 @@ func TestCallbackValue(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			name:   "income type name",
+			sess:   calcSession(calcStepIncomeType, april2024),
+			data:   "cb:calc_inc_type:" + taxes.IncomeTypeUnpaidSupply.String(),
+			wantOK: true,
+		},
+		{
+			name:   "unknown income type",
+			sess:   calcSession(calcStepIncomeType, april2024),
+			data:   "cb:calc_inc_type:Card",
+			wantOK: false,
+		},
+		{
+			name:   "income type button at the currency step",
+			sess:   calcSession(calcStepCurrency, april2024),
+			data:   "cb:calc_inc_type:" + taxes.IncomeTypeCash.String(),
+			wantOK: false,
+		},
+		{
 			name:   "unknown currency",
 			sess:   convertSession(convertStepCurrencyFrom, service.ConvertRequest{}),
 			data:   "cb:conv_from:XXX",
@@ -173,6 +191,7 @@ func TestStepKeyboard(t *testing.T) {
 		calcSession(calcStepMonth, inc),
 		calcSession(calcStepDay, inc),
 		calcSession(calcStepCurrency, inc),
+		calcSession(calcStepIncomeType, inc),
 		calcSession(calcStepAddMore, inc),
 		calcSession(calcStepConfirm, inc),
 		convertSession(convertStepYear, req),
@@ -203,6 +222,53 @@ func TestStepKeyboard(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMonthKeyboardAfterFirstIncome(t *testing.T) {
+	first := service.Income{DateRequest: service.DateRequest{Year: "2024", Month: "February", Day: "01"}}
+
+	sessionFor := func(tt taxes.TaxType) *session {
+		sess := calcSession(calcStepMonth, service.Income{DateRequest: service.DateRequest{Year: "2024"}})
+		sess.calcReq.TaxType = tt.String()
+		sess.incomes = []service.Income{first}
+
+		return sess
+	}
+
+	sb := sessionFor(taxes.TaxTypeSmallBusiness)
+
+	opts, _, err := stepOptions(sb)
+	require.NoError(t, err)
+	assert.Equal(t, []keyboardOption{{text: "February", value: "February"}}, opts)
+
+	_, ok, err := callbackValue(sb, "cb:calc_month:March")
+	require.NoError(t, err)
+	assert.False(t, ok, "another month is rejected after the first Small Business income")
+
+	opts, _, err = stepOptions(sessionFor(taxes.TaxTypeEmployment))
+	require.NoError(t, err)
+	assert.Len(t, opts, 12, "Employment offers all months of the year")
+
+	sb.incomes = nil
+
+	opts, _, err = stepOptions(sb)
+	require.NoError(t, err)
+	assert.Len(t, opts, 12, "the first Small Business income can be in any month")
+}
+
+func TestIncomeTypeKeyboard(t *testing.T) {
+	kb, err := stepKeyboard(calcSession(calcStepIncomeType, service.Income{}))
+	require.NoError(t, err)
+
+	texts := make([]string, 0, len(kb.InlineKeyboard))
+
+	for _, row := range kb.InlineKeyboard {
+		require.Len(t, row, 1, "one income type per row")
+
+		texts = append(texts, row[0].Text)
+	}
+
+	assert.Equal(t, []string{"Cash (18)", "POS terminal (19)", "Non-cash (20)", "Other (21)", "Unpaid supply (22)"}, texts)
 }
 
 func TestStepKeyboardForTextStep(t *testing.T) {

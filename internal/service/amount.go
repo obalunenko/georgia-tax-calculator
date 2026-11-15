@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/obalunenko/georgia-tax-calculator/pkg/moneyutils"
@@ -50,6 +51,11 @@ func parseMoney(raw string) (float64, error) {
 	v, err := moneyutils.Parse(s)
 	if err != nil {
 		return 0, fmt.Errorf("%w: %q is not a number", ErrInvalidAmount, s)
+	}
+
+	// Values beyond float64, such as 1e400, become infinite and cannot be calculated with.
+	if math.IsInf(v, 0) {
+		return 0, fmt.Errorf("%w: %q is too large", ErrInvalidAmount, s)
 	}
 
 	return v, nil

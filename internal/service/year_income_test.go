@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -18,7 +19,8 @@ import (
 const wantWarning = "Year income 501000 GEL exceeds the Small Business limit of 500000 GEL by 1000 GEL. " +
 	"Under Article 90(2) of the Tax Code, income from the start of the month the limit was exceeded " +
 	"until the end of the year is taxed at 3%: calculate it with Small Business (over limit). " +
-	"The tax above is calculated at 1%."
+	"The tax above is calculated at 1%.\n" +
+	"For this month's declaration, recalculate with Small Business (over limit): field (16) is 3.00."
 
 func TestNewLimitWarning(t *testing.T) {
 	tests := []struct {
@@ -127,6 +129,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 				DateRequest: DateRequest{Year: "2025", Month: "June", Day: "08"},
 				Currency:    currencies.GEL,
 				Amount:      a,
+				Type:        nonCash,
 			})
 		}
 
@@ -190,4 +193,85 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 			assert.Equal(t, tt.wantWarning, strings.HasSuffix(out, "\n⚠️ "+wantWarning), out)
 		})
 	}
+}
+
+func TestCheckSingleMonth(t *testing.T) {
+	inc := func(month string) Income {
+		return Income{DateRequest: DateRequest{Year: "2026", Month: month, Day: "05"}}
+	}
+
+	tests := []struct {
+		name      string
+		incomes   []Income
+		wantErr   string
+		wantMonth bool
+	}{
+		{name: "no incomes"},
+		{name: "one month", incomes: []Income{inc("October"), inc("October")}},
+		{
+			name:      "two months",
+			incomes:   []Income{inc("September"), inc("October")},
+			wantErr:   "September and October: incomes span more than one calendar month",
+			wantMonth: true,
+		},
+		{name: "invalid month", incomes: []Income{inc("Smarch")}, wantErr: "income 1: Smarch: incorrect month"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkSingleMonth(tt.incomes)
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+
+				return
+			}
+
+			require.Error(t, err)
+			assert.Equal(t, tt.wantMonth, errors.Is(err, ErrIncomesSpanMonths))
+			assert.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
+}
+
+func TestCalculateMonthRule(t *testing.T) {
+	incomes := []Income{
+		gelIncome("September", "05", "100", nonCash),
+		gelIncome("October", "05", "100", nonCash),
+	}
+
+	t.Run("small business rejects two months before conversion", func(t *testing.T) {
+		s := service{c: failingConverter{t: t}}
+
+		_, err := s.Calculate(context.Background(), CalculateRequest{
+			Income:     incomes,
+			TaxType:    taxes.TaxTypeSmallBusinessOverLimit.String(),
+			YearIncome: "0",
+		})
+
+		require.ErrorIs(t, err, ErrIncomesSpanMonths)
+		assert.EqualError(t, err, "failed to check incomes: September and October: incomes span more than one calendar month")
+	})
+
+	t.Run("employment allows two months of one year", func(t *testing.T) {
+		s := service{c: mockConverter{}}
+
+		got, err := s.Calculate(context.Background(), CalculateRequest{
+			Income:     incomes,
+			TaxType:    taxes.TaxTypeEmployment.String(),
+			YearIncome: "0",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, models.NewMoney(40, currencies.GEL), got.Tax)
+
+		assert.Nil(t, got.Declaration)
+
+		for _, inc := range got.Incomes {
+			assert.False(t, inc.Type.Valid())
+		}
+
+		out := got.String()
+		assert.NotContains(t, out, "Type:")
+		assert.NotContains(t, out, DeclarationHeader)
+	})
 }

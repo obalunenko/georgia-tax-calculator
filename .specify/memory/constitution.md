@@ -1,12 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.5 → 1.0.6 (PATCH: factual correction)
-- Modified: VI. Test Behavior Changes (`cmd/bot` handlers are tested against
-  a fake Telegram API; only the process entry point is untested)
+- Version change: 1.0.6 → 1.0.7 (PATCH: factual correction)
+- Modified: VI. Test Behavior Changes (`pkg/moneyutils` is partly tested since
+  feature 007 added `pkg/moneyutils/moneyutils_test.go`; `internal/spinner`
+  stays untested; tests for both remain encouraged, not required)
+- Added sections: none; Removed sections: none
 - Templates: plan-template.md, tasks-template.md, spec-template.md — no
-  change needed; AGENTS.md — no change needed
+  change needed (tasks-template.md only says tests for `pkg/moneyutils` are
+  encouraged, which still holds); AGENTS.md — no change needed
 - Follow-up: none
-- Previous: 1.0.4 → 1.0.5 removed the bot binary name deviation;
+- Previous: 1.0.5 → 1.0.6 corrected VI (`cmd/bot` handlers are tested against
+  a fake Telegram API); 1.0.4 → 1.0.5 removed the bot binary name deviation;
   1.0.3 → 1.0.4 removed the spinner deviation and allowed the CLI
   to use `internal/spinner`; 1.0.2 → 1.0.3 corrected VI (`pkg/nbggovge/mock` has its own
   tests; `cmd/bot` is partly tested); 1.0.1 → 1.0.2 corrected VII (currency
@@ -94,8 +98,9 @@ Evidence: no `pkg/` package imports `internal/` today.
 
 - Behavior changes in `internal/` and `pkg/` MUST include or update tests.
   Tests for `cmd/bot` (handlers, flows, broadcasts, and shutdown are tested
-  against a fake Telegram API; `main` is not), `pkg/moneyutils`, and
-  `internal/spinner` (both untested) are encouraged but not required. The
+  against a fake Telegram API; `main` is not), `pkg/moneyutils` (partly
+  tested: `ToStringFixed`), and `internal/spinner` (untested) are encouraged
+  but not required. The
   `pkg/nbggovge` support packages `currencies`, `internal`, and `option` have
   no tests of their own and are exercised through `pkg/nbggovge` and
   `internal/converter` tests; `pkg/nbggovge/mock` has its own tests;
@@ -180,4 +185,4 @@ extend them:
   sections, PATCH for clarifications.
 - Resolving a known deviation removes it from the list in a PATCH amendment.
 
-**Version**: 1.0.6 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15
+**Version**: 1.0.7 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-15

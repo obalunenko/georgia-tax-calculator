@@ -133,6 +133,11 @@ func stepOptions(sess *session) ([]keyboardOption, int, error) {
 	case stepConvertYear:
 		return yearOptions(), defaultPerRow, nil
 	case stepCalcMonth:
+		// The Small Business declaration is monthly, so its calculation keeps the first income's month.
+		if isSmallBusiness(sess.calcReq.TaxType) && len(sess.incomes) > 0 {
+			return optionsFromValues([]string{sess.incomes[0].Month}), defaultPerRow, nil
+		}
+
 		opts, err := monthOptions(sess.currentInc.Year)
 
 		return opts, defaultPerRow, err
@@ -150,6 +155,8 @@ func stepOptions(sess *session) ([]keyboardOption, int, error) {
 		return opts, weekDaysPerRow, err
 	case stepCalcCurrency, stepConvertFrom, stepConvertTo:
 		return currencyOptions(), defaultPerRow, nil
+	case stepCalcIncomeType:
+		return incomeTypeOptions(), oneColumn, nil
 	case stepCalcAddMore, stepCalcConfirm, stepConvertConfirm:
 		return confirmOptions(), confirmPerRow, nil
 	default:
@@ -176,13 +183,10 @@ func taxTypeOptions() ([]keyboardOption, error) {
 		return rates[i].Type > rates[j].Type
 	})
 
-	const toPercentage float64 = 100
-
 	opts := make([]keyboardOption, len(rates))
 	for i, r := range rates {
-		pct := moneyutils.Multiply(r.Rate, toPercentage)
 		opts[i] = keyboardOption{
-			text:  fmt.Sprintf("%s (%s%%)", r.Type.String(), moneyutils.ToString(pct)),
+			text:  fmt.Sprintf("%s (%s%%)", r.Type.String(), moneyutils.ToString(r.Percent())),
 			value: r.Type.String(),
 		}
 	}
@@ -225,6 +229,26 @@ func dayOptions(year, month string) ([]keyboardOption, error) {
 	}
 
 	return optionsFromValues(dateutils.DaysList(dateutils.DaysInMonthTillDate(m, y, service.Now()))), nil
+}
+
+// incomeTypeOptions returns income type buttons in declaration field order; the text shows the field number,
+// the value is the income type name.
+func incomeTypeOptions() []keyboardOption {
+	types := taxes.AllIncomeTypes()
+
+	opts := make([]keyboardOption, len(types))
+	for i, t := range types {
+		opts[i] = keyboardOption{text: t.Label(), value: t.String()}
+	}
+
+	return opts
+}
+
+// isSmallBusiness reports whether taxType is declared on the Small Business monthly declaration.
+func isSmallBusiness(taxType string) bool {
+	tt, err := taxes.ParseTaxType(taxType)
+
+	return err == nil && tt.IsSmallBusiness()
 }
 
 // currencyOptions returns all supported currencies, sorted.

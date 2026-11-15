@@ -27,8 +27,8 @@ func runTaxDetailsMenu() (service.CalculateRequest, error) {
 	}, nil
 }
 
-func runIncomeMenu() ([]service.Income, error) {
-	model := newIncomeModel()
+func runIncomeMenu(taxType string) ([]service.Income, error) {
+	model := newIncomeModel(taxType)
 	if _, err := newProgram(model).Run(); err != nil {
 		return nil, err
 	}
@@ -121,14 +121,7 @@ func (m *taxDetailsModel) advance() tea.Cmd {
 		m.taxType = m.prompt.Value()
 		m.step = taxStepYearIncome
 
-		prompt := newInputPrompt(
-			"Income from the beginning of a calendar year (GEL)",
-			"0.00",
-			"",
-			validateYearIncomeInput,
-		)
-
-		return m.setPrompt(prompt)
+		return m.setPrompt(yearIncomePrompt(m.taxType))
 	case taxStepYearIncome:
 		m.yearIncome = m.prompt.Value()
 		m.step = taxStepDone
@@ -137,6 +130,25 @@ func (m *taxDetailsModel) advance() tea.Cmd {
 	default:
 		return tea.Quit
 	}
+}
+
+// yearIncomePrompt asks for the income since the start of the year. The Small Business categories enter
+// field (15) of the previous month's declaration, so this month's incomes are not counted twice.
+func yearIncomePrompt(taxType string) *promptModel {
+	tt, err := taxes.ParseTaxType(taxType)
+	if err != nil || !tt.IsSmallBusiness() {
+		return newInputPrompt("Income from the beginning of a calendar year (GEL)", "0.00", "", validateYearIncomeInput)
+	}
+
+	prompt := newInputPrompt(
+		"Field (15) of your previous month's declaration: income since the start of the year (GEL)",
+		"0.00",
+		"",
+		validateYearIncomeInput,
+	)
+	prompt.SetNote("Enter 0 for your first declaration of the year.")
+
+	return prompt
 }
 
 func (m *taxDetailsModel) setPrompt(p *promptModel) tea.Cmd {
@@ -154,6 +166,7 @@ const (
 	incomeStepDay
 	incomeStepAmount
 	incomeStepCurrency
+	incomeStepType
 	incomeStepAddMore
 	incomeStepConfirm
 	incomeStepDone
@@ -164,13 +177,25 @@ type incomeModel struct {
 	prompt  *promptModel
 	incomes []service.Income
 	current service.Income
-	err     error
+	// smallBusiness is set for the categories declared on the Small Business monthly declaration:
+	// they ask for the income type of each income and keep all incomes in one month.
+	smallBusiness bool
+	err           error
 }
 
-func newIncomeModel() *incomeModel {
+func newIncomeModel(taxType string) *incomeModel {
 	m := &incomeModel{
 		incomes: make([]service.Income, 0),
 	}
+
+	tt, err := taxes.ParseTaxType(taxType)
+	if err != nil {
+		m.err = err
+
+		return m
+	}
+
+	m.smallBusiness = tt.IsSmallBusiness()
 
 	return m
 }
@@ -242,19 +267,36 @@ func (m *incomeModel) yearPrompt() *promptModel {
 	return newSelectPrompt("Select year of income", yearOptions(), defaultYearValue())
 }
 
+// monthPrompt asks for the income month. In the Small Business categories only the first income's month is
+// offered after the first income, because the Small Business declaration is monthly.
+func (m *incomeModel) monthPrompt() (*promptModel, error) {
+	if m.smallBusiness && len(m.incomes) > 0 {
+		month := m.incomes[0].Month
+
+		return newSelectPrompt("Select month of income", valuesToOptions([]string{month}), month), nil
+	}
+
+	opts, err := monthOptions(m.current.Year)
+	if err != nil {
+		return nil, err
+	}
+
+	return newSelectPrompt("Select month of income", opts, defaultMonthValue(m.current.Year)), nil
+}
+
 func (m *incomeModel) advance() tea.Cmd {
 	switch m.step {
 	case incomeStepYear:
 		m.current.Year = m.prompt.Value()
 		m.step = incomeStepMonth
 
-		opts, err := monthOptions(m.current.Year)
+		prompt, err := m.monthPrompt()
 		if err != nil {
 			m.err = err
 			return tea.Quit
 		}
 
-		return m.setPrompt(newSelectPrompt("Select month of income", opts, defaultMonthValue(m.current.Year)))
+		return m.setPrompt(prompt)
 	case incomeStepMonth:
 		m.current.Month = m.prompt.Value()
 		m.step = incomeStepDay
@@ -278,14 +320,18 @@ func (m *incomeModel) advance() tea.Cmd {
 		return m.setPrompt(newSelectPrompt("Select currency of income", currencyOptions(), currencies.USD))
 	case incomeStepCurrency:
 		m.current.Currency = m.prompt.Value()
-		m.incomes = append(m.incomes, m.current)
-		m.current = service.Income{}
-		m.step = incomeStepAddMore
 
-		prompt := newConfirmPrompt("Add another income entry?")
-		prompt.SetNote("Choose 'No' when you are done adding incomes.")
+		if m.smallBusiness {
+			m.step = incomeStepType
 
-		return m.setPrompt(prompt)
+			return m.setPrompt(m.incomeTypePrompt())
+		}
+
+		return m.addCurrent()
+	case incomeStepType:
+		m.current.Type = m.prompt.Value()
+
+		return m.addCurrent()
 	case incomeStepAddMore:
 		if m.prompt.Value() == confirmYes {
 			m.step = incomeStepYear
@@ -315,6 +361,28 @@ func (m *incomeModel) advance() tea.Cmd {
 	}
 }
 
+// incomeTypePrompt asks for the income type; the previous income's type is preselected.
+func (m *incomeModel) incomeTypePrompt() *promptModel {
+	var previous string
+	if n := len(m.incomes); n > 0 {
+		previous = m.incomes[n-1].Type
+	}
+
+	return newSelectPrompt("Select income type (declaration field)", incomeTypeOptions(), previous)
+}
+
+// addCurrent captures the current income and asks whether to add another one.
+func (m *incomeModel) addCurrent() tea.Cmd {
+	m.incomes = append(m.incomes, m.current)
+	m.current = service.Income{}
+	m.step = incomeStepAddMore
+
+	prompt := newConfirmPrompt("Add another income entry?")
+	prompt.SetNote("Choose 'No' when you are done adding incomes.")
+
+	return m.setPrompt(prompt)
+}
+
 func (m *incomeModel) setPrompt(p *promptModel) tea.Cmd {
 	p.inheritHeight(m.prompt)
 	m.prompt = p
@@ -338,7 +406,13 @@ func renderIncomeList(incomes []service.Income) string {
 
 	for i := range incomes {
 		date := formatIncomeDate(incomes[i])
-		b.WriteString(fmt.Sprintf("  %d) %s — %s %s\n", i+1, date, incomes[i].Amount, incomes[i].Currency))
+		fmt.Fprintf(&b, "  %d) %s — %s %s", i+1, date, incomes[i].Amount, incomes[i].Currency)
+
+		if label := taxes.IncomeTypeLabel(incomes[i].Type); label != "" {
+			b.WriteString(" — " + label)
+		}
+
+		b.WriteByte('\n')
 	}
 
 	b.WriteByte('\n')
@@ -357,6 +431,11 @@ func renderIncomeDetails(incomes []service.Income) string {
 		b.WriteString(fmt.Sprintf("%d)\n", i+1))
 		b.WriteString(fmt.Sprintf("   Date: %s\n", formatIncomeDate(incomes[i])))
 		b.WriteString(fmt.Sprintf("   Amount: %s %s\n", incomes[i].Amount, incomes[i].Currency))
+
+		if label := taxes.IncomeTypeLabel(incomes[i].Type); label != "" {
+			fmt.Fprintf(&b, "   Type: %s\n", label)
+		}
+
 		b.WriteByte('\n')
 	}
 

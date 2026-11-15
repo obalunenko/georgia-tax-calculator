@@ -171,6 +171,31 @@ func TestParseTaxType(t *testing.T) {
 	}
 }
 
+func TestTaxType_IsSmallBusiness(t *testing.T) {
+	tests := []struct {
+		tt   TaxType
+		want bool
+	}{
+		{tt: TaxTypeSmallBusiness, want: true},
+		{tt: TaxTypeSmallBusinessOverLimit, want: true},
+		{tt: TaxTypeEmployment, want: false},
+		{tt: taxTypeUnknown, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.tt.String(), func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.tt.IsSmallBusiness())
+		})
+	}
+}
+
+func TestTaxRate_Percent(t *testing.T) {
+	tr, err := TaxTypeSmallBusiness.Rate()
+	assert.NoError(t, err)
+
+	assert.InDelta(t, 1, tr.Percent(), 0)
+}
+
 func TestTaxRate_String(t *testing.T) {
 	tr, err := TaxTypeSmallBusinessOverLimit.Rate()
 	assert.NoError(t, err)

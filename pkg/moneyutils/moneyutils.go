@@ -63,6 +63,13 @@ func ToString(v float64) string {
 	return d.String()
 }
 
+// ToStringFixed converts float to string with exactly places decimal places, rounding if needed.
+func ToStringFixed(v float64, places int32) string {
+	d := decimal.NewFromFloat(v)
+
+	return d.StringFixed(places)
+}
+
 func round(amount decimal.Decimal, places int32) decimal.Decimal {
 	rounded := amount.Round(places)
 

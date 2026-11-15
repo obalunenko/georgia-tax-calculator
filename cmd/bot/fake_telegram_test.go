@@ -48,6 +48,8 @@ func (f *fakeTelegram) Call(ctx context.Context, url string, data *telegoapi.Req
 
 	f.mu.Lock()
 	f.calls = append(f.calls, apiCall{method: method, params: params})
+	// Each sent message gets its call number as its ID, so messages can be told apart.
+	messageID := len(f.calls)
 	f.mu.Unlock()
 
 	switch method {
@@ -65,7 +67,7 @@ func (f *fakeTelegram) Call(ctx context.Context, url string, data *telegoapi.Req
 			return &telegoapi.Response{Ok: false, Error: &telegoapi.Error{ErrorCode: code, Description: "Forbidden"}}, nil
 		}
 
-		return okResponse(fmt.Sprintf(`{"message_id":1,"date":0,"chat":{"id":%d,"type":"private"}}`, chatID)), nil
+		return okResponse(fmt.Sprintf(`{"message_id":%d,"date":0,"chat":{"id":%d,"type":"private"}}`, messageID, chatID)), nil
 	default:
 		return okResponse("true"), nil
 	}
@@ -175,6 +177,20 @@ func (f *fakeTelegram) lastText(t *testing.T) string {
 	require.NotEmpty(t, texts, "no message was sent")
 
 	return texts[len(texts)-1]
+}
+
+// lastKeyboardMessageID returns the ID of the last sent message with an inline keyboard, or 0.
+func (f *fakeTelegram) lastKeyboardMessageID() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for i := len(f.calls) - 1; i >= 0; i-- {
+		if f.calls[i].method == "sendMessage" && f.calls[i].params["reply_markup"] != nil {
+			return i + 1
+		}
+	}
+
+	return 0
 }
 
 // lastButtons returns the callback data of the last sent message's inline keyboard.
@@ -317,14 +333,21 @@ func (h *botHarness) text(text string) {
 	}})
 }
 
-// press sends a callback query with data from the test user.
+// press presses a button with data on the latest keyboard, as the test user.
 func (h *botHarness) press(data string) {
+	h.t.Helper()
+
+	h.pressOn(h.api.lastKeyboardMessageID(), data)
+}
+
+// pressOn presses a button with data on the message with messageID, as the test user.
+func (h *botHarness) pressOn(messageID int, data string) {
 	h.t.Helper()
 
 	h.send(telego.Update{CallbackQuery: &telego.CallbackQuery{
 		ID:      fmt.Sprintf("q%d", h.nextID+1),
 		From:    telego.User{ID: testUserID, FirstName: "Test"},
-		Message: &telego.Message{MessageID: 1, Chat: telego.Chat{ID: testChatID, Type: telego.ChatTypePrivate}},
+		Message: &telego.Message{MessageID: messageID, Chat: telego.Chat{ID: testChatID, Type: telego.ChatTypePrivate}},
 		Data:    data,
 	}})
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"strings"
+	"unicode/utf16"
 	"unicode/utf8"
 
 	"github.com/mymmrac/telego"
@@ -33,4 +34,15 @@ func inputLogField(text string) (key string, value any) {
 	}
 
 	return "text_len", utf8.RuneCountInString(text)
+}
+
+// utf16Len returns the length of s in UTF-16 code units, the unit of Telegram entity offsets and lengths.
+func utf16Len(s string) int {
+	n := 0
+
+	for _, r := range s {
+		n += utf16.RuneLen(r)
+	}
+
+	return n
 }
