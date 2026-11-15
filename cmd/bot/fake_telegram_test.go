@@ -415,11 +415,11 @@ type recordingLogger struct {
 	fields map[string]any
 }
 
-// newLogContext returns a context whose logger records into the returned recorder.
-func newLogContext() (context.Context, *logRecorder) {
+// newLogContext returns t.Context() with a logger that records into the returned recorder.
+func newLogContext(t *testing.T) (context.Context, *logRecorder) {
 	rec := &logRecorder{}
 
-	return log.ContextWithLogger(context.Background(), recordingLogger{rec: rec}), rec
+	return log.ContextWithLogger(t.Context(), recordingLogger{rec: rec}), rec
 }
 
 func (l recordingLogger) record(level, msg string) {

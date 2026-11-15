@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -82,7 +81,7 @@ func TestCheckIncomeTypes(t *testing.T) {
 func TestCalculateRejectsInvalidIncomeTypeBeforeConversion(t *testing.T) {
 	s := service{c: failingConverter{t: t}}
 
-	_, err := s.Calculate(context.Background(), CalculateRequest{
+	_, err := s.Calculate(t.Context(), CalculateRequest{
 		Income:     []Income{gelIncome(time.October.String(), "05", "100", "")},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",
@@ -95,7 +94,7 @@ func TestCalculateRejectsInvalidIncomeTypeBeforeConversion(t *testing.T) {
 func TestCalculateSetsIncomeTypes(t *testing.T) {
 	s := service{c: mockConverter{}}
 
-	got, err := s.Calculate(context.Background(), CalculateRequest{
+	got, err := s.Calculate(t.Context(), CalculateRequest{
 		Income: []Income{
 			gelIncome(time.October.String(), "05", "100", "Cash"),
 			gelIncome(time.October.String(), "20", "50", "Non-cash"),
@@ -114,7 +113,7 @@ func TestCalculateSetsIncomeTypes(t *testing.T) {
 func TestCalculateEmploymentIgnoresIncomeTypes(t *testing.T) {
 	s := service{c: mockConverter{}}
 
-	got, err := s.Calculate(context.Background(), CalculateRequest{
+	got, err := s.Calculate(t.Context(), CalculateRequest{
 		Income:     []Income{gelIncome(time.October.String(), "05", "100", "Card")},
 		TaxType:    taxes.TaxTypeEmployment.String(),
 		YearIncome: "0",
@@ -190,7 +189,7 @@ func TestCalculateDeclaration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service{c: mockConverter{}}
 
-			got, err := s.Calculate(context.Background(), CalculateRequest{
+			got, err := s.Calculate(t.Context(), CalculateRequest{
 				Income:     tt.incomes,
 				TaxType:    tt.taxType.String(),
 				YearIncome: tt.yearIncome,
@@ -224,7 +223,7 @@ func TestCalculateDeclaration(t *testing.T) {
 func TestCalculateEmploymentHasNoDeclaration(t *testing.T) {
 	s := service{c: mockConverter{}}
 
-	got, err := s.Calculate(context.Background(), CalculateRequest{
+	got, err := s.Calculate(t.Context(), CalculateRequest{
 		Income:     []Income{gelIncome(time.October.String(), "05", "100", "")},
 		TaxType:    taxes.TaxTypeEmployment.String(),
 		YearIncome: "0",
@@ -238,7 +237,7 @@ func TestCalculateEmploymentHasNoDeclaration(t *testing.T) {
 func TestCalculateResponseStringWithDeclaration(t *testing.T) {
 	s := service{c: mockConverter{}}
 
-	got, err := s.Calculate(context.Background(), CalculateRequest{
+	got, err := s.Calculate(t.Context(), CalculateRequest{
 		Income: []Income{
 			gelIncome(time.October.String(), "05", "3950", "Cash"),
 			gelIncome(time.October.String(), "20", "200", "Non-cash"),
@@ -297,7 +296,7 @@ func TestCalculateRoundsYearIncomeToTetri(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service{c: mockConverter{}}
 
-			got, err := s.Calculate(context.Background(), CalculateRequest{
+			got, err := s.Calculate(t.Context(), CalculateRequest{
 				Income:     []Income{gelIncome(time.October.String(), "05", tt.income, "Cash")},
 				TaxType:    taxes.TaxTypeSmallBusiness.String(),
 				YearIncome: tt.yearIncome,

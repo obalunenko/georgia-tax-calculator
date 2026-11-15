@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -54,7 +53,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 	date := DateRequest{Year: "2022", Month: time.December.String(), Day: testDay}
 
 	t.Run("convert zero amount", func(t *testing.T) {
-		_, err := s.Convert(context.Background(), ConvertRequest{
+		_, err := s.Convert(t.Context(), ConvertRequest{
 			DateRequest:  date,
 			CurrencyFrom: currencies.EUR,
 			CurrencyTo:   currencies.GEL,
@@ -64,7 +63,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 	})
 
 	t.Run("calculate negative year income", func(t *testing.T) {
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "-1",
@@ -73,7 +72,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 	})
 
 	t.Run("calculate zero year income", func(t *testing.T) {
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "0",
@@ -82,7 +81,7 @@ func TestServiceRejectsInvalidAmounts(t *testing.T) {
 	})
 
 	t.Run("calculate negative income amount", func(t *testing.T) {
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     []Income{{DateRequest: date, Currency: currencies.EUR, Amount: "-100", Type: nonCash}},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "0",
@@ -127,7 +126,7 @@ func TestCalculateRejectsYearIncomeBeyondFloat64(t *testing.T) {
 	s := service{c: failingConverter{t: t}}
 
 	require.NotPanics(t, func() {
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     []Income{gelIncome(time.October.String(), "05", "100", nonCash)},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "1e400",

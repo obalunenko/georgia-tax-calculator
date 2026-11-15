@@ -34,7 +34,7 @@ func (m mockConverterError) Convert(_ context.Context, _ models.Money, _ string,
 }
 
 func Test_service_Convert(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type fields struct {
 		c converter.Converter
@@ -145,7 +145,7 @@ func Test_service_Convert(t *testing.T) {
 }
 
 func Test_service_Calculate(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type fields struct {
 		c converter.Converter

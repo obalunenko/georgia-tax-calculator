@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -146,7 +145,7 @@ func TestNewClient_Rates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data := testData()
 
-			got, err := NewClient(data).Rates(context.Background(), tt.opts...)
+			got, err := NewClient(data).Rates(t.Context(), tt.opts...)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want, got)

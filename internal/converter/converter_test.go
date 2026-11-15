@@ -42,7 +42,7 @@ func errorIs(target error) assert.ErrorAssertionFunc {
 }
 
 func TestConverter_Convert(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	rateDate := time.Date(2023, time.September, 9, 0, 0, 0, 0, time.UTC)
 

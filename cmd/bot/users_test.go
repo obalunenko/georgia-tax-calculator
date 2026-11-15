@@ -20,7 +20,7 @@ import (
 func TestUserStoreRoundTrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "users.json")
 
-	store := newUserStore(context.Background(), path)
+	store := newUserStore(t.Context(), path)
 	assert.Empty(t, store.All())
 
 	for _, id := range []int64{10, 20} {
@@ -37,7 +37,7 @@ func TestUserStoreRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 
-	reloaded := newUserStore(context.Background(), path)
+	reloaded := newUserStore(t.Context(), path)
 
 	got := reloaded.All()
 	slices.Sort(got)
@@ -84,7 +84,7 @@ func TestUserStoreTrackReportsSaveError(t *testing.T) {
 	// The parent directory does not exist, so the file cannot be written.
 	path := filepath.Join(t.TempDir(), "missing-dir", "users.json")
 
-	store := newUserStore(context.Background(), path)
+	store := newUserStore(t.Context(), path)
 
 	isNew, err := store.Track(42)
 	require.Error(t, err)
@@ -95,7 +95,7 @@ func TestUserStoreTrackReportsSaveError(t *testing.T) {
 func newTestStore(t *testing.T, ids ...int64) *userStore {
 	t.Helper()
 
-	store := newUserStore(context.Background(), filepath.Join(t.TempDir(), "users.json"))
+	store := newUserStore(t.Context(), filepath.Join(t.TempDir(), "users.json"))
 
 	for _, id := range ids {
 		_, err := store.Track(id)
@@ -116,7 +116,7 @@ func TestUserStoreRemove(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, removed, "already removed")
 
-	reloaded := newUserStore(context.Background(), store.path)
+	reloaded := newUserStore(t.Context(), store.path)
 	assert.Equal(t, []int64{2}, reloaded.All(), "removal is persisted")
 }
 
@@ -163,7 +163,7 @@ func TestBroadcast(t *testing.T) {
 
 	start := time.Now()
 
-	broadcast(context.Background(), send, store, msgMaintenance, 5*time.Millisecond)
+	broadcast(t.Context(), send, store, msgMaintenance, 5*time.Millisecond)
 
 	assert.GreaterOrEqual(t, time.Since(start), 10*time.Millisecond, "two pauses between three messages")
 	assert.ElementsMatch(t, []int64{ok, blocked, failing}, sent)
@@ -176,7 +176,7 @@ func TestBroadcast(t *testing.T) {
 func TestBroadcastStopsWhenContextIsDone(t *testing.T) {
 	store := newTestStore(t, 1, 2, 3)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	calls := 0
 	send := func(context.Context, int64, string) error {

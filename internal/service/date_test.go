@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -69,7 +68,7 @@ func TestConvertRejectsInvalidDate(t *testing.T) {
 
 	s := service{c: failingConverter{t: t}}
 
-	_, err := s.Convert(context.Background(), ConvertRequest{
+	_, err := s.Convert(t.Context(), ConvertRequest{
 		Year: "2024", Month: time.April.String(), Day: "31",
 		CurrencyFrom: currencies.EUR,
 		CurrencyTo:   currencies.GEL,

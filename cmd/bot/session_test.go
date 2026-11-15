@@ -98,7 +98,7 @@ func TestSessionStoreLockIsPerUser(t *testing.T) {
 	store := newSessionStore()
 
 	unlock1 := store.lock(1)
-	defer unlock1()
+	t.Cleanup(unlock1)
 
 	done := make(chan struct{})
 
@@ -174,15 +174,15 @@ func TestInflightWaitsForHandledUpdates(t *testing.T) {
 	// Finish only the first update.
 	running.wg.Done()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+	t.Cleanup(cancel)
 
 	assert.False(t, running.wait(ctx), "one update is still being handled")
 
 	running.wg.Done()
 	close(updates)
 
-	assert.True(t, running.wait(context.Background()))
+	assert.True(t, running.wait(t.Context()))
 
 	_, open := <-out
 	assert.False(t, open, "the forwarded channel closes with the source")

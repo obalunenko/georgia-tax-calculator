@@ -46,7 +46,7 @@ func TestRunStartsAndShutsDown(t *testing.T) {
 
 	api := &fakeTelegram{sendErrors: map[int64]int{blockedChat: http.StatusForbidden}}
 
-	logCtx, logs := newLogContext()
+	logCtx, logs := newLogContext(t)
 
 	ctx, cancel := context.WithCancel(logCtx)
 
@@ -110,7 +110,7 @@ func TestRunStartsAndShutsDown(t *testing.T) {
 	assert.ElementsMatch(t, []int64{knownChat, blockedChat}, welcome, "both known chats get the welcome-back message")
 	assert.Equal(t, []int64{knownChat}, maintenance, "the chat that blocked the bot is dropped after the first 403")
 
-	reloaded := newUserStore(context.Background(), path)
+	reloaded := newUserStore(t.Context(), path)
 	assert.Equal(t, []int64{knownChat}, reloaded.All())
 }
 
@@ -145,7 +145,7 @@ func TestRunSetsDefaultCommandList(t *testing.T) {
 	starts := []*fakeTelegram{{}, {}}
 
 	for _, api := range starts {
-		runUntilPolling(context.Background(), t, api)
+		runUntilPolling(t.Context(), t, api)
 	}
 
 	assert.Equal(t, wantMenu, publishedMenu(t, starts[0]))
@@ -161,7 +161,7 @@ func TestRunSetsDefaultCommandList(t *testing.T) {
 func TestRunKeepsRunningWhenCommandMenuFails(t *testing.T) {
 	t.Setenv("USER_STORE_PATH", filepath.Join(t.TempDir(), "users.json"))
 
-	ctx, logs := newLogContext()
+	ctx, logs := newLogContext(t)
 	api := &fakeTelegram{methodErrors: map[string]int{"setMyCommands": http.StatusBadRequest}}
 
 	// Polling starts with the handlers registered; TestBotAnswersEveryCommand covers their replies.
@@ -176,7 +176,7 @@ func TestRunKeepsRunningWhenCommandMenuFails(t *testing.T) {
 }
 
 func TestRunFailsWithInvalidToken(t *testing.T) {
-	err := run(context.Background(), "not-a-token", telego.WithDiscardLogger())
+	err := run(t.Context(), "not-a-token", telego.WithDiscardLogger())
 
 	assert.ErrorContains(t, err, "create bot")
 }

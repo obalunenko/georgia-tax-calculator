@@ -109,7 +109,7 @@ func (c failingConverter) Convert(context.Context, models.Money, string, time.Ti
 func TestCalculateRejectsMixedYearsBeforeConversion(t *testing.T) {
 	s := service{c: failingConverter{t: t}}
 
-	_, err := s.Calculate(context.Background(), CalculateRequest{
+	_, err := s.Calculate(t.Context(), CalculateRequest{
 		Income: []Income{
 			{Year: "2024", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
 			{Year: "2025", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
@@ -179,7 +179,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service{c: mockConverter{}}
 
-			got, err := s.Calculate(context.Background(), CalculateRequest{
+			got, err := s.Calculate(t.Context(), CalculateRequest{
 				Income:     tt.incomes,
 				TaxType:    tt.taxType.String(),
 				YearIncome: tt.yearIncome,
@@ -242,7 +242,7 @@ func TestCalculateMonthRule(t *testing.T) {
 	t.Run("small business rejects two months before conversion", func(t *testing.T) {
 		s := service{c: failingConverter{t: t}}
 
-		_, err := s.Calculate(context.Background(), CalculateRequest{
+		_, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     incomes,
 			TaxType:    taxes.TaxTypeSmallBusinessOverLimit.String(),
 			YearIncome: "0",
@@ -255,7 +255,7 @@ func TestCalculateMonthRule(t *testing.T) {
 	t.Run("employment allows two months of one year", func(t *testing.T) {
 		s := service{c: mockConverter{}}
 
-		got, err := s.Calculate(context.Background(), CalculateRequest{
+		got, err := s.Calculate(t.Context(), CalculateRequest{
 			Income:     incomes,
 			TaxType:    taxes.TaxTypeEmployment.String(),
 			YearIncome: "0",

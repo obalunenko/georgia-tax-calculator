@@ -92,7 +92,7 @@ func (d doerMock) Do(req *http.Request) (*http.Response, error) {
 func TestClient_Rates(t *testing.T) {
 	integration := getenv.EnvOrDefault("INTEGRATION_TESTS", false)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type fields struct {
 		httpClient HTTPClient
@@ -280,7 +280,7 @@ func TestClient_Rates_Errors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewWithHTTPClient(tt.do).Rates(context.Background(), option.WithDate(date))
+			got, err := NewWithHTTPClient(tt.do).Rates(t.Context(), option.WithDate(date))
 
 			require.Error(t, err)
 			assert.ErrorContains(t, err, tt.wantErr)
@@ -298,7 +298,7 @@ func TestClient_Rates_Request(t *testing.T) {
 		return httpResponse(req, http.StatusOK, strings.NewReader("[]")), nil
 	})
 
-	_, err := NewWithHTTPClient(do).Rates(context.Background(),
+	_, err := NewWithHTTPClient(do).Rates(t.Context(),
 		option.WithDate(time.Date(2024, time.February, 10, 0, 0, 0, 0, time.UTC)),
 		option.WithCurrency(currencies.USD),
 		option.WithCurrency(currencies.EUR),
@@ -313,7 +313,7 @@ func TestClient_Rates_Request(t *testing.T) {
 }
 
 func TestClient_Rates_CanceledContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	do := doerFunc(func(req *http.Request) (*http.Response, error) {
