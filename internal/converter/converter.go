@@ -81,11 +81,9 @@ func (c converter) Convert(ctx context.Context, m models.Money, to string, date 
 	)
 
 	return Response{
-		Money: models.Money{
-			Amount:   moneyutils.Round(convertedAmount, amountPlaces),
-			Currency: to,
-		},
-		Rate: moneyutils.Round(rate, ratePlaces),
+		Amount:   moneyutils.Round(convertedAmount, amountPlaces),
+		Currency: to,
+		Rate:     moneyutils.Round(rate, ratePlaces),
 	}, nil
 }
 

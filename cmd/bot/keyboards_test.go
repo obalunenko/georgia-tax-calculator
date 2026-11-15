@@ -49,7 +49,7 @@ func convertSession(step convertStep, req service.ConvertRequest) *session {
 }
 
 func TestCallbackValue(t *testing.T) {
-	april2024 := service.Income{DateRequest: service.DateRequest{Year: "2024", Month: "April"}}
+	april2024 := service.Income{Year: "2024", Month: "April"}
 
 	tests := []struct {
 		name   string
@@ -172,7 +172,7 @@ func TestCallbackValueRejectsFutureMonth(t *testing.T) {
 	}
 
 	sess := convertSession(convertStepMonth, service.ConvertRequest{
-		DateRequest: service.DateRequest{Year: strconv.Itoa(now.Year())},
+		Year: strconv.Itoa(now.Year()),
 	})
 
 	_, ok, err := callbackValue(sess, "cb:conv_month:"+time.December.String())
@@ -182,7 +182,7 @@ func TestCallbackValueRejectsFutureMonth(t *testing.T) {
 }
 
 func TestStepKeyboard(t *testing.T) {
-	inc := service.Income{DateRequest: service.DateRequest{Year: "2024", Month: "February"}}
+	inc := service.Income{Year: "2024", Month: "February"}
 	req := service.ConvertRequest{DateRequest: inc.DateRequest}
 
 	sessions := []*session{
@@ -225,10 +225,10 @@ func TestStepKeyboard(t *testing.T) {
 }
 
 func TestMonthKeyboardAfterFirstIncome(t *testing.T) {
-	first := service.Income{DateRequest: service.DateRequest{Year: "2024", Month: "February", Day: "01"}}
+	first := service.Income{Year: "2024", Month: "February", Day: "01"}
 
 	sessionFor := func(tt taxes.TaxType) *session {
-		sess := calcSession(calcStepMonth, service.Income{DateRequest: service.DateRequest{Year: "2024"}})
+		sess := calcSession(calcStepMonth, service.Income{Year: "2024"})
 		sess.calcReq.TaxType = tt.String()
 		sess.incomes = []service.Income{first}
 
@@ -296,7 +296,7 @@ func TestDayOptions(t *testing.T) {
 }
 
 func TestCalcYearAfterFirstIncome(t *testing.T) {
-	first := service.Income{DateRequest: service.DateRequest{Year: "2025", Month: "June", Day: "08"}}
+	first := service.Income{Year: "2025", Month: "June", Day: "08"}
 
 	before := calcSession(calcStepYear, service.Income{})
 	after := calcSession(calcStepYear, service.Income{})

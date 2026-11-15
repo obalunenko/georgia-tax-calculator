@@ -16,10 +16,10 @@ var nonCash = taxes.IncomeTypeNonCash.String()
 
 func gelIncome(month, day, amount, incomeType string) Income {
 	return Income{
-		DateRequest: DateRequest{Year: "2026", Month: month, Day: day},
-		Currency:    currencies.GEL,
-		Amount:      amount,
-		Type:        incomeType,
+		Year: "2026", Month: month, Day: day,
+		Currency: currencies.GEL,
+		Amount:   amount,
+		Type:     incomeType,
 	}
 }
 
@@ -163,8 +163,8 @@ func TestCalculateDeclaration(t *testing.T) {
 			taxType:    taxes.TaxTypeSmallBusiness,
 			yearIncome: "0",
 			incomes: []Income{
-				{DateRequest: DateRequest{Year: "2026", Month: "October", Day: "05"}, Currency: currencies.USD, Amount: "1000", Type: nonCash},
-				{DateRequest: DateRequest{Year: "2026", Month: "October", Day: "06"}, Currency: currencies.EUR, Amount: "500.55", Type: nonCash},
+				{Year: "2026", Month: "October", Day: "05", Currency: currencies.USD, Amount: "1000", Type: nonCash},
+				{Year: "2026", Month: "October", Day: "06", Currency: currencies.EUR, Amount: "500.55", Type: nonCash},
 			},
 			want: map[int]string{
 				15: "1500.55", 16: "1.00", 17: "1500.55",

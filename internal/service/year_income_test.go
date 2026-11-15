@@ -64,7 +64,7 @@ func TestLimitWarningString(t *testing.T) {
 
 func TestCheckSingleYear(t *testing.T) {
 	income := func(year string) Income {
-		return Income{DateRequest: DateRequest{Year: year, Month: "June", Day: "08"}, Currency: currencies.GEL, Amount: "1"}
+		return Income{Year: year, Month: "June", Day: "08", Currency: currencies.GEL, Amount: "1"}
 	}
 
 	tests := []struct {
@@ -111,8 +111,8 @@ func TestCalculateRejectsMixedYearsBeforeConversion(t *testing.T) {
 
 	_, err := s.Calculate(context.Background(), CalculateRequest{
 		Income: []Income{
-			{DateRequest: DateRequest{Year: "2024", Month: "June", Day: "08"}, Currency: currencies.EUR, Amount: "100"},
-			{DateRequest: DateRequest{Year: "2025", Month: "June", Day: "08"}, Currency: currencies.EUR, Amount: "100"},
+			{Year: "2024", Month: "June", Day: "08", Currency: currencies.EUR, Amount: "100"},
+			{Year: "2025", Month: "June", Day: "08", Currency: currencies.EUR, Amount: "100"},
 		},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",
@@ -126,10 +126,10 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 		incomes := make([]Income, 0, len(amounts))
 		for _, a := range amounts {
 			incomes = append(incomes, Income{
-				DateRequest: DateRequest{Year: "2025", Month: "June", Day: "08"},
-				Currency:    currencies.GEL,
-				Amount:      a,
-				Type:        nonCash,
+				Year: "2025", Month: "June", Day: "08",
+				Currency: currencies.GEL,
+				Amount:   a,
+				Type:     nonCash,
 			})
 		}
 
@@ -197,7 +197,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 
 func TestCheckSingleMonth(t *testing.T) {
 	inc := func(month string) Income {
-		return Income{DateRequest: DateRequest{Year: "2026", Month: month, Day: "05"}}
+		return Income{Year: "2026", Month: month, Day: "05"}
 	}
 
 	tests := []struct {

@@ -129,12 +129,10 @@ func TestFormatCalcResultDeclaration(t *testing.T) {
 		TaxRate:    taxes.TaxRate{Type: taxes.TaxTypeSmallBusiness, Rate: 0.01},
 		YearIncome: models.NewMoney(35942, currencies.GEL),
 		Incomes: []service.IncomeResponse{{
-			ConvertResponse: service.ConvertResponse{
-				Amount:    models.NewMoney(3950, currencies.GEL),
-				Converted: models.NewMoney(3950, currencies.GEL),
-				Rate:      models.NewMoney(1, ""),
-			},
-			Type: taxes.IncomeTypeCash,
+			Amount:    models.NewMoney(3950, currencies.GEL),
+			Converted: models.NewMoney(3950, currencies.GEL),
+			Rate:      models.NewMoney(1, ""),
+			Type:      taxes.IncomeTypeCash,
 		}},
 		TotalIncomeConverted: models.NewMoney(4150, currencies.GEL),
 		Tax:                  models.NewMoney(41.5, currencies.GEL),
@@ -165,11 +163,9 @@ func TestFormatCalcResultEmployment(t *testing.T) {
 		TaxRate:    taxes.TaxRate{Type: taxes.TaxTypeEmployment, Rate: 0.2},
 		YearIncome: models.NewMoney(1100, currencies.GEL),
 		Incomes: []service.IncomeResponse{{
-			ConvertResponse: service.ConvertResponse{
-				Amount:    models.NewMoney(100, currencies.USD),
-				Converted: models.NewMoney(270, currencies.GEL),
-				Rate:      models.NewMoney(2.7, ""),
-			},
+			Amount:    models.NewMoney(100, currencies.USD),
+			Converted: models.NewMoney(270, currencies.GEL),
+			Rate:      models.NewMoney(2.7, ""),
 		}},
 		TotalIncomeConverted: models.NewMoney(270, currencies.GEL),
 		Tax:                  models.NewMoney(54, currencies.GEL),

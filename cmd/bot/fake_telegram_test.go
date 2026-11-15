@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -206,8 +207,8 @@ func (f *fakeTelegram) lastKeyboardMessageID() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	for i := len(f.calls) - 1; i >= 0; i-- {
-		if f.calls[i].method == "sendMessage" && f.calls[i].params["reply_markup"] != nil {
+	for i, v := range slices.Backward(f.calls) {
+		if v.method == "sendMessage" && v.params["reply_markup"] != nil {
 			return i + 1
 		}
 	}
