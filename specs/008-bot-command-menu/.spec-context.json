@@ -472,30 +472,30 @@
       "command": "make vet",
       "source": "derived",
       "exitCode": 0,
-      "durationSeconds": 1.6,
+      "durationSeconds": 3.0,
       "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-vet-1 Stopping  ·  Container docker-compose-vet-1 Stopped",
-      "commit": "23ad93e",
-      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
     },
     {
       "what": "pipeline lint (fails on issues)",
       "command": "make lint-pipeline",
       "source": "derived",
       "exitCode": 0,
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.2,
       "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-lint-pipeline-1 Stopping  ·  Container docker-compose-lint-pipeline-1 Stopped",
-      "commit": "23ad93e",
-      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
     },
     {
       "what": "full .golangci.yml lint reports 0 issues",
       "command": "sh -c \"make lint-full 2>&1 | grep -q '| 0 issues.'\"",
       "source": "derived",
       "exitCode": 0,
-      "durationSeconds": 2.0,
+      "durationSeconds": 1.8,
       "result": "no output",
-      "commit": "23ad93e",
-      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
     },
     {
       "what": "bot package tests uncached with race detector",
@@ -520,6 +520,46 @@
     {
       "what": "developer ran quickstart scenarios 2-4 and 7 in a Telegram app with the test bot",
       "result": "confirmed: / shows the four commands with descriptions and no /start, /c filters to calculate, convert, cancel, picked commands answer as typed, /cancel resets a calculation, /start by hand shows the welcome"
+    },
+    {
+      "what": "full suite uncached with race detector",
+      "command": "go test -race -count=1 ./...",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 3.4,
+      "result": "?   \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/internal\t[no test files] · ok  \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/mock\t1.539s · ?   \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/option\t[no test files]",
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
+    },
+    {
+      "what": "NBG integration tests against the live API",
+      "command": "sh -c 'INTEGRATION_TESTS=true go test -race -count=1 ./pkg/nbggovge/'",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.7,
+      "result": "ok  \tgithub.com/obalunenko/georgia-tax-calculator/pkg/nbggovge\t1.421s",
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
+    },
+    {
+      "what": "CLI build (make build compiles only ge-tax-calc)",
+      "command": "make build",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 7.5,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-build-1 Stopping  ·  Container docker-compose-build-1 Stopped",
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
+    },
+    {
+      "what": "bot binary compiles",
+      "command": "sh -c 'CGO_ENABLED=0 go build -o /dev/null ./cmd/bot'",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.0,
+      "result": "no output",
+      "commit": "34f2827",
+      "tree": "c49c80bbda2f243862afb05d9fd39af1bbc83ca4"
     }
   ],
   "decisions": [
