@@ -1,0 +1,669 @@
+{
+  "workflow": "companion",
+  "specName": "Bot Command Menu",
+  "branch": "develop",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T07:55:56.947Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-15T07:58:36.786Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T08:19:16.167Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-15T08:22:41.911Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T08:29:41.229Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-15T08:31:37.375Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T09:24:46.039Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:26:22.930Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:26:22.930Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:26:22.930Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:26:22.930Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:28.793Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:28.793Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:28.879Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:28.879Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:50.725Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:27:50.725Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:28:24.497Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:28:24.497Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:28:59.467Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:28:59.467Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:29:19.145Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:30:47.108Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:31:25.381Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:31:50.064Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:35:51.201Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:35:51.217Z"
+    },
+    {
+      "step": "converge",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-15T09:37:12.027Z"
+    },
+    {
+      "step": "converge",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-15T09:38:17.671Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:41:13.577Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-15T09:42:27.057Z"
+    }
+  ],
+  "telemetryInstanceId": "81d80c1d-1387-4314-bbf9-07b2499267fe",
+  "currentTask": null,
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "menuCommands table; handlers registered from it plus /start; table limits and every-command tests",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T001-T004"
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "menuCommands table; handlers registered from it plus /start; table limits and every-command tests",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T001-T004"
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "menuCommands table; handlers registered from it plus /start; table limits and every-command tests",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T001-T004"
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "menuCommands table; handlers registered from it plus /start; table limits and every-command tests",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T001-T004"
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "setCommandMenu publishes the default command list with a 10 s timeout and logs the result; run calls it before polling",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go"
+      ],
+      "wave": "T005-T006"
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "setCommandMenu publishes the default command list with a 10 s timeout and logs the result; run calls it before polling",
+      "files": [
+        "cmd/bot/commands.go",
+        "cmd/bot/bot.go"
+      ],
+      "wave": "T005-T006"
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "run test checks the published menu, order before getUpdates, no deleteMyCommands; /start and /help texts match the menu",
+      "files": [
+        "cmd/bot/run_test.go",
+        "cmd/bot/fake_telegram_test.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T007-T008"
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "run test checks the published menu, order before getUpdates, no deleteMyCommands; /start and /help texts match the menu",
+      "files": [
+        "cmd/bot/run_test.go",
+        "cmd/bot/fake_telegram_test.go",
+        "cmd/bot/commands_test.go"
+      ],
+      "wave": "T007-T008"
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "two starts with separate fakes publish the same default list without scope or language; README menu note",
+      "files": [
+        "cmd/bot/run_test.go",
+        "README.md"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "two starts with separate fakes publish the same default list without scope or language; README menu note",
+      "files": [
+        "cmd/bot/run_test.go",
+        "README.md"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "fakeTelegram methodErrors; recording log.Logger in context via newLogContext",
+      "files": [
+        "cmd/bot/fake_telegram_test.go"
+      ],
+      "wave": "T011-T012"
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "fakeTelegram methodErrors; recording log.Logger in context via newLogContext",
+      "files": [
+        "cmd/bot/fake_telegram_test.go"
+      ],
+      "wave": "T011-T012"
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "failed publish logs an error and run still polls and stops cleanly; success logs info with commands=4",
+      "files": [
+        "cmd/bot/run_test.go"
+      ],
+      "wave": "T013-T014"
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "failed publish logs an error and run still polls and stops cleanly; success logs info with commands=4",
+      "files": [
+        "cmd/bot/run_test.go"
+      ],
+      "wave": "T013-T014"
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "make format-project: no changes outside the feature files",
+      "files": [
+        "cmd/bot/"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "make vet ok; lint-pipeline and lint-full 0 issues after moving wantMenu to fix goconst",
+      "files": [
+        "cmd/bot/commands_test.go",
+        "cmd/bot/run_test.go"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "make test exit 0; go test -race -count=1 ./... all packages ok",
+      "files": [
+        "cmd/bot/"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "make build ok (builds the CLI only); bot compiled separately with CGO_ENABLED=0 go build ./cmd/bot",
+      "files": [
+        "bin/ge-tax-calc"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "live run on the test bot: getMyCommands [] -> 4 commands, log 'bot: command menu set commands=4', clean SIGTERM exit; app-side scenarios 2-7 left to the user",
+      "files": [
+        "specs/008-bot-command-menu/spec.md"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "live test bot: start+old list replaced by the 4 commands at start; 3 restarts kept exactly the 4, each once",
+      "files": [
+        "specs/008-bot-command-menu/spec.md"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "developer confirmed quickstart scenarios 2-4 and 7 in the Telegram app; recorded in the spec status",
+      "files": [
+        "specs/008-bot-command-menu/spec.md"
+      ]
+    }
+  },
+  "verified": [
+    {
+      "what": "full test suite with race detector (Docker)",
+      "command": "make test",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 3.3,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-run-tests-1 Stopping  ·  Container docker-compose-run-tests-1 Stopped",
+      "commit": "23ad93e",
+      "tree": "db0b9e299e1d3c16c80f220314833a819f0a3cfe"
+    },
+    {
+      "what": "build both binaries (sync-vendor, generate, compile)",
+      "command": "make build",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 7.1,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-build-1 Stopping  ·  Container docker-compose-build-1 Stopped",
+      "commit": "23ad93e",
+      "tree": "08d5b00ab35c9c40e04057b829b009c97b39746d"
+    },
+    {
+      "what": "bot binary compiles (CGO off, as in the image)",
+      "command": "CGO_ENABLED=0 go build -o /private/tmp/claude-501/-Users-olegbalunenko-Code-Go-github-com-obalunenko-georgia-tax-calculator/359f1840-6866-4b9e-8158-2903a7d65b2b/scratchpad/ge-bot ./cmd/bot",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.8,
+      "result": "no output",
+      "commit": "23ad93e",
+      "tree": "149a42c3ee5a80b609d153c3d7fa5c04ba7043e2"
+    },
+    {
+      "what": "live start against the test bot ge_tax_calc_bot",
+      "result": "getMyCommands [] -> calculate, convert, cancel, help with contract descriptions; log 'bot: command menu set' commands=4 after 'Bot started'; SIGTERM exit 0; empty user store, no broadcasts"
+    },
+    {
+      "what": "mutation: setCommandMenu call removed from run",
+      "result": "TestRunStartsAndShutsDown, TestRunSetsDefaultCommandList, TestRunKeepsRunningWhenCommandMenuFails fail"
+    },
+    {
+      "what": "mutation: /help left out of the registration loop",
+      "result": "TestBotAnswersEveryCommand, TestBotCommandTexts, TestBotServiceCommands fail"
+    },
+    {
+      "what": "go vet in Docker",
+      "command": "make vet",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.6,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-vet-1 Stopping  ·  Container docker-compose-vet-1 Stopped",
+      "commit": "23ad93e",
+      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+    },
+    {
+      "what": "pipeline lint (fails on issues)",
+      "command": "make lint-pipeline",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.4,
+      "result": " Compose Stopping Aborting on container exit... ·  Container docker-compose-lint-pipeline-1 Stopping  ·  Container docker-compose-lint-pipeline-1 Stopped",
+      "commit": "23ad93e",
+      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+    },
+    {
+      "what": "full .golangci.yml lint reports 0 issues",
+      "command": "sh -c \"make lint-full 2>&1 | grep -q '| 0 issues.'\"",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 2.0,
+      "result": "no output",
+      "commit": "23ad93e",
+      "tree": "d1051d79b5f27c8087fd6815e384c21169baf22c"
+    },
+    {
+      "what": "bot package tests uncached with race detector",
+      "command": "go test -race -count=1 ./cmd/bot/...",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 3.7,
+      "result": "ok  \tgithub.com/obalunenko/georgia-tax-calculator/cmd/bot\t2.543s",
+      "commit": "23ad93e",
+      "tree": "711cd3886e0ead0c080f9b0e33954d3d88383c2b"
+    },
+    {
+      "what": "live test bot: earlier start+old list replaced, 3 restarts keep the 4 commands",
+      "command": "python3 -I /private/tmp/claude-501/-Users-olegbalunenko-Code-Go-github-com-obalunenko-georgia-tax-calculator/359f1840-6866-4b9e-8158-2903a7d65b2b/scratchpad/t020_check.py deployments/docker-compose/.env /private/tmp/claude-501/-Users-olegbalunenko-Code-Go-github-com-obalunenko-georgia-tax-calculator/359f1840-6866-4b9e-8158-2903a7d65b2b/scratchpad/ge-bot /private/tmp/claude-501/-Users-olegbalunenko-Code-Go-github-com-obalunenko-georgia-tax-calculator/359f1840-6866-4b9e-8158-2903a7d65b2b/scratchpad",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 35.8,
+      "result": "PASS scenario 6: restart 1 · PASS scenario 6: restart 2 · PASS scenario 6: restart 3",
+      "commit": "23ad93e",
+      "tree": "b23fc8329184961e85045d7f5b2f2c8245d0ef1f"
+    },
+    {
+      "what": "developer ran quickstart scenarios 2-4 and 7 in a Telegram app with the test bot",
+      "result": "confirmed: / shows the four commands with descriptions and no /start, /c filters to calculate, convert, cancel, picked commands answer as typed, /cancel resets a calculation, /start by hand shows the welcome"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Foundational T001-T004 built inline in dependency order",
+      "why": "tasks.md has no wave markers, so dispatch-briefs put four dependent tasks (same file, compile chain) into one parallel wave",
+      "rejected": "four parallel workers as printed",
+      "by": "agent",
+      "at": "2026-11-15T09:36:17.309Z"
+    },
+    {
+      "decision": "setCommandMenu runs synchronously before long polling with a 10 s timeout",
+      "why": "one call; tests stay deterministic; the deadline is honored by telego FastHTTPCaller",
+      "rejected": "goroutine like the broadcast",
+      "by": "agent",
+      "at": "2026-11-15T09:36:17.309Z"
+    },
+    {
+      "decision": "wantMenu literal lives once in commands_test.go and TestMenuCommands compares botCommands() to it",
+      "why": "goconst flagged the duplicated contract literals; the literal keeps the contract independent of the cmd constants",
+      "rejected": "comparing against the cmd* constants (tautological)",
+      "by": "agent",
+      "at": "2026-11-15T09:36:17.309Z"
+    },
+    {
+      "decision": "test logger is a recording log.Logger in the context",
+      "why": "log.Init replaces the package-global logger and could race with other tests",
+      "rejected": "log.Init with a buffer writer",
+      "by": "agent",
+      "at": "2026-11-15T09:36:17.309Z"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "Quickstart scenarios 2-7 (typing / in a Telegram app, picking commands, BotFather /old replaced) were not run by hand; the fake-Telegram tests cover the bot side and the live run covered the published list",
+      "step": "implement"
+    },
+    {
+      "note": "The 10 s publish timeout has no test (a waiting test would add 10 s); it relies on telego honoring the context deadline",
+      "step": "implement"
+    },
+    {
+      "note": "tasks.md T018 says make build builds both binaries; it builds only the CLI. The bot was compiled separately with CGO_ENABLED=0 go build ./cmd/bot",
+      "step": "implement"
+    }
+  ],
+  "coverage": {
+    "FR-001": {
+      "tests": [
+        "cmd/bot/run_test.go::TestRunSetsDefaultCommandList"
+      ]
+    },
+    "FR-002": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestMenuCommands; cmd/bot/run_test.go::TestRunStartsAndShutsDown"
+      ]
+    },
+    "FR-003": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestBotAnswersEveryCommand"
+      ]
+    },
+    "FR-004": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestMenuCommands"
+      ],
+      "assumes": "same purpose as /help checked on review"
+    },
+    "FR-005": {
+      "tests": [
+        "live test bot run (t020): earlier start+old list replaced"
+      ],
+      "assumes": "Telegram replaces the default list on setMyCommands"
+    },
+    "FR-006": {
+      "tests": [
+        "cmd/bot/run_test.go::TestRunKeepsRunningWhenCommandMenuFails"
+      ]
+    },
+    "FR-007": {
+      "tests": [
+        "cmd/bot/run_test.go::TestRunStartsAndShutsDown"
+      ]
+    },
+    "FR-008": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestBotAnswersEveryCommand; cmd/bot/flows_test.go::TestBotServiceCommands"
+      ]
+    },
+    "FR-009": {
+      "assumes": "README.md Bot Commands paragraph, reviewed"
+    },
+    "FR-010": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestBotCommandTexts"
+      ]
+    },
+    "SC-001": {
+      "tests": [
+        "live test bot run (t019) plus developer check in the Telegram app"
+      ]
+    },
+    "SC-002": {
+      "tests": [
+        "cmd/bot/commands_test.go::TestBotAnswersEveryCommand plus developer check in the Telegram app"
+      ]
+    },
+    "SC-004": {
+      "tests": [
+        "cmd/bot/run_test.go::TestRunSetsDefaultCommandList plus live test bot run (t020",
+        "4 starts)"
+      ]
+    }
+  },
+  "step_summaries": {
+    "implement": {
+      "summary": "Convergence tasks done: live replacement and restart checks on the test bot, developer check in the Telegram app"
+    }
+  },
+  "last_action": "T020 and T021 closed; bot tests rerun",
+  "risk": {
+    "tier": "high",
+    "computed": "high",
+    "reasons": [
+      "touches .github/workflows/release.yml"
+    ]
+  },
+  "convergeStartedAt": "2026-11-15T09:42:57.437Z",
+  "convergePasses": [
+    {
+      "startedAt": "2026-11-15T09:37:12.088Z",
+      "by": "extension",
+      "finishedAt": "2026-11-15T09:38:17.691Z",
+      "added": [
+        "T020",
+        "T021"
+      ]
+    },
+    {
+      "startedAt": "2026-11-15T09:42:57.469Z",
+      "by": "extension",
+      "finishedAt": "2026-11-15T09:43:06.283Z",
+      "added": [],
+      "completed": true
+    }
+  ]
+}
