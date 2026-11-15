@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +51,7 @@ func TestParseAmount(t *testing.T) {
 
 func TestServiceRejectsInvalidAmounts(t *testing.T) {
 	s := service{c: mockConverter{}}
-	date := DateRequest{Year: "2022", Month: "December", Day: "08"}
+	date := DateRequest{Year: "2022", Month: time.December.String(), Day: testDay}
 
 	t.Run("convert zero amount", func(t *testing.T) {
 		_, err := s.Convert(context.Background(), ConvertRequest{
@@ -127,7 +128,7 @@ func TestCalculateRejectsYearIncomeBeyondFloat64(t *testing.T) {
 
 	require.NotPanics(t, func() {
 		_, err := s.Calculate(context.Background(), CalculateRequest{
-			Income:     []Income{gelIncome("October", "05", "100", nonCash)},
+			Income:     []Income{gelIncome(time.October.String(), "05", "100", nonCash)},
 			TaxType:    taxes.TaxTypeSmallBusiness.String(),
 			YearIncome: "1e400",
 		})

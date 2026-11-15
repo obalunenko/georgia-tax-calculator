@@ -14,6 +14,9 @@ import (
 	"github.com/obalunenko/georgia-tax-calculator/pkg/nbggovge/currencies"
 )
 
+// testDay is a day of month in the two-digit form the interfaces send.
+const testDay = "08"
+
 type mockConverter struct{}
 
 func (m mockConverter) Convert(_ context.Context, money models.Money, toCurrency string, _ time.Time) (converter.Response, error) {
@@ -59,8 +62,8 @@ func Test_service_Convert(t *testing.T) {
 				p: ConvertRequest{
 					DateRequest: DateRequest{
 						Year:  "2022",
-						Month: "December",
-						Day:   "08",
+						Month: time.December.String(),
+						Day:   testDay,
 					},
 					CurrencyFrom: currencies.AED,
 					CurrencyTo:   currencies.EUR,
@@ -92,7 +95,7 @@ func Test_service_Convert(t *testing.T) {
 					DateRequest: DateRequest{
 						Year:  "2022",
 						Month: "12",
-						Day:   "08",
+						Day:   testDay,
 					},
 					CurrencyFrom: currencies.AED,
 					CurrencyTo:   currencies.EUR,
@@ -113,7 +116,7 @@ func Test_service_Convert(t *testing.T) {
 					DateRequest: DateRequest{
 						Year:  "2022",
 						Month: "12",
-						Day:   "08",
+						Day:   testDay,
 					},
 					CurrencyFrom: currencies.AED,
 					CurrencyTo:   currencies.EUR,
@@ -171,8 +174,8 @@ func Test_service_Calculate(t *testing.T) {
 					Income: []Income{
 						{
 							Year:     "2022",
-							Month:    "December",
-							Day:      "08",
+							Month:    time.December.String(),
+							Day:      testDay,
 							Currency: currencies.EUR,
 							Amount:   "1000",
 						},
@@ -226,15 +229,15 @@ func Test_service_Calculate(t *testing.T) {
 					Income: []Income{
 						{
 							Year:     "2022",
-							Month:    "December",
-							Day:      "08",
+							Month:    time.December.String(),
+							Day:      testDay,
 							Currency: currencies.EUR,
 							Amount:   "1000",
 						},
 						{
 							Year:     "2022",
-							Month:    "June",
-							Day:      "08",
+							Month:    time.June.String(),
+							Day:      testDay,
 							Currency: currencies.USD,
 							Amount:   "200",
 						},
@@ -299,7 +302,7 @@ func Test_service_Calculate(t *testing.T) {
 						{
 							Year:     "2022",
 							Month:    "12",
-							Day:      "08",
+							Day:      testDay,
 							Currency: currencies.GEL,
 							Amount:   "568",
 							Type:     nonCash,
@@ -325,7 +328,7 @@ func Test_service_Calculate(t *testing.T) {
 						{
 							Year:     "2022",
 							Month:    "12",
-							Day:      "08",
+							Day:      testDay,
 							Currency: currencies.GEL,
 							Amount:   "568",
 						},

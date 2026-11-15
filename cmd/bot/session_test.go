@@ -189,7 +189,7 @@ func TestInflightWaitsForHandledUpdates(t *testing.T) {
 }
 
 func TestSessionRestartIncomesKeepsTaxDetails(t *testing.T) {
-	first := service.Income{Year: "2025", Month: "June", Day: "08", Currency: "USD", Amount: "100"}
+	first := service.Income{Year: "2025", Month: time.June.String(), Day: testDay, Currency: "USD", Amount: "100"}
 
 	sess := &session{
 		flow:       flowCalculate,

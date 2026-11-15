@@ -64,7 +64,7 @@ func TestLimitWarningString(t *testing.T) {
 
 func TestCheckSingleYear(t *testing.T) {
 	income := func(year string) Income {
-		return Income{Year: year, Month: "June", Day: "08", Currency: currencies.GEL, Amount: "1"}
+		return Income{Year: year, Month: time.June.String(), Day: testDay, Currency: currencies.GEL, Amount: "1"}
 	}
 
 	tests := []struct {
@@ -111,8 +111,8 @@ func TestCalculateRejectsMixedYearsBeforeConversion(t *testing.T) {
 
 	_, err := s.Calculate(context.Background(), CalculateRequest{
 		Income: []Income{
-			{Year: "2024", Month: "June", Day: "08", Currency: currencies.EUR, Amount: "100"},
-			{Year: "2025", Month: "June", Day: "08", Currency: currencies.EUR, Amount: "100"},
+			{Year: "2024", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
+			{Year: "2025", Month: time.June.String(), Day: testDay, Currency: currencies.EUR, Amount: "100"},
 		},
 		TaxType:    taxes.TaxTypeSmallBusiness.String(),
 		YearIncome: "0",
@@ -126,7 +126,7 @@ func TestCalculateYearIncomeRules(t *testing.T) {
 		incomes := make([]Income, 0, len(amounts))
 		for _, a := range amounts {
 			incomes = append(incomes, Income{
-				Year: "2025", Month: "June", Day: "08",
+				Year: "2025", Month: time.June.String(), Day: testDay,
 				Currency: currencies.GEL,
 				Amount:   a,
 				Type:     nonCash,
@@ -207,10 +207,10 @@ func TestCheckSingleMonth(t *testing.T) {
 		wantMonth bool
 	}{
 		{name: "no incomes"},
-		{name: "one month", incomes: []Income{inc("October"), inc("October")}},
+		{name: "one month", incomes: []Income{inc(time.October.String()), inc(time.October.String())}},
 		{
 			name:      "two months",
-			incomes:   []Income{inc("September"), inc("October")},
+			incomes:   []Income{inc(time.September.String()), inc(time.October.String())},
 			wantErr:   "September and October: incomes span more than one calendar month",
 			wantMonth: true,
 		},
@@ -235,8 +235,8 @@ func TestCheckSingleMonth(t *testing.T) {
 
 func TestCalculateMonthRule(t *testing.T) {
 	incomes := []Income{
-		gelIncome("September", "05", "100", nonCash),
-		gelIncome("October", "05", "100", nonCash),
+		gelIncome(time.September.String(), "05", "100", nonCash),
+		gelIncome(time.October.String(), "05", "100", nonCash),
 	}
 
 	t.Run("small business rejects two months before conversion", func(t *testing.T) {

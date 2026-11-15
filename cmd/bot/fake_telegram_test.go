@@ -25,6 +25,8 @@ const (
 	testToken  = "123456:abcdefghijklmnopqrstuvwxyz012345678"
 	testChatID = int64(100)
 	testUserID = int64(100)
+	// testDay is a day of month as the day keyboard sends it.
+	testDay = "08"
 )
 
 // apiCall is one Bot API call received by fakeTelegram.

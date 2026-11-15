@@ -70,7 +70,7 @@ func TestConvertRejectsInvalidDate(t *testing.T) {
 	s := service{c: failingConverter{t: t}}
 
 	_, err := s.Convert(context.Background(), ConvertRequest{
-		Year: "2024", Month: "April", Day: "31",
+		Year: "2024", Month: time.April.String(), Day: "31",
 		CurrencyFrom: currencies.EUR,
 		CurrencyTo:   currencies.GEL,
 		Amount:       "100",
