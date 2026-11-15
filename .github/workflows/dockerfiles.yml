@@ -22,7 +22,6 @@ jobs:
       matrix:
         dockerfile:
           [
-            "./build/docker/go-tools/Dockerfile",
             "./build/docker/bot/Dockerfile",
           ]
     runs-on: "ubuntu-24.04"

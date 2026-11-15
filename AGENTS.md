@@ -16,7 +16,7 @@ layer.
   and `internal/models/`. Money arithmetic goes through `pkg/moneyutils`.
 - Library work: `pkg/nbggovge/`, `pkg/moneyutils/`, `pkg/dateutils/`. `pkg/`
   never imports `internal/`.
-- Tooling work: `Makefile`, `scripts/` (except `scripts/speckit/`),
+- Tooling work: `Makefile`, `scripts/` (except `scripts/speckit/`), `tools/`,
   `build/docker/`, `deployments/docker-compose/`, `.goreleaser.yml`,
   `.golangci*.yml`, `sonar-project.properties`, and `.github/`.
 - Spec Kit work: `.specify/`, `.speckit/feature-numbering/`,
@@ -34,9 +34,10 @@ layer.
 
 ## Validation
 
-- Makefile targets run tools in Docker: `make vet`, `make test`,
-  `make lint-pipeline`, `make build`. CI runs the same targets.
-- Without Docker, use `go vet ./...` and `go test -race ./...`.
+- Run `make vet`, `make test`, `make lint-pipeline`, `make build`; CI runs the
+  same checks. Tools are pinned in `tools/<name>/go.mod` and built with
+  `go tool` on first use (`make install-tools` prebuilds them); bump a tool
+  there, not in CI.
 - Format with `make format-project` (gofmt and goimports).
 - Tests that call the real NBG API require `INTEGRATION_TESTS=true`
   (`make test-integration`); default tests use `pkg/nbggovge/mock` or

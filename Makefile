@@ -9,11 +9,6 @@ SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
 RELEASE_BRANCH?=master
 SHELL := env RELEASE_BRANCH=$(RELEASE_BRANCH) $(SHELL)
 
-COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
-COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
-COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --build --remove-orphans --exit-code-from
-COMPOSE_TOOLS_CMD_PULL=$(COMPOSE_TOOLS_CMD_BASE) build
-
 COMPOSE_BOT_FILE=deployments/docker-compose/bot-docker-compose.yml
 COMPOSE_BOT_CMD_BASE=docker compose -f $(COMPOSE_BOT_FILE)
 BOT_ENV_FILE?=deployments/docker-compose/.env
@@ -60,7 +55,7 @@ build: sync-vendor generate compile-app
 
 ## Compile app.
 compile-app:
-	$(COMPOSE_TOOLS_CMD_UP) build build
+	./scripts/build/app.sh
 .PHONY: compile-app
 
 ## Test coverage report.
@@ -69,7 +64,7 @@ test-cover:
 .PHONY: test-cover
 
 prepare-cover-report: test-cover
-	$(COMPOSE_TOOLS_CMD_UP) prepare-cover-report prepare-cover-report
+	./scripts/tests/prepare-cover-report.sh
 .PHONY: prepare-cover-report
 
 ## Open coverage report.
@@ -79,12 +74,12 @@ open-cover-report: prepare-cover-report
 
 ## Update readme coverage.
 update-readme-cover: build prepare-cover-report
-	$(COMPOSE_TOOLS_CMD_UP) update-readme-coverage update-readme-coverage
+	./scripts/update-readme-coverage.sh
 .PHONY: update-readme-cover
 
 ## Run tests.
 test:
-	$(COMPOSE_TOOLS_CMD_UP) run-tests run-tests
+	./scripts/tests/run.sh
 .PHONY: test
 
 test-integration:
@@ -105,46 +100,46 @@ sync-vendor:
 
 ## Fix imports sorting.
 imports:
-	$(COMPOSE_TOOLS_CMD_UP) fix-imports fix-imports
+	./scripts/style/fix-imports.sh
 .PHONY: imports
 
 ## Format code with go fmt.
 fmt:
-	$(COMPOSE_TOOLS_CMD_UP) fix-fmt fix-fmt
+	./scripts/style/fmt.sh
 .PHONY: fmt
 
 ## Format code and sort imports.
 format-project: fmt imports
 .PHONY: format-project
 
-## Installs vendored tools.
+## Build tools pinned in tools/<name>/go.mod.
 install-tools:
-	$(COMPOSE_TOOLS_CMD_PULL)
+	./scripts/install/tools.sh
 .PHONY: install-tools
 
 ## vet project
 vet:
-	$(COMPOSE_TOOLS_CMD_UP) vet vet
+	./scripts/linting/run-vet.sh
 .PHONY: vet
 
 ## Run full linting
 lint-full:
-	$(COMPOSE_TOOLS_CMD_UP) lint-full lint-full
+	./scripts/linting/run-linters.sh
 .PHONY: lint-full
 
 ## Run linting for build pipeline
 lint-pipeline:
-	$(COMPOSE_TOOLS_CMD_UP) lint-pipeline lint-pipeline
+	./scripts/linting/golangci-pipeline.sh
 .PHONY: lint-pipeline
 
 ## Run linting for sonar report
 lint-sonar:
-	$(COMPOSE_TOOLS_CMD_UP) lint-sonar lint-sonar
+	./scripts/linting/golangci-sonar.sh
 .PHONY: lint-sonar
 
 ## recreate all generated code and documentation.
 codegen:
-	$(COMPOSE_TOOLS_CMD_UP) go-generate go-generate
+	./scripts/codegen/go-generate.sh
 .PHONY: codegen
 
 ## recreate all generated code and swagger documentation and format code.
@@ -153,17 +148,17 @@ generate: codegen format-project vet
 
 ## Release
 release:
-	$(COMPOSE_TOOLS_CMD_UP) release release
+	./scripts/release/release.sh
 .PHONY: release
 
 ## Release local snapshot
 release-local-snapshot:
-	$(COMPOSE_TOOLS_CMD_UP) release-local-snapshot release-local-snapshot
+	./scripts/release/local-snapshot-release.sh
 .PHONY: release-local-snapshot
 
 ## Check goreleaser config.
 check-releaser:
-	$(COMPOSE_TOOLS_CMD_UP) release-check-config release-check-config
+	./scripts/release/check.sh
 .PHONY: check-releaser
 
 ## Issue new release.

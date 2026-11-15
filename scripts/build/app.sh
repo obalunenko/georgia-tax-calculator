@@ -13,9 +13,9 @@ mkdir -p "${BIN_DIR}"
 
 echo "${SCRIPT_NAME} is running... "
 
-check_installed 'goreleaser'
+GORELEASER="$(tool_path goreleaser)"
 
-goreleaser healthcheck
+"${GORELEASER}" healthcheck
 
 APP=${APP_NAME}
 # goreleaser ignores --output unless a single build is selected; .goreleaser.yml has `cli` and `bot`.
@@ -27,7 +27,7 @@ BIN_OUT="${BIN_DIR}/${APP}"
 
 rm -rf "${BIN_OUT}"
 
-goreleaser build --skip=validate --clean --single-target --id "${BUILD_ID}" --output "${BIN_OUT}"
+"${GORELEASER}" build --skip=validate --clean --single-target --id "${BUILD_ID}" --output "${BIN_OUT}"
 
 if [[ ! -f "${BIN_OUT}" ]]; then
   echo "Binary was not created at ${BIN_OUT}"
