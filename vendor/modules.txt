@@ -161,11 +161,9 @@ github.com/mymmrac/telego
 github.com/mymmrac/telego/internal/json
 github.com/mymmrac/telego/telegoapi
 github.com/mymmrac/telego/telegohandler
-# github.com/obalunenko/getenv v1.15.0
-## explicit; go 1.26.2
+# github.com/obalunenko/getenv v1.17.0
+## explicit; go 1.26.0
 github.com/obalunenko/getenv
-github.com/obalunenko/getenv/internal
-github.com/obalunenko/getenv/option
 # github.com/obalunenko/logger v1.2.0
 ## explicit; go 1.23
 github.com/obalunenko/logger

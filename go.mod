@@ -7,7 +7,7 @@ require (
 	charm.land/bubbletea/v2 v2.1.1
 	github.com/briandowns/spinner v1.23.2
 	github.com/mymmrac/telego v1.13.0
-	github.com/obalunenko/getenv v1.15.0
+	github.com/obalunenko/getenv v1.17.0
 	github.com/obalunenko/logger v1.2.0
 	github.com/obalunenko/version v1.4.0
 	github.com/savioxavier/termlink v1.4.3
