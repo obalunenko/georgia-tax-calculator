@@ -54,7 +54,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
@@ -104,7 +104,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
@@ -136,7 +136,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
@@ -181,7 +181,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
