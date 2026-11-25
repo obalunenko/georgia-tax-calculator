@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	charm.land/bubbles/v2 v2.2.1
-	charm.land/bubbletea/v2 v2.1.1
+	charm.land/bubbletea/v2 v2.1.2
 	github.com/briandowns/spinner v1.23.2
 	github.com/mymmrac/telego v1.13.0
 	github.com/obalunenko/getenv v1.15.0
