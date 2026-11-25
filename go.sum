@@ -67,8 +67,8 @@ github.com/muesli/cancelreader v0.2.2 h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELU
 github.com/muesli/cancelreader v0.2.2/go.mod h1:3XuTXfFS2VjM+HTLZY9Ak0l6eUKfijIfMUZ4EgX0QYo=
 github.com/mymmrac/telego v1.13.0 h1:1sz4F5bstBJYjZNPPJykYBT0HHIIKvPLvARZt45swM0=
 github.com/mymmrac/telego v1.13.0/go.mod h1:gsRatcXPP0UBU9gWbKzp21yQWoPHte86AUKrVcikuaw=
-github.com/obalunenko/getenv v1.15.0 h1:TX+GytSOk0xTK0L8VOIo+L6N77BKQ5iMvnsPRzz/bec=
-github.com/obalunenko/getenv v1.15.0/go.mod h1:kXJjGqFmvucspwNk4/hrHi2bG3cEfSEQJPYmWzUK/KQ=
+github.com/obalunenko/getenv v1.17.0 h1:JxVy6tgWFg55RQxni8x2JIi8bIhmddivwX2EQp8oDVs=
+github.com/obalunenko/getenv v1.17.0/go.mod h1:+vDhwKtC+N82yCGDlA0D8ZY8jHYaj6tIJhBDXCpECaM=
 github.com/obalunenko/logger v1.2.0 h1:MwsqJWtaxaHFQK7Cjkqk1NnlNPHH+tR1ergdnpST7Kg=
 github.com/obalunenko/logger v1.2.0/go.mod h1:XaU3GhUJWda3ow3hhRjlItpIVgQRKa2KDsEeprSzBvg=
 github.com/obalunenko/version v1.4.0 h1:KXcerQ90SGZDpTlUzJ2Ch/bCE1bqOshzV8JGleeykJo=
