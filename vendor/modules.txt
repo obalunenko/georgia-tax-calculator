@@ -118,7 +118,7 @@ github.com/goccy/go-json/internal/options
 github.com/goccy/go-json/internal/runtime
 github.com/goccy/go-json/internal/textcoder
 github.com/goccy/go-json/jsontext
-# github.com/klauspost/compress v1.20.3
+# github.com/klauspost/compress v1.20.4
 ## explicit; go 1.25
 github.com/klauspost/compress
 github.com/klauspost/compress/flate
@@ -155,7 +155,7 @@ github.com/molecule-man/go-brrr/internal/encoder
 # github.com/muesli/cancelreader v0.2.2
 ## explicit; go 1.17
 github.com/muesli/cancelreader
-# github.com/mymmrac/telego v1.13.0
+# github.com/mymmrac/telego v1.14.0
 ## explicit; go 1.26.11
 github.com/mymmrac/telego
 github.com/mymmrac/telego/internal/json
@@ -211,7 +211,7 @@ github.com/urfave/cli/v3
 # github.com/valyala/bytebufferpool v1.0.0
 ## explicit
 github.com/valyala/bytebufferpool
-# github.com/valyala/fasthttp v1.78.0
+# github.com/valyala/fasthttp v1.79.0
 ## explicit; go 1.26.0
 github.com/valyala/fasthttp
 github.com/valyala/fasthttp/fasthttputil
